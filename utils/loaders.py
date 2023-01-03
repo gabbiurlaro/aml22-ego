@@ -285,3 +285,32 @@ class EpicKitchensDataset(data.Dataset, ABC):
 
     def __len__(self):
         return len(self.video_list)
+
+class ActionNetDataset(data.Dataset, ABC):
+    def __init__(self, split, modalities, mode, dataset_conf, num_frames_per_clip, num_clips, dense_sampling,
+                 transform=None, load_feat=False, additional_info=False, **kwargs) -> None:
+        """
+        - split: S0, S1, S2...
+        - modalities can be RGB(not implemented yet) and EMG data
+        - mode is a string (train, test)
+        dataset_conf must contain the following:
+            - annotations_path: str
+            - stride: int
+        dataset_conf[modality] for the modalities used must contain:
+            - data_path: str
+            - tmpl: str
+            - features_name: str (in case you are loading features for a predefined modality)
+            - (Event only) rgb4e: int
+        num_frames_per_clip: dict(modality: int)
+        num_clips: int
+        dense_sampling: dict(modality: bool)
+        additional_info: bool, set to True if you want to receive also the uid and the video name from the get function
+            notice, this may be useful to do some proper visualizations!
+        """
+        super().__init__()
+        if split != 'S04':
+            NotImplementedError
+        if modalities not in ['RGB', 'EMG']:
+            NotImplementedError
+        self.data = pd.read_pickle('../action_net/EMG/S04_1.pkl')
+        
