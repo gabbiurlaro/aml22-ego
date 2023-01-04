@@ -22,9 +22,11 @@ In order to do so a file with all the requirements for the python environment is
 
 ### 2. Google Colab
 
-You can also run the code on [Google Colab](https://colab.research.google.com/)
+You can also run the code on [Google Colab](https://colab.research.google.com/).
 
 - Upload all the scripts in this repo.
 - Prepare a proper notebook structured as the `train_classifier.py` script.
+
+As a reference, `colab_runner.ipynb` provides an example of how to set up a working environment in Google Colab.
 
 NOTE: you need to stay connected to the Google Colab interface at all times for your python scripts to keep training.
