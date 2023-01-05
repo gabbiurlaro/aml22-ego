@@ -310,7 +310,16 @@ class ActionNetDataset(data.Dataset, ABC):
         super().__init__()
         if split != 'S04':
             NotImplementedError
-        if modalities not in ['RGB', 'EMG']:
+        if modalities not in ['EMG']: # later we will add RGB modalities to compare performances
             NotImplementedError
-        self.data = pd.read_pickle('../action_net/EMG/S04_1.pkl')
-        
+        # read the dataframe. I didn't really understand what _x means, so i prefer to hardcode the path
+        # later we can use a combination of mode(train/test) and dataset_conf to retrieve the path, and maybe add
+        # it to a config file
+        dataframe = pd.read_pickle('../action_net/EMG/S04_1.pkl')
+        # Read the dataframe and extract data. Data are arrays representing the 8l and 8r channels-> 16 values. 
+        # The proposed netwrok take in input sequence of 100 elements
+
+        # The other parameters are not used now, because are related to RGB modality
+
+    def __len__(self):
+        return len(self.data)
