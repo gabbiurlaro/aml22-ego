@@ -308,18 +308,32 @@ class ActionNetDataset(data.Dataset, ABC):
             notice, this may be useful to do some proper visualizations!
         """
         super().__init__()
-        if split != 'S04':
-            NotImplementedError
-        if modalities not in ['EMG']: # later we will add RGB modalities to compare performances
-            NotImplementedError
-        # read the dataframe. I didn't really understand what _x means, so i prefer to hardcode the path
-        # later we can use a combination of mode(train/test) and dataset_conf to retrieve the path, and maybe add
-        # it to a config file
-        dataframe = pd.read_pickle('../action_net/EMG/S04_1.pkl')
-        # Read the dataframe and extract data. Data are arrays representing the 8l and 8r channels-> 16 values. 
-        # The proposed netwrok take in input sequence of 100 elements
 
-        # The other parameters are not used now, because are related to RGB modality
+        self.modalities = modalities  # considered modalities (ex. [RGB, Flow, Spec, Event])
+        self.mode = mode  # 'train', 'val' or 'test'
+        self.dataset_conf = dataset_conf
+        self.num_frames_per_clip = num_frames_per_clip
+        self.dense_sampling = dense_sampling
+        self.num_clips = num_clips
+        self.stride = self.dataset_conf.stride
+        self.additional_info = additional_info
+
+        if self.mode == "train":
+            pickle_name = "ActionNet_train.pkl"
+        elif kwargs.get('save', None) is not None:
+            pickle_name = split + "_" + kwargs["save"] + ".pkl"
+        else:
+            pickle_name = "ActionNet_train.pkl"
+
+        self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
+        logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
+        self.video_list = [EpicVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
+        self.transform = transform  # pipeline of transforms
+        self.load_feat = load_feat
+
+        if self.load_feat:
+            NotImplementedError
+        
 
     def __len__(self):
         return len(self.data)
