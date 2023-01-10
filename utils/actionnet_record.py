@@ -1,42 +1,23 @@
 from .video_record import VideoRecord
 
 
-class EpicVideoRecord(VideoRecord):
+class ActionNetVideoRecord(VideoRecord):
     def __init__(self, tup, dataset_conf):
         self._index = str(tup[0])
         self._series = tup[1]
         self.dataset_conf = dataset_conf
 
     @property
-    def uid(self):
-        return self._series['uid']
-
-    @property
-    def untrimmed_video_name(self):
-        return self._series['video_id']
-
-    @property
-    def kitchen(self):
-        return int(self._series['video_id'].split('_')[0][1:])
-
-    @property
-    def recording(self):
-        return int(self._series['video_id'].split('_')[1])
-
-    @property
     def start_frame(self):
-        return self._series['start_frame'] - 1
+        return self._series['start_frame']
 
     @property
     def end_frame(self):
-        return self._series['stop_frame'] - 2
+        return self._series['stop_frame']
 
     @property
     def num_frames(self):
-        return {'RGB': self.end_frame - self.start_frame,
-                'Flow': int((self.end_frame - self.start_frame) / 2),
-                'Event': int((self.end_frame - self.start_frame) / self.dataset_conf["Event"].rgb4e),
-                'Spec': self.end_frame - self.start_frame}
+        return {'RGB': self.end_frame - self.start_frame}
 
     @property
     def label(self):
