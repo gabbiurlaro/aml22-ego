@@ -3,6 +3,7 @@ import math
 from abc import ABC
 import pandas as pd
 from .epic_record import EpicVideoRecord
+from .actionnet_record import ActionNetVideoRecord
 import torch.utils.data as data
 from PIL import Image
 import os
@@ -327,13 +328,169 @@ class ActionNetDataset(data.Dataset, ABC):
 
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
-        self.video_list = [EpicVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
+        self.video_list = [ActionNetVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         self.transform = transform  # pipeline of transforms
         self.load_feat = load_feat
 
         if self.load_feat:
             NotImplementedError
-        
+    
+    def _get_train_indices(self, record, modality='RGB'):
+        if self.dense_sampling[modality]:
+            # selecting one frame and discarding another (alternation), to avoid duplicates
+            center_frames = np.linspace(0, record.num_frames[modality], self.num_clips + 2,
+                                        dtype=np.int32)[1:-1]
+
+            indices = [x for center in center_frames for x in
+                       range(center - math.ceil(self.num_frames_per_clip[modality] / 2 * self.stride),
+                             # start of the segment
+                             center + math.ceil(self.num_frames_per_clip[modality] / 2 * self.stride),
+                             # end of the segment
+                             self.stride)]  # step of the sampling
+
+            offset = -indices[0] if indices[0] < 0 else 0
+            for i in range(0, len(indices), self.num_frames_per_clip[modality]):
+                indices_old = indices[i]
+                for j in range(self.num_frames_per_clip[modality]):
+                    indices[i + j] = indices[i + j] + offset if indices_old < 0 else indices[i + j]
+
+            return indices
+
+        else:
+            indices = []
+            # average_duration is the average stride among frames in the clip to obtain a uniform sampling BUT
+            # the randint shifts a little (to add randomicity among clips)
+            average_duration = record.num_frames[modality] // self.num_frames_per_clip[modality]
+            if average_duration > 0:
+                for _ in self.num_clips:
+                    frame_idx = np.multiply(list(range(self.num_frames_per_clip[modality])), average_duration) + \
+                                randint(average_duration, size=self.num_frames_per_clip[modality])
+                    indices.extend(frame_idx.tolist())
+            else:
+                indices = np.zeros((self.num_frames_per_clip[modality] * self.num_clips,))
+            indices = np.asarray(indices)
+
+        return indices
+
+    def _get_val_indices(self, record, modality):
+        max_frame_idx = max(1, record.num_frames[modality])
+        if self.dense_sampling[modality]:
+            n_clips = self.num_clips
+            center_frames = np.linspace(0, record.num_frames[modality], n_clips + 2, dtype=np.int32)[1:-1]
+
+            indices = [x for center in center_frames for x in
+                       range(center - math.ceil(self.num_frames_per_clip[modality] / 2 * self.stride),
+                             # start of the segment
+                             center + math.ceil(self.num_frames_per_clip[modality] / 2 * self.stride),
+                             # end of the segment
+                             self.stride)]  # step of the sampling
+
+            offset = -indices[0] if indices[0] < 0 else 0
+            for i in range(0, len(indices), self.num_frames_per_clip[modality]):
+                indices_old = indices[i]
+                for j in range(self.num_frames_per_clip[modality]):
+                    indices[i + j] = indices[i + j] + offset if indices_old < 0 else indices[i + j]
+
+            return indices
+
+        else:  # uniform sampling
+            # Code for "Deep Analysis of CNN-based Spatio-temporal Representations for Action Recognition"
+            # arXiv: 2104.09952v1
+            # Yuan Zhi, Zhan Tong, Limin Wang, Gangshan Wu
+            frame_idices = []
+            sample_offsets = list(range(-self.num_clips // 2 + 1, self.num_clips // 2 + 1))
+            for sample_offset in sample_offsets:
+                if max_frame_idx > self.num_frames_per_clip[modality]:
+                    tick = max_frame_idx / float(self.num_frames_per_clip[modality])
+                    curr_sample_offset = sample_offset
+                    if curr_sample_offset >= tick / 2.0:
+                        curr_sample_offset = tick / 2.0 - 1e-4
+                    elif curr_sample_offset < -tick / 2.0:
+                        curr_sample_offset = -tick / 2.0
+                    frame_idx = np.array([int(tick / 2.0 + curr_sample_offset + tick * x) for x
+                                          in range(self.num_frames_per_clip[modality])])
+                else:
+                    np.random.seed(sample_offset - (-self.num_clips // 2 + 1))
+                    frame_idx = np.random.choice(max_frame_idx, self.num_frames_per_clip[modality])
+                frame_idx = np.sort(frame_idx)
+                frame_idices.extend(frame_idx.tolist())
+            frame_idx = np.asarray(frame_idices)
+            return frame_idx
+
+    def __getitem__(self, index):
+
+        frames = {}
+        label = None
+        # record is a row of the pkl file containing one sample/action
+        # notice that it is already converted into a EpicVideoRecord object so that here you can access
+        # all the properties of the sample easily
+        record = self.video_list[index]
+
+        if self.load_feat:
+            sample = {}
+            sample_row = self.model_features[self.model_features["uid"] == int(record.uid)]
+            assert len(sample_row) == 1
+            for m in self.modalities:
+                sample[m] = sample_row["features_" + m].values[0]
+            if self.additional_info:
+                return sample, record.label, record.untrimmed_video_name, record.uid
+            else:
+                return sample, record.label
+
+        segment_indices = {}
+        # notice that all indexes are sampled in the[0, sample_{num_frames}] range, then the start_index of the sample
+        # is added as an offset
+        for modality in self.modalities:
+            if self.mode == "train":
+                # here the training indexes are obtained with some randomization
+                segment_indices[modality] = self._get_train_indices(record, modality)
+            else:
+                # here the testing indexes are obtained with no randomization, i.e., centered
+                segment_indices[modality] = self._get_val_indices(record, modality)
+
+        for m in self.modalities:
+            img, label = self.get(m, record, segment_indices[m])
+            frames[m] = img
+
+        if self.additional_info:
+            return frames, label, record.untrimmed_video_name, record.uid
+        else:
+            return frames, label
+
+    def get(self, modality, record, indices):
+        images = list()
+        for frame_index in indices:
+            p = int(frame_index)
+            # here the frame is loaded in memory
+            frame = self._load_data(modality, record, p)
+            images.extend(frame)
+        # finally, all the transformations are applied
+        process_data = self.transform[modality](images)
+        return process_data, record.label
+
+    def _load_data(self, modality, record, idx):
+        data_path = self.dataset_conf[modality].data_path
+        tmpl = self.dataset_conf[modality].tmpl
+        if modality == 'RGB':
+            # here the offset for the starting index of the sample is added
+            idx_untrimmed = record.start_frame + idx
+            try:
+                img = Image.open(os.path.join(data_path, record.untrimmed_video_name, tmpl.format(idx_untrimmed))) \
+                    .convert('RGB')
+            except FileNotFoundError:
+                print("Img not found")
+                max_idx_video = int(sorted(glob.glob(os.path.join(data_path,
+                                                                record.untrimmed_video_name,
+                                                                "img_*")))[-1].split("_")[-1].split(".")[0])
+                if idx_untrimmed > max_idx_video:
+                    img = Image.open(os.path.join(data_path, record.untrimmed_video_name, tmpl.format(max_idx_video))) \
+                        .convert('RGB')
+                else:
+                    raise FileNotFoundError
+            return [img]
+        else:
+            raise NotImplementedError("Modality not implemented")
+   
 
     def __len__(self):
-        return len(self.data)
+        return len(self.video_list)
