@@ -320,13 +320,14 @@ class ActionNetDataset(data.Dataset, ABC):
         self.additional_info = additional_info
 
         if self.mode == "train":
-            pickle_name = "ActionNet_train.pkl"
+            pickle_name = split + "_train.pkl"
         elif kwargs.get('save', None) is not None:
             pickle_name = split + "_" + kwargs["save"] + ".pkl"
         else:
-            pickle_name = "ActionNet_train.pkl"
+            pickle_name = "S04_test.pkl"
 
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
+        
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ActionNetVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         self.transform = transform  # pipeline of transforms
