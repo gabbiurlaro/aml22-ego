@@ -466,6 +466,8 @@ class ActionNetDataset(data.Dataset, ABC):
             frame = self._load_data(modality, record, p)
             images.extend(frame)
         # finally, all the transformations are applied
+        if self.transform is None:
+            return images, record.label
         process_data = self.transform[modality](images)
         return process_data, record.label
 
@@ -476,16 +478,14 @@ class ActionNetDataset(data.Dataset, ABC):
             # here the offset for the starting index of the sample is added
             idx_untrimmed = record.start_frame + idx
             try:
-                img = Image.open(os.path.join(data_path, record.untrimmed_video_name, tmpl.format(idx_untrimmed))) \
-                    .convert('RGB')
+                # print(f'[DEBUG] dp = {data_path}, tmpl = {tmpl.format(idx_untrimmed)}')
+                # print(f'[DEBUG] path = {os.path.join(data_path, tmpl.format(idx_untrimmed))}')
+                img = Image.open(os.path.join(data_path, tmpl.format(idx_untrimmed))).convert('RGB')
             except FileNotFoundError:
                 print("Img not found")
-                max_idx_video = int(sorted(glob.glob(os.path.join(data_path,
-                                                                record.untrimmed_video_name,
-                                                                "img_*")))[-1].split("_")[-1].split(".")[0])
+                max_idx_video = int(sorted(glob.glob(os.path.join(data_path,"img_*")))[-1].split("_")[-1].split(".")[0])
                 if idx_untrimmed > max_idx_video:
-                    img = Image.open(os.path.join(data_path, record.untrimmed_video_name, tmpl.format(max_idx_video))) \
-                        .convert('RGB')
+                    img = Image.open(os.path.join(data_path,tmpl.format(max_idx_video))).convert('RGB')
                 else:
                     raise FileNotFoundError
             return [img]
