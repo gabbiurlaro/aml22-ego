@@ -29,7 +29,6 @@ CLASSES USED FOR THIS SETTING
         D3 - P22
 '''
 
-
 class EpicKitchensDataset(data.Dataset, ABC):
     def __init__(self, split, modalities, mode, dataset_conf, num_frames_per_clip, num_clips, dense_sampling,
                  transform=None, load_feat=False, additional_info=False, **kwargs):
@@ -70,6 +69,7 @@ class EpicKitchensDataset(data.Dataset, ABC):
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [EpicVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
+        # self.emg_data = [tup[1]['myo_left_'] for tup in self.list_file.iterrows()]
         self.transform = transform  # pipeline of transforms
         self.load_feat = load_feat
 
@@ -288,6 +288,7 @@ class EpicKitchensDataset(data.Dataset, ABC):
         return len(self.video_list)
 
 class ActionNetDataset(data.Dataset, ABC):
+
     def __init__(self, split, modalities, mode, dataset_conf, num_frames_per_clip, num_clips, dense_sampling,
                  transform=None, load_feat=False, additional_info=False, **kwargs) -> None:
         """
@@ -495,3 +496,14 @@ class ActionNetDataset(data.Dataset, ABC):
 
     def __len__(self):
         return len(self.video_list)
+
+
+class EMG_ActionNet(data.Dataset, ABC):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def __len__(self):
+        return 0
+
+    def __getitem__(self, index):
+        return None
