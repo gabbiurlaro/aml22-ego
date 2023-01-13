@@ -20,6 +20,14 @@ class ActionNetVideoRecord(VideoRecord):
         return {'RGB': self.end_frame - self.start_frame}
 
     @property
+    def uid(self):
+        return self._series['uid']
+
+    @property
+    def untrimmed_video_name(self):
+        return "S04"
+        
+    @property
     def label(self):
         if 'verb_class' not in self._series.keys().tolist():
             raise NotImplementedError
