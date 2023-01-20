@@ -145,7 +145,7 @@ def save_feat(model, loader, device, it, num_classes):
                                                          class_acc))
 
     logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
-                .format(np.array(class_accuracies.values()).mean(axis=0)))
+                .format(np.array(class_accuracies.values()).mean()))
     test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
                     'class_accuracies': np.array(class_accuracies.values())}
 
