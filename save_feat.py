@@ -138,7 +138,7 @@ def save_feat(model, loader, device, it, num_classes):
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
                                                                       model.accuracy.avg[5]))
         print(class_accuracies)
-        for i_class, class_acc in enumerate(class_accuracies.items()):
+        for i_class, class_acc in zip(class_accuracies.keys(), class_accuracies.items()):
             logger.info('Class %d = [%d/%d] = %.2f%%' % (i_class,
                                                          int(model.accuracy.correct[i_class]),
                                                          int(model.accuracy.total[i_class]),
