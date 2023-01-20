@@ -51,7 +51,7 @@ def main():
 
     action_classifier = tasks.ActionRecognition("action-classifier", models, 1,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.test.num_clips, args.models, args=args)
+                                                args.save.num_clips, args.models, args=args)
     action_classifier.load_on_gpu(device)
     if args.resume_from is not None:
         action_classifier.load_last_model(args.resume_from)
@@ -59,7 +59,7 @@ def main():
     if args.action == "save":
         augmentations = {"train": train_augmentations, "test": test_augmentations}
         # the only action possible with this script is "save"
-        loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+        loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  args.split, args.dataset,
                                                                  args.save.num_frames_per_clip,
                                                                  args.save.num_clips, args.save.dense_sampling,
@@ -96,16 +96,16 @@ def save_feat(model, loader, device, it, num_classes):
 
             for m in modalities:
                 batch, _, height, width = data[m].shape
-                data[m] = data[m].reshape(batch, args.test.num_clips,
-                                          args.test.num_frames_per_clip[m], -1, height, width)
+                data[m] = data[m].reshape(batch, args.save.num_clips,
+                                          args.save.num_frames_per_clip[m], -1, height, width)
                 data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
 
-                logits[m] = torch.zeros((args.test.num_clips, batch, num_classes)).to(device)
-                features[m] = torch.zeros((args.test.num_clips, batch, model.task_models[m]
+                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
+                features[m] = torch.zeros((args.save.num_clips, batch, model.task_models[m]
                                            .module.feat_dim)).to(device)
 
             clip = {}
-            for i_c in range(args.test.num_clips):
+            for i_c in range(args.save.num_clips):
                 for m in modalities:
                     clip[m] = data[m][i_c].to(device)
 
@@ -134,10 +134,10 @@ def save_feat(model, loader, device, it, num_classes):
                                                     args.dataset.shift.split("-")[1] + "_" +
                                                     args.split + ".pkl"), 'wb'))
 
-        class_accuracies = [(x / y) * 100 for x, y in zip(model.accuracy.correct, model.accuracy.total)]
+        class_accuracies = {i_class: (x / y) * 100 for i_class, x, y in zip(range(len(model.accuracy.total)), model.accuracy.correct, model.accuracy.total) if y != 0}
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
                                                                       model.accuracy.avg[5]))
-        for i_class, class_acc in enumerate(class_accuracies):
+        for i_class, class_acc in enumerate(class_accuracies.items()):
             logger.info('Class %d = [%d/%d] = %.2f%%' % (i_class,
                                                          int(model.accuracy.correct[i_class]),
                                                          int(model.accuracy.total[i_class]),
