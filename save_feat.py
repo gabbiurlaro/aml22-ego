@@ -144,10 +144,10 @@ def save_feat(model, loader, device, it, num_classes):
                                                          int(model.accuracy.total[i_class]),
                                                          class_acc))
 
-    logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
-                .format(np.array(class_accuracies.values()).mean()))
-    test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
-                    'class_accuracies': np.array(class_accuracies.values())}
+    #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
+    #            .format(np.array(class_accuracies.values()).mean()))
+    #test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
+    #                'class_accuracies': np.array(class_accuracies.values())}
 
     with open(os.path.join(args.log_dir, f'val_precision_{args.dataset.shift.split("-")[0]}-'
                                          f'{args.dataset.shift.split("-")[-1]}.txt'), 'a+') as f:
