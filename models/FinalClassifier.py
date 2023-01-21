@@ -1,5 +1,7 @@
+from turtle import forward
 from torch import nn
 import torch
+import TRN
 
 
 class Classifier(nn.Module):
@@ -30,3 +32,11 @@ class MLP_late_fusion(nn.Module):
         
 
         return torch.stack(logits, dim=0).mean(dim=0), {}
+    
+class action_TRN(nn.Module):
+    def __init__(self, num_input, num_classes, num_clips ) -> None:
+        super().__init__()
+        self.classifier= TRN.RelationModuleMultiScale(num_input, num_clips, num_classes)
+        
+    def forward(self, x):
+        return self.classifier(x)
