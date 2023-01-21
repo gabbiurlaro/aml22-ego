@@ -151,7 +151,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             # in case of multi-clip training one clip per time is processed
         for m in modalities:
             data[m] = source_data[m].to(device)
-            print(data[m].shape())
+            print(data[m].size())
             exit(-1)
             logits, _ = action_classifier.forward(data)
         
