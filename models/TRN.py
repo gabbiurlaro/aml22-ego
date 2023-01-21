@@ -139,6 +139,7 @@ class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
                 act_relation = input[:, self.relations_scales[scaleID][idx], :]
                 act_relation = act_relation.view(act_relation.size(0), self.scales[scaleID] * self.img_feature_dim)
                 print(f'mist: {self.fc_fusion_scales[scaleID]}')
+                exit(-1)
                 act_relation = self.fc_fusion_scales[scaleID](act_relation)
                 act_relation = self.classifier_scales[scaleID](act_relation)
                 act_all += act_relation
