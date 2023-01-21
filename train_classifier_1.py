@@ -154,7 +154,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             data[m] = torch.reshape(data[m], (5,32,1024))
            
         logits, _ = action_classifier.forward(data)
-        print(logits.size())
+        print(f"{len(logits['RGB'])}")
         return -6
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
