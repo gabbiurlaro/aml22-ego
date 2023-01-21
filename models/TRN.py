@@ -129,6 +129,8 @@ class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
         print(f'yo: {input.size()}, self_rel : {self.relations_scales[0][0][0]}')
         act_all = input[:, self.relations_scales[0][0][0] , :]
         act_all = act_all.view(act_all.size(), self.scales[0] * self.img_feature_dim)
+        print(f'mist: {self.fc_fusion_scales[scaleID]}')
+        exit(-1)
         act_all = self.fc_fusion_scales[0](act_all)
         act_all = self.classifier_scales[0](act_all)
 
@@ -138,8 +140,7 @@ class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
             for idx in idx_relations_randomsample:
                 act_relation = input[:, self.relations_scales[scaleID][idx], :]
                 act_relation = act_relation.view(act_relation.size(0), self.scales[scaleID] * self.img_feature_dim)
-                print(f'mist: {self.fc_fusion_scales[scaleID]}')
-                exit(-1)
+                
                 act_relation = self.fc_fusion_scales[scaleID](act_relation)
                 act_relation = self.classifier_scales[scaleID](act_relation)
                 act_all += act_relation
