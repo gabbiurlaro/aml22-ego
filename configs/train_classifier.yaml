@@ -8,6 +8,7 @@ wandb_name: null # needed for wandb logging
 resume_from: null # checkpoint directory
 logname: null # name of the logs
 models_dir: null # directory containing all the models
+num_clips: 5 
 
 dataset:
   annotations_path: train_val # path for the annotations data
