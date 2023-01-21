@@ -39,4 +39,4 @@ class action_TRN(nn.Module):
         self.classifier= RelationModuleMultiScale(num_input, num_clips, num_classes)
 
     def forward(self, x):
-        return self.classifier(x)
+        return self.classifier(x), {}
