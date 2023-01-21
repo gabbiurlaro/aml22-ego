@@ -11,12 +11,13 @@ class Classifier(nn.Module):
 
 
 class MLP_late_fusion(nn.Module):
-    def __init__(self, num_input, num_classes, num_clips) -> None:
+    def __init__(self,num_classes) -> None:
         super().__init__()
-        self.num_clips = num_clips
+        self.num_clips = 5
+        self.num_input = 1024
         self.classifier = nn.Sequential(
             [
-            nn.Linear(num_input, 512),
+            nn.Linear(self.num_input, 512),
             nn.ReLU(),
             nn.Linear(512,512),
             nn.ReLU(),
