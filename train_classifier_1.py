@@ -152,8 +152,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         for m in modalities:
             data[m] = source_data[m].to(device)
             data[m] = torch.reshape(data[m], (5,32,1024))
-            print(data[m].size())
-            exit(-1)
+           
             logits, _ = action_classifier.forward(data)
         
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
