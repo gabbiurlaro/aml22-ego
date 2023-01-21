@@ -1,7 +1,7 @@
 from turtle import forward
 from torch import nn
 import torch
-from TRN import RelationModuleMultiScale
+from .TRN import RelationModuleMultiScale
 
 
 class Classifier(nn.Module):
