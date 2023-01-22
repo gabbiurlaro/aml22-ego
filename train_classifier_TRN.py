@@ -39,7 +39,7 @@ def init_operations():
         wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
         wandb.init(project="test-project", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-    wandb.run.name=f'{args.name}_{args.models.RGB.model}'
+        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
 
 def main():
@@ -168,10 +168,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
 
-        wandb.log({'loss on training': action_classifier.loss.val})
-
-        wandb.log({'loss on training': action_classifier.loss.avg})
-        wandb.log({'accuracy on train': action_classifier.accuracy.val[1]})
+        action_classifier.wandb_log()
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
             logger.info("[%d/%d]\tlast Verb loss: %.4f\tMean verb loss: %.4f\tAcc@1: %.2f%%\tAccMean@1: %.2f%%" %
