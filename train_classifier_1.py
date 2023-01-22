@@ -112,6 +112,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     global training_iterations, modalities
     losses = []
     accurracies = []
+    wandb.watch(action_classifier)
     data_loader_source = iter(train_loader)
     action_classifier.train(True)
     action_classifier.zero_grad()
@@ -163,7 +164,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
 
-        losses.append(deepcopy(action_classifier.loss.val))
+        wandb.log({'loss': action_classifier.loss.val})
+       
 
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
@@ -179,7 +181,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         # save the last 9 models
         if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
-            accurracies.append(deepcopy(val_metrics['top1']))
+            #accurracies.append(val_metrics['top1'].detach())
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))
@@ -191,7 +193,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
     
-    loss_and_accuracy_plot(losses=losses, accuracies=accurracies)
+    #loss_and_accuracy_plot(losses=losses, accuracies=accurracies)
 
 def validate(model, val_loader, device, it, num_classes):
     """
