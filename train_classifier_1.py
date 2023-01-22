@@ -39,7 +39,7 @@ def init_operations():
         wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
         wandb.init(project="test-project", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        
+    wandb.run_name=f'{args.name}_{args.model.RGB.model}'
 
 
 def main():
@@ -168,8 +168,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
 
-        wandb.log({'loss': action_classifier.loss.val})
-       
+        wandb.log({'loss on training': action_classifier.loss.val})
 
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
@@ -186,6 +185,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
             #accurracies.append(val_metrics['top1'].detach())
+            wandb.log({'top 1': val_metrics['top1']})
+
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))
