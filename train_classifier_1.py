@@ -170,6 +170,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
         wandb.log({'loss on training': action_classifier.loss.val})
 
+        wandb.log({'loss on training': action_classifier.loss.avg})
+        wandb.log({'accuracy on train': action_classifier.accuracy.val[1]})
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
             logger.info("[%d/%d]\tlast Verb loss: %.4f\tMean verb loss: %.4f\tAcc@1: %.2f%%\tAccMean@1: %.2f%%" %
@@ -185,7 +187,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
             #accurracies.append(val_metrics['top1'].detach())
-            wandb.log({'top 1': val_metrics['top1']})
+            wandb.log({'accuracy on val': val_metrics['top1']})
 
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
