@@ -38,6 +38,7 @@ def init_operations():
     if args.wandb_name is not None:
         wandb.init(group=args.wandb_name, dir=args.wandb_dir)
         wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
+        
 
 
 def main():
