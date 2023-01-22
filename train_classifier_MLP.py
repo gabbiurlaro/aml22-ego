@@ -33,9 +33,13 @@ def init_operations():
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpus)
 
     # wanbd logging configuration
+    
     if args.wandb_name is not None:
-        wandb.init(group=args.wandb_name, dir=args.wandb_dir)
-        wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
+        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
+        wandb.init(project="test-project", entity="egovision-aml22")
+        #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
+        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+
 
 
 def main():
