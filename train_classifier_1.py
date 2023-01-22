@@ -12,6 +12,7 @@ import numpy as np
 import os
 import models as model_list
 import tasks
+import matplotlib.pyplot as plt
 import wandb
 
 # global variables among training functions
@@ -63,7 +64,7 @@ def main():
                                                 args.total_batch, args.models_dir, num_classes,
                                                 args.train.num_clips, args.models, args=args)
     action_classifier.load_on_gpu(device)
-
+    
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
         if args.resume_from is not None:
@@ -108,7 +109,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     num_classes: int, number of classes in the classification problem
     """
     global training_iterations, modalities
-
+    losses = []
+    accurracies = []
     data_loader_source = iter(train_loader)
     action_classifier.train(True)
     action_classifier.zero_grad()
@@ -117,6 +119,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     # the batch size should be total_batch but batch accumulation is done with batch size = batch_size.
     # real_iter is the number of iterations if the batch size was really total_batch
     for i in range(iteration, training_iterations):
+
         # iteration w.r.t. the paper (w.r.t the bs to simulate).... i is the iteration with the actual bs( < tot_bs)
         real_iter = (i + 1) / (args.total_batch // args.batch_size)
         if real_iter == args.train.lr_steps:
@@ -159,6 +162,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
 
+        losses.append(action_classifier.loss.val)
+
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
             logger.info("[%d/%d]\tlast Verb loss: %.4f\tMean verb loss: %.4f\tAcc@1: %.2f%%\tAccMean@1: %.2f%%" %
@@ -173,7 +178,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         # save the last 9 models
         if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
-
+            accurracies.append(val_metrics['top1'])
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))
@@ -184,7 +189,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
-
+    
+    loss_and_accuracy_plot(losses=losses, accuracies=accurracies)
 
 def validate(model, val_loader, device, it, num_classes):
     """
@@ -240,6 +246,17 @@ def validate(model, val_loader, device, it, num_classes):
         f.write("[%d/%d]\tAcc@top1: %.2f%%\n" % (it, args.train.num_iter, test_results['top1']))
 
     return test_results
+
+def loss_and_accuracy_plot(losses, accuracies):
+    plt.figure()
+    plt.plot(losses)
+    plt.savefig('./Experiment_logs/loss.png')
+
+    plt.figure()
+    plt.plot(accuracies)
+    plt.savefig('./Experiment_logs/accuracy.png')
+
+    
 
 
 if __name__ == '__main__':
