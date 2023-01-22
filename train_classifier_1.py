@@ -14,6 +14,7 @@ import models as model_list
 import tasks
 import matplotlib.pyplot as plt
 import wandb
+from copy import deepcopy
 
 # global variables among training functions
 training_iterations = 0
@@ -162,7 +163,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
 
-        losses.append(action_classifier.loss.val)
+        losses.append(deepcopy(action_classifier.loss.val))
 
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
@@ -178,7 +179,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         # save the last 9 models
         if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
-            accurracies.append(val_metrics['top1'])
+            accurracies.append(deepcopy(val_metrics['top1']))
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))
@@ -248,6 +249,9 @@ def validate(model, val_loader, device, it, num_classes):
     return test_results
 
 def loss_and_accuracy_plot(losses, accuracies):
+    losses = np.array(losses)
+    accuracies = np.array(accuracies)
+
     plt.figure()
     plt.plot(losses)
     plt.savefig('./Experiment_logs/loss.png')
