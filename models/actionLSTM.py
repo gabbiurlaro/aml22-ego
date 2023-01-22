@@ -11,10 +11,19 @@ class ActionLSTM(nn.Module):
         self.feature_dim = feature_dim
         self.num_clips = num_clips
 
-        self.lstm = nn.LSTM(input_size=self.feature_dim, hidden_size=self.num_classes, num_layers=1)
+        self.lstm = nn.LSTM(input_size=self.feature_dim, hidden_size=512, num_layers=1)
+
+        self.classifier = nn.Sequential(
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Dropout(p=0.6),
+            nn.Linear(512, num_classes),
+            nn.reLU()
+        )
 
     def forward(self, x):
         #h_0 = ( torch.randn(1, len(x), self.num_classes), torch.randn(1, len(x), self.num_classes))
         
         _, hidden_state = self.lstm(x.view(self.num_clips, len(x), self.feature_dim))
-        return hidden_state[0].reshape(len(x), self.num_classes), {}
+        out = self.classifier(hidden_state[0])
+        return out.reshape(len(x), self.num_classes), {}
