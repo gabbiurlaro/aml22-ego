@@ -22,8 +22,8 @@ class MLP_late_fusion(nn.Module):
             nn.ReLU(),
             nn.Linear(512,512),
             nn.ReLU(),
-            nn.Linear(512, num_classes)
-            nn.ReLU()
+            nn.Linear(512, num_classes),
+            nn.ReLU(),
             nn.Dropout(p=0.6)
         )
 
