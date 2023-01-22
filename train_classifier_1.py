@@ -114,7 +114,9 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     global training_iterations, modalities
     losses = []
     accurracies = []
-    wandb.watch(action_classifier)
+    wandb.watch(action_classifier.task_models['RGB'])
+
+
     data_loader_source = iter(train_loader)
     action_classifier.train(True)
     action_classifier.zero_grad()
