@@ -18,12 +18,13 @@ class ActionLSTM(nn.Module):
             nn.ReLU(),
             nn.Dropout(p=0.6),
             nn.Linear(512, num_classes),
-            nn.reLU()
         )
 
     def forward(self, x):
         #h_0 = ( torch.randn(1, len(x), self.num_classes), torch.randn(1, len(x), self.num_classes))
         
-        _, hidden_state = self.lstm(x.view(self.num_clips, len(x), self.feature_dim))
+        out, hidden_state = self.lstm(x.view(self.num_clips, len(x), self.feature_dim))
+        print(f"out: {out.size()}, h: {hidden_state[0].size()}")
         out = self.classifier(hidden_state[0])
+        print(f"Classifier out is: {out.size()}")
         return out.reshape(len(x), self.num_classes), {}
