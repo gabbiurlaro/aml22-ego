@@ -23,7 +23,6 @@ class MLP_late_fusion(nn.Module):
             nn.Linear(512,512),
             nn.ReLU(),
             nn.Linear(512, num_classes),
-            nn.ReLU(),
             nn.Dropout(p=0.6)
         )
 
@@ -31,9 +30,9 @@ class MLP_late_fusion(nn.Module):
         logits = []
         for clip in range(self.num_clips):
             logits.append(self.classifier(x[clip,:]))
-        
 
         return torch.stack(logits, dim=0).mean(dim=0), {}
+
     
 class action_TRN(nn.Module):
     def __init__(self, num_input, num_clips, num_classes ) -> None:

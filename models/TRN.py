@@ -112,7 +112,6 @@ class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
                         nn.ReLU(),
                         nn.Linear(scale * self.img_feature_dim, num_bottleneck),
                         nn.ReLU(),
-                        nn.Dropout(p=0.6),# this is the newly added thing
                         nn.Linear(num_bottleneck, num_bottleneck),
                         nn.ReLU(),
                         nn.Dropout(p=0.6),
