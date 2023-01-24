@@ -10,8 +10,8 @@ logname: null # name of the logs
 models_dir: null # directory containing all the models
 
 train:
-  num_iter: 1000 # number of training iterations with total_batch size
-  lr_steps: 10 # steps before reducing learning rate
+  num_iter: 2500 # number of training iterations with total_batch size
+  lr_steps: 500 # steps before reducing learning rate
   eval_freq: 50 # evaluation frequency
   num_clips: 1 # clips adopted in training
   dense_sampling: # sampling version adopted in training for each modality
@@ -45,7 +45,7 @@ models:
     model: Classifier
     normalize: False
     kwargs: {}
-    lr_steps: 300
+    lr_steps: 100
     lr: 0.01
     sgd_momentum: 0.9
     weight_decay: 1e-7

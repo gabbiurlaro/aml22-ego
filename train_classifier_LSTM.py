@@ -44,10 +44,9 @@ def init_operations():
             'architecture': args.models.RGB.model,
             'epochs': args.train.num_iter
         }
-        logger.info(config)
-        wandb.init(project= "Egovision", notes="LSTM simple implementation", tags=["LSTM"], config = config)
-        
-        wandb.run.name = f"{args.name}_{args.models.RGB.model}"
+        logger.info(f"configuration of this run: {config}")
+        wandb.init(project="Egovision", notes="LSTM implementation", tags=["LSTM"], config = config, group="LSTM experiments 2")
+        wandb.run.name = f"{args.name}"
         # wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.login(key="ec198a4a4d14b77926dc5316ae6f02def3f71b17")
 
@@ -198,7 +197,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
             # print(f"VALIDATION!!!!!!!!!!!!!!!!!!!!!!!!")
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
-
+            wandb.log({'top-1 validation accuracy': val_metrics['top1']})
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))

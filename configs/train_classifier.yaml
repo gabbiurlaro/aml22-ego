@@ -19,7 +19,7 @@ dataset:
   RGB:
     data_path: ??? # path to RGB data
     tmpl: "img_{:010d}.jpg" # format of RGB filenames
-    features_name: "EPIC/FT_D_D1_8f_5c"
+    features_name: ???
   Event: # not neeeded for the project
     rgb4e: 6
 
@@ -29,7 +29,7 @@ models:
     model: ???
     normalize: False
     kwargs: {}
-    lr_steps: 10
+    lr_steps: 100
     lr: 0.1
-    sgd_momentum: 0.5
-    weight_decay: 1e-1
+    sgd_momentum: 0.9
+    weight_decay: 1e-2
