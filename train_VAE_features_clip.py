@@ -13,7 +13,7 @@ import os
 import models as model_list
 import tasks
 import wandb
-from models.VAE import Encoder, Decoder
+from models.VAE import Encoder, Decoder, VAE
 
 # global variables among training functions
 training_iterations = 0
