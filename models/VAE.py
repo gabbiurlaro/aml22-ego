@@ -109,7 +109,7 @@ class Decoder(torch.nn.Module):
 
 class VAE(torch.nn.Module):
     def __init__(self, encoder, decoder):
-        super(VAE, self).__init__()
+        super(self).__init__()
         self.encoder = encoder
         self.decoder = decoder
 
