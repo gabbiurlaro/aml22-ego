@@ -117,7 +117,7 @@ class VAE(torch.nn.Module):
                        mu: Tensor,
                        log_var: Tensor,
                        q: Tensor,
-                       eps:float = 1e-7) -> Tensor:
+                       eps:float = 1e-7):
         """
         Gumbel-softmax trick to sample from Categorical Distribution
         :param mu: (Tensor) mean of the latent Gaussian  [B x D]
