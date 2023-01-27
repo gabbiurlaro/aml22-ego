@@ -61,6 +61,7 @@ def main():
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
+        print(getattr(model_list, args.models[m].model))
         models[m] = getattr(model_list, args.models[m].model)(Encoder(1024, 2, num_classes), Decoder(2, 1024, num_classes))
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
