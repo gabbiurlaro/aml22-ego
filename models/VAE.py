@@ -1,35 +1,109 @@
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
 
 class Encoder(torch.nn.Module):
-    def __init__(self, D_in, H, latent_size):
+    def __init__(self,
+                 in_channels: int,
+                 latent_dim: int,
+                 categorical_dim: int,
+                 hidden_dims: List = None,
+                 temperature: float = 0.5,
+    ):
         super(Encoder, self).__init__()
-        self.linear1 = torch.nn.Linear(D_in, H)
-        self.linear2 = torch.nn.Linear(H, H)
-        self.enc_mu = torch.nn.Linear(H, latent_size)
-        self.enc_log_sigma = torch.nn.Linear(H, latent_size)
+        self.latent_dim = latent_dim
+        self.categorical_dim = categorical_dim
+        self.temp = temperature
+        
+        modules = []
+        if hidden_dims is None:
+            hidden_dims = [32, 64, 128, 256, 512]
 
-    def forward(self, x):
-        x = F.relu(self.linear1(x))
-        x = F.relu(self.linear2(x))
-        mu = self.enc_mu(x)
-        log_sigma = self.enc_log_sigma(x)
-        sigma = torch.exp(log_sigma)
-        return torch.distributions.Normal(loc=mu, scale=sigma)
+        # Build Encoder
+        for h_dim in hidden_dims:
+            modules.append(
+                nn.Sequential(
+                    nn.Conv2d(in_channels, out_channels=h_dim,
+                              kernel_size= 3, stride= 2, padding  = 1),
+                    nn.BatchNorm2d(h_dim),
+                    nn.LeakyReLU())
+            )
+            in_channels = h_dim
 
+        self.encoder = nn.Sequential(*modules)
+        self.fc_mu = nn.Linear(hidden_dims[-1]*4, self.latent_dim)
+        self.fc_var = nn.Linear(hidden_dims[-1]*4, self.latent_dim)
+        self.fc_z = nn.Linear(hidden_dims[-1]*4, self.categorical_dim)
+   
+    def encode(self, input):
+        result = self.encoder(input)
+        result = torch.flatten(result, start_dim=1)
+        # Split the result into mu and var components
+        # of the latent Gaussian distribution
+        mu = self.fc_mu(result)
+        log_var = self.fc_var(result)
+        z = self.fc_z(result)
+        z = z.view(-1, self.categorical_dim)
+        return [mu, log_var, z]
 
 class Decoder(torch.nn.Module):
-    def __init__(self, D_in, H, D_out):
+    def __init____init__(self,
+                 in_channels: int,
+                 latent_dim: int,
+                 categorical_dim: int,
+                 hidden_dims: List = None,
+                 temperature: float = 0.5):
         super(Decoder, self).__init__()
-        self.linear1 = torch.nn.Linear(D_in, H)
-        self.linear2 = torch.nn.Linear(H, D_out)
+        self.latent_dim = latent_dim
+        self.categorical_dim = categorical_dim
+        self.temp = temperature
         
+        # Build Decoder
+        modules = []
+        self.decoder_input = nn.Linear(self.latent_dim + self.categorical_dim,
+                                       hidden_dims[-1] * 4)
+        hidden_dims.reverse()
+        for i in range(len(hidden_dims) - 1):
+            modules.append(
+                nn.Sequential(
+                    nn.ConvTranspose2d(hidden_dims[i],
+                                       hidden_dims[i + 1],
+                                       kernel_size=3,
+                                       stride = 2,
+                                       padding=1,
+                                       output_padding=1),
+                    nn.BatchNorm2d(hidden_dims[i + 1]),
+                    nn.LeakyReLU())
+            )
+        self.decoder = nn.Sequential(*modules)
+        self.final_layer = nn.Sequential(
+                            nn.ConvTranspose2d(hidden_dims[-1],
+                                               hidden_dims[-1],
+                                               kernel_size=3,
+                                               stride=2,
+                                               padding=1,
+                                               output_padding=1),
+                            nn.BatchNorm2d(hidden_dims[-1]),
+                            nn.LeakyReLU(),
+                            nn.Conv2d(hidden_dims[-1], out_channels= 3,
+                                      kernel_size= 3, padding= 1),
+                            nn.Tanh())
+        self.sampling_dist = torch.distributions.OneHotCategorical(1. / categorical_dim * torch.ones((self.categorical_dim, 1)))
 
-    def forward(self, x):
-        x = F.relu(self.linear1(x))
-        mu = torch.tanh(self.linear2(x))
-        return torch.distributions.Normal(mu, torch.ones_like(mu))
+    def decode(self, z):
+        """
+        Maps the given latent codes
+        onto the image space.
+        :param z: (Tensor) [B x D x Q]
+        :return: (Tensor) [B x C x H x W]
+        """
+        result = self.decoder_input(z)
+        result = result.view(-1, 512, 2, 2)
+        result = self.decoder(result)
+        result = self.final_layer(result)
+        return result
+
 
 class VAE(torch.nn.Module):
     def __init__(self, encoder, decoder):
@@ -37,7 +111,53 @@ class VAE(torch.nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, state):
-        q_z = self.encoder(state)
-        z = q_z.rsample()
-        return self.decoder(z), q_z
+    def reparameterize(self,
+                       mu: Tensor,
+                       log_var: Tensor,
+                       q: Tensor,
+                       eps:float = 1e-7) -> Tensor:
+        """
+        Gumbel-softmax trick to sample from Categorical Distribution
+        :param mu: (Tensor) mean of the latent Gaussian  [B x D]
+        :param log_var: (Tensor) Log variance of the latent Gaussian [B x D]
+        :param q: (Tensor) Categorical latent Codes [B x Q]
+        :return: (Tensor) [B x (D + Q)]
+        """
+
+        std = torch.exp(0.5 * log_var)
+        e = torch.randn_like(std)
+        z = e * std + mu
+
+        # Sample from Gumbel
+        u = torch.rand_like(q)
+        g = - torch.log(- torch.log(u + eps) + eps)
+
+        # Gumbel-Softmax sample
+        s = F.softmax((q + g) / self.temp, dim=-1)
+        s = s.view(-1, self.categorical_dim)
+
+        return torch.cat([z, s], dim=1)
+    
+    def forward(self, input):
+        mu, log_var, q = self.encode(input)
+        z = self.reparameterize(mu, log_var, q)
+        return  [self.decode(z), input, q, mu, log_var]
+
+
+
+#self.min_temp = temperature
+        #self.anneal_rate = anneal_rate
+        #self.anneal_interval = anneal_interval
+        #self.alpha = alpha
+
+        #self.cont_min = latent_min_capacity
+        #self.cont_max = latent_max_capacity
+
+        # self.disc_min = categorical_min_capacity
+        # self.disc_max = categorical_max_capacity
+
+        # self.cont_gamma = latent_gamma
+        # self.disc_gamma = categorical_gamma
+
+        # self.cont_iter = latent_num_iter
+        # self.disc_iter = categorical_num_iter
