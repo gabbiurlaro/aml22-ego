@@ -8,7 +8,7 @@ class Encoder(torch.nn.Module):
                  in_channels: int,
                  latent_dim: int,
                  categorical_dim: int,
-                 hidden_dims: List = None,
+                 hidden_dims = None,
                  temperature: float = 0.5,
     ):
         super(Encoder, self).__init__()
@@ -52,13 +52,15 @@ class Decoder(torch.nn.Module):
                  in_channels: int,
                  latent_dim: int,
                  categorical_dim: int,
-                 hidden_dims: List = None,
+                 hidden_dims = None,
                  temperature: float = 0.5):
         super(Decoder, self).__init__()
         self.latent_dim = latent_dim
         self.categorical_dim = categorical_dim
         self.temp = temperature
         
+        if hidden_dims is None:
+            hidden_dims = [32, 64, 128, 256, 512]
         # Build Decoder
         modules = []
         self.decoder_input = nn.Linear(self.latent_dim + self.categorical_dim,
