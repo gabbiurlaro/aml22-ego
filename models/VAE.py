@@ -114,9 +114,9 @@ class VAE(torch.nn.Module):
         self.decoder = decoder
 
     def reparameterize(self,
-                       mu: Tensor,
-                       log_var: Tensor,
-                       q: Tensor,
+                       mu,
+                       log_var,
+                       q,
                        eps:float = 1e-7):
         """
         Gumbel-softmax trick to sample from Categorical Distribution
