@@ -138,7 +138,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     
     latent =  np.array(latent).reshape(7680,2)
     print(f'latent: {latent.shape}, Y : {Y.shape}')
-    plt.scatter(latent[:,0], latent[:,1], , label=Y)
+    plt.scatter(latent[:,0], latent[:,1], label=Y)
     plt.legend()
     #plt.title(title)
     plt.savefig("./img_VAE.png")
