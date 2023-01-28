@@ -91,7 +91,7 @@ def main():
         train(models['RGB'], train_loader, device)
     
 def train(autoencoder, data, device, epochs=20):
-    autoencoder = autoencoder.to(device)
+    autoencoder.load_on(device)
     opt = torch.optim.Adam(autoencoder.parameters())
     for epoch in range(epochs):
         for m in modalities:
