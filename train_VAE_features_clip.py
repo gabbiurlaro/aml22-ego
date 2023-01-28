@@ -112,7 +112,7 @@ def train(autoencoder, data, device, epochs=20):
 def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
     latent = np.zeros((len(data), 160,2))
-    Y = np.zeros((len(data), 160, 1))
+    Y = np.zeros((len(data)))
     ue = {}
     for i, (x, y) in enumerate(data):
         for m in modalities:
@@ -141,7 +141,6 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     print(f'latent: {latent.shape}, Y : {Y.shape}')
     Y.reshape(7680)
     plt.scatter(latent[:,0], latent[:,1], label=Y)
-    plt.legend()
     #plt.title(title)
     plt.savefig("./img_VAE.png")
 
