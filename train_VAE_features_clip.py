@@ -126,7 +126,10 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             #     break
     #plt.show()
     Y = np.array(Y).ravel()
+    print(latent.size())
     latent = np.array(latent).ravel()
+    print(latent.size())
+
     reduced = TSNE().fit_transform(latent)
 
     plt.scatter(reduced[:, 0], reduced[:, 1], c=Y, cmap='tab10')
