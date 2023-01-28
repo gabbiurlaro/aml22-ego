@@ -113,6 +113,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
     latent = []
     Y = []
+    ue = {}
     for i, (x, y) in enumerate(data):
         for m in modalities:
             y = [[el]*5 for el in y]
@@ -126,10 +127,10 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             #     plt.colorbar()
             #     break
     #plt.show()
-    data['x'] = reduced[:, 0]
-    data['y'] = reduced[:, 1]
+    ue['x'] = reduced[:, 0]
+    ue['y'] = reduced[:, 1]
     for i in range(8): # ek has 8 classes
-        filtered = data[data["verb_class"] == i]
+        filtered = ue[Y[i]==i]
         plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
     plt.legend()
     #plt.title(title)
