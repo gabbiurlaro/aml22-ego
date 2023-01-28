@@ -40,6 +40,10 @@ class VariationalAutoencoder(nn.Module):
         self.encoder = VariationalEncoder(in_channels, latent_dims)
         self.decoder = Decoder(latent_dims, out_channels)
     
+    def load_on(self, device):
+        self.encoder = self.encoder.to(device)
+        self.decoder = self.decoder.to(device)
+
     def forward(self, x):
         z = self.encoder(x)
         return self.decoder(z)
