@@ -13,6 +13,7 @@ import os
 import models as model_list
 import tasks
 import wandb
+import matplotlib.pyplot as plt
 #from models.VAE import Encoder, Decoder, VAE
 
 # global variables among training functions
