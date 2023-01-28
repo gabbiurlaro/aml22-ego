@@ -134,7 +134,9 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     #     filtered['x'] = [ue['x'][j]  for j, out in enumerate(Y) if out==i ]
     #     filtered['y'] = [ue['y'][j]  for j, out in enumerate(Y) if out==i ]
     #     plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
+    
     latent =  np.array(latent).ravel()
+    print(latent.size())
     plt.scatter(latent[:,0], latent[:,1], c=Y, label=Y)
     plt.legend()
     #plt.title(title)
