@@ -127,10 +127,12 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             #     plt.colorbar()
             #     break
     #plt.show()
+    filtered = {}
     ue['x'] = reduced[:, 0]
     ue['y'] = reduced[:, 1]
     for i in range(8): # ek has 8 classes
-        filtered = ue[Y[i]==i]
+        filtered['x'] = ue['x'][[j for j, out in enumerate(Y) if out==i ]]
+        filtered['y'] = ue['y'][[j for j, out in enumerate(Y) if out==i ]]
         plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
     plt.legend()
     #plt.title(title)
