@@ -108,10 +108,10 @@ class Decoder(torch.nn.Module):
 
 
 class VAE(torch.nn.Module):
-    def __init__(self, encoder, decoder):
+    def __init__(self, input, latent, classes):
         super(self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
+        self.encoder = Encoder(input, latent_dim=latent, categorical_dim=classes)
+        self.decoder = Decoder(input, latent_dim=latent, categorical_dim=classes)
 
     def reparameterize(self,
                        mu,
