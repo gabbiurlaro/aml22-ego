@@ -48,7 +48,7 @@ class Encoder(torch.nn.Module):
         return [mu, log_var, z]
 
 class Decoder(torch.nn.Module):
-    def __init____init__(self,
+    def __init__(self,
                  in_channels: int,
                  latent_dim: int,
                  categorical_dim: int,
