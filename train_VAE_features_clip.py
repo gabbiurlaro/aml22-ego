@@ -128,7 +128,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     Y = np.array(Y).ravel()
     #print(latent.size())
     latent = np.array(latent).ravel()
-    print(latent.size())
+    print(latent.shape)
 
     reduced = TSNE().fit_transform(latent)
 
