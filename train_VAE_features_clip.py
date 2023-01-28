@@ -111,7 +111,7 @@ def train(autoencoder, data, device, epochs=20):
 
 def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
-    latent = np.zeros((160,len(data), 2))
+    latent = np.zeros((160, len(data), 2))
     Y = np.zeros((160,len(data),2))
     ue = {}
     for i, (x, y) in enumerate(data):
@@ -121,6 +121,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
             reduced = TSNE().fit_transform(z)
+            print(reduced.shape)
             latent[i] += reduced
             Y[i] += y
             # if i > num_batches:
