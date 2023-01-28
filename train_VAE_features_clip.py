@@ -118,7 +118,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
         for m in modalities:
             y = [[el]*5 for el in y]
             y = [el for sub in y for el in sub]
-            print(y.shape)
+            print(type(y))
             z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
             reduced = TSNE().fit_transform(z)
