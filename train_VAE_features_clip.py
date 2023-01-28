@@ -126,12 +126,15 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             #     plt.colorbar()
             #     break
     #plt.show()
-    
-
-   
-
-    plt.scatter(reduced[:, 0], reduced[:, 1], c=Y, cmap='tab10')
-    plt.savefig('./img_LATENT_VAE.png')
+    data['x'] = reduced[:, 0]
+    data['y'] = reduced[:, 1]
+    for i in range(8): # ek has 8 classes
+        filtered = data[data["verb_class"] == i]
+        plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
+    plt.legend()
+    #plt.title(title)
+    plt.savefig(f"img_VAE.png")
+    plt.show()
 
 if __name__ == '__main__':
     main()
