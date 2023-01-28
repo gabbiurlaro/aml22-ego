@@ -62,7 +62,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(1024, 2, 1024)
+        models[m] = getattr(model_list, args.models[m].model)(5120, 2, 5120)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     # action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
@@ -96,6 +96,7 @@ def train(autoencoder, data, device, epochs=20):
     for epoch in range(epochs):
         for m in modalities:
             for x, y in data:
+                print(x[m].size())
                 x[m] = x[m].to(device) # GPU
                 opt.zero_grad()
                 x_hat = autoencoder(x[m])
