@@ -112,7 +112,7 @@ def train(autoencoder, data, device, epochs=20):
 def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
     latent = np.zeros((len(data), 160,2))
-    Y = np.zeros((len(data), 160,2))
+    Y = np.zeros((len(data), 160))
     ue = {}
     for i, (x, y) in enumerate(data):
         for m in modalities:
