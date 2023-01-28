@@ -93,14 +93,15 @@ def main():
 def train(autoencoder, data, device, epochs=20):
     opt = torch.optim.Adam(autoencoder.parameters())
     for epoch in range(epochs):
-        for x, y in data:
-            x = x.to(device) # GPU
-            opt.zero_grad()
-            x_hat = autoencoder(x)
-            loss = ((x - x_hat)**2).sum() + autoencoder.encoder.kl
-            loss.backward()
-            opt.step()
-            wandb.log({'log_loss': loss})
+        for m in modalities:
+            for x, y in data:
+                x[m] = x[m].to(device) # GPU
+                opt.zero_grad()
+                x_hat = autoencoder(x[m])
+                loss = ((x[m] - x_hat)**2).sum() + autoencoder.encoder.kl
+                loss.backward()
+                opt.step()
+                wandb.log({'log_loss': loss})
     return autoencoder
 
 if __name__ == '__main__':
