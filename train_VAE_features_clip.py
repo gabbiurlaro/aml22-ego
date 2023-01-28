@@ -99,7 +99,7 @@ def train(autoencoder, data, device, epochs=20):
         for m in modalities:
             for x, y in data:
                 x[m] = x[m].reshape((32,5120)).to(device) # GPU
-                print(x[m].size())
+                #print(x[m].size())
                 opt.zero_grad()
                 x_hat = autoencoder(x[m])
                 loss = ((x[m] - x_hat)**2).sum() + autoencoder.encoder.kl
