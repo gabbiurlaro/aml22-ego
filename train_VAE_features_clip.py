@@ -126,7 +126,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             #     break
     #plt.show()
     Y = np.array(Y).ravel()
-    print(latent.size())
+    #print(latent.size())
     latent = np.array(latent).ravel()
     print(latent.size())
 
