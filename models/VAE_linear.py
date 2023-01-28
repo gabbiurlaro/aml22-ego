@@ -32,7 +32,7 @@ class Decoder(nn.Module):
     def forward(self, z):
         z = F.relu(self.linear1(z))
         z = torch.sigmoid(self.linear2(z))
-        return z.reshape((32, 5120))
+        return z.reshape((160, 1024))
 
 class VariationalAutoencoder(nn.Module):
     def __init__(self, in_channels, latent_dims, out_channels):
