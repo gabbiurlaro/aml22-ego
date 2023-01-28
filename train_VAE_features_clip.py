@@ -118,7 +118,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             # if i > num_batches:
             #     plt.colorbar()
             #     break
-    plt.show()
+    #plt.show()
     plt.savefig('./img_LATENT_VAE.png')
 
 if __name__ == '__main__':
