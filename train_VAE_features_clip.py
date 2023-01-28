@@ -88,7 +88,8 @@ def main():
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
        # train(action_classifier, train_loader, val_loader, device, num_classes)
-        train(models['RGB'], train_loader, device)
+        ae = train(models['RGB'], train_loader, device)
+        plot_latent(ae, train_loader, device)
     
 def train(autoencoder, data, device, epochs=20):
     autoencoder.load_on(device)
@@ -105,6 +106,16 @@ def train(autoencoder, data, device, epochs=20):
                 opt.step()
                 wandb.log({'log_loss': loss})
     return autoencoder
+
+def plot_latent(autoencoder, data, device, num_batches=100):
+    for i, (x, y) in enumerate(data):
+        for m in modalities:
+            z = autoencoder.encoder(x[m].to(device))
+            z = z.to('cpu').detach().numpy()
+            plt.scatter(z[:, 0], z[:, 1], c=y, cmap='tab10')
+            if i > num_batches:
+                plt.colorbar()
+                break
 
 if __name__ == '__main__':
     main()
