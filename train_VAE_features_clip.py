@@ -109,6 +109,7 @@ def train(autoencoder, data, device, epochs=20):
     return autoencoder
 
 def plot_latent(autoencoder, data, device, num_batches=100):
+    plt.figure()
     for i, (x, y) in enumerate(data):
         for m in modalities:
             z = autoencoder.encoder(x[m].to(device))
@@ -117,6 +118,8 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             if i > num_batches:
                 plt.colorbar()
                 break
+    plt.show()
+    plt.savefig('./img_LATENT_VAE.png')
 
 if __name__ == '__main__':
     main()
