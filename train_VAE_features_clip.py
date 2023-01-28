@@ -140,8 +140,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     plt.scatter(latent[:,0], latent[:,1], c=Y, label=Y)
     plt.legend()
     #plt.title(title)
-    plt.savefig(f"img_VAE.png")
-    plt.show()
+    plt.savefig("img_VAE.png")
 
 if __name__ == '__main__':
     main()
