@@ -121,8 +121,8 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
             reduced = TSNE().fit_transform(z)
-            latent[i] = reduced
-            Y[i] = y
+            latent[i] += reduced
+            Y[i] += y
             # if i > num_batches:
             #     plt.colorbar()
             #     break
