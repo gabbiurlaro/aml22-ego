@@ -119,18 +119,16 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             y = [el for sub in y for el in sub]
             z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
-            latent.append(z)
+            reduced = TSNE().fit_transform(z)
+            latent.append(reduced)
             Y.append(y)
             # if i > num_batches:
             #     plt.colorbar()
             #     break
     #plt.show()
-    Y = np.array(Y).ravel()
-    #print(latent.size())
-    latent = np.array(latent).ravel()
-    print(latent.shape)
+    
 
-    reduced = TSNE().fit_transform(latent)
+   
 
     plt.scatter(reduced[:, 0], reduced[:, 1], c=Y, cmap='tab10')
     plt.savefig('./img_LATENT_VAE.png')
