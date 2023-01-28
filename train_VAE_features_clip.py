@@ -136,7 +136,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     #     plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
     
     latent =  np.array(latent).reshape(7680,2)
-    print(latent.shape)
+    print(f'latent: {latent.shape}, Y : {Y.shape}')
     plt.scatter(latent[:,0], latent[:,1], c=Y, label=Y)
     plt.legend()
     #plt.title(title)
