@@ -139,7 +139,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     
     latent =  np.array(latent).reshape(7680,2)
     Y = np.array(Y).reshape(7680)
-    print(f'latent: {latent.shape}, Y : {Y.shape}')
+    print(f'latent: {latent.shape}, Y : {Y[:32]}')
    
     plt.scatter(latent[:,0], latent[:,1], label=Y)
     #plt.title(title)
