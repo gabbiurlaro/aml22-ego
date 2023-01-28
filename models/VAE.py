@@ -141,9 +141,9 @@ class VAE(torch.nn.Module):
         return torch.cat([z, s], dim=1)
     
     def forward(self, x):
-        mu, log_var, q = self.encode(x)
+        mu, log_var, q = self.encoder.encode(x)
         z = self.reparameterize(mu, log_var, q)
-        return  [self.decode(z), x, q, mu, log_var]
+        return  [self.decoder.decode(z), x, q, mu, log_var]
 
 
 
