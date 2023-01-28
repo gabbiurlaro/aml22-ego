@@ -112,7 +112,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
     for i, (x, y) in enumerate(data):
         for m in modalities:
-            z = autoencoder.encoder(x[m].to(device))
+            z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
             plt.scatter(z[:, 0], z[:, 1], c=y, cmap='tab10')
             # if i > num_batches:
