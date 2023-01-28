@@ -14,6 +14,7 @@ import models as model_list
 import tasks
 import wandb
 import matplotlib.pyplot as plt
+from  sklearn.manifold import TSNE
 #from models.VAE import Encoder, Decoder, VAE
 
 # global variables among training functions
@@ -63,7 +64,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(1024, 2, 1024)
+        models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     # action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
@@ -110,17 +111,25 @@ def train(autoencoder, data, device, epochs=20):
 
 def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
+    latent = []
+    Y = []
     for i, (x, y) in enumerate(data):
         for m in modalities:
             y = [[el]*5 for el in y]
             y = [el for sub in y for el in sub]
             z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
-            plt.scatter(z[:, 0], z[:, 1], c=y, cmap='tab10')
+            latent.append(z)
+            Y.append(y)
             # if i > num_batches:
             #     plt.colorbar()
             #     break
     #plt.show()
+    Y = np.array(Y).ravel()
+    latent = np.array(latent).ravel()
+    reduced = TSNE().fit_transform(latent)
+
+    plt.scatter(reduced[:, 0], reduced[:, 1], c=Y, cmap='tab10')
     plt.savefig('./img_LATENT_VAE.png')
 
 if __name__ == '__main__':
