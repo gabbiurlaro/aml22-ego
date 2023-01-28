@@ -111,8 +111,8 @@ def train(autoencoder, data, device, epochs=20):
 
 def plot_latent(autoencoder, data, device, num_batches=100):
     plt.figure()
-    latent = []
-    Y = []
+    latent = np.array()
+    Y = np.array()
     ue = {}
     for i, (x, y) in enumerate(data):
         for m in modalities:
@@ -121,8 +121,8 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
             z = z.to('cpu').detach().numpy()
             reduced = TSNE().fit_transform(z)
-            latent.append(reduced)
-            Y.append(y)
+            latent+=reduced
+            Y+= y
             # if i > num_batches:
             #     plt.colorbar()
             #     break
