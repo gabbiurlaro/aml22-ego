@@ -148,7 +148,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
         x_l = reduced[:, 0]
         y_l = reduced[:, 1]
         import pickle
-        with open("latent.pkl", "wb") as file:
+        with open("./latent.pkl", "wb") as file:
             pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
     else:
         import pandas as pd
