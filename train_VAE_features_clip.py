@@ -142,19 +142,15 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
             #     break
     #plt.show()
     # filtered = {}
-    # ue['x'] = reduced[:, 0]
-    # ue['y'] = reduced[:, 1]
-    # for i in range(8): # ek has 8 classes
-    #     filtered['x'] = [ue['x'][j]  for j, out in enumerate(Y) if out==i ]
-    #     filtered['y'] = [ue['y'][j]  for j, out in enumerate(Y) if out==i ]
-    #     plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
+    x = x[:, 0]
+    y = x[:, 1]
+    colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
+    for i in range(8): # ek has 8 classes
+        x = [x[j]  for j, out in enumerate(labels) if out==i ]
+        y = [y[j]  for j, out in enumerate(labels) if out==i ]
+        plt.scatter(x, y, c=colors[i], label=labels[i])
     
-    print(f'latent: {x.shape}, ')
-
-    # # Y = np.array(Y).reshape(7680)
-     ## print(f'latent: {latent.shape}, Y : {Y[:32]}')
-   
-    plt.scatter(x[:,0], x[:,1], label=labels)
+    plt.legend()
     plt.savefig("./img_VAE.png")
 
 if __name__ == '__main__':
