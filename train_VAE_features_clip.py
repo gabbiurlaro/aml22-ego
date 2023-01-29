@@ -96,10 +96,12 @@ def main():
 def train(autoencoder, data, device, epochs=20):
     autoencoder.load_on(device)
     opt = torch.optim.Adam(autoencoder.parameters())
+
     for epoch in range(epochs):
         for m in modalities:
             for x, y in data:
-                x[m] = x[m].reshape((160,1024)).to(device) # GPU
+                x[m]= torch.permute(x[m], (1,0,2)).to(device) 
+                #x[m] = x[m].reshape((5,32,1024)).to(device) # GPU
                 #print(x[m].size())
                 opt.zero_grad()
                 x_hat = autoencoder(x[m])
@@ -119,7 +121,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
             y = [[el]*5 for el in y]
             y = [el for sub in y for el in sub]
             print(type(y))
-            z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
+            z = autoencoder.encoder(x[m].reshape((5,32,1024)).to(device))
             z = z.to('cpu').detach().numpy()
             reduced = TSNE().fit_transform(z)
             Y.append(y)
@@ -141,7 +143,7 @@ def plot_latent(autoencoder, data, device, num_batches=100):
     Y = np.array(Y).reshape(7680)
     print(f'latent: {latent.shape}, Y : {Y[:32]}')
    
-    plt.scatter(latent[:,0], latent[:,1], label=Y)
+    plt.scatter(latent[:,0], latent[:,1], =Y)
     #plt.title(title)
     plt.savefig("./img_VAE.png")
 
