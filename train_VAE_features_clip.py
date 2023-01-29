@@ -124,7 +124,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
             for i_c in range(args.test.num_clips):
                 clip = data[m][i_c].to(device)
                 z = autoencoder[m].encoder(clip)
-                z = z.to('cpu').detach().numpy()
+                z = z.to('cpu').detach()
 
                 output.append(z) 
 
