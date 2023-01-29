@@ -1,5 +1,6 @@
 from datetime import datetime
 from statistics import mean
+from turtle import color
 from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
@@ -143,13 +144,12 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
             #     break
     #plt.show()
     # filtered = {}
-    x = reduced[:, 0]
-    y = reduced[:, 1]
+    x_l = reduced[:, 0]
+    y_l = reduced[:, 1]
     colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
-    for i in range(8): # ek has 8 classes
-        x = [x[j]  for j, out in enumerate(labels) if out==i ]
-        y = [y[j]  for j, out in enumerate(labels) if out==i ]
-        plt.scatter(x, y, c=colors[i], label=labels[i])
+    for x, y, l in zip(x_l, y_l, labels):
+        plt.scatter(x, y, color=colors[l])
+    plt.show()
     
     plt.legend()
     plt.savefig("./img_VAE.png")
