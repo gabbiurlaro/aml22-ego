@@ -128,7 +128,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
 
                 output.append(z) 
 
-    reconstruced_features = torch.stack(output, dim=0)
+    reconstruced_features = torch.stack(torch.tensor(output), dim=0)
     reconstruced_features = reconstruced_features.reshape(-1,1024)
             # if i > num_batches:
             #     plt.colorbar()
