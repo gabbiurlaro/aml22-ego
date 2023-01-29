@@ -90,41 +90,42 @@ def main():
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
        # train(action_classifier, train_loader, val_loader, device, num_classes)
-        ae = train(models['RGB'], train_loader, device)
+        ae = train(models, train_loader, device)
         plot_latent(ae, train_loader, device)
     
-def train(autoencoder, data, device, epochs=20):
-    autoencoder.load_on(device)
+def train(autoencoder, train_dataloader, device, epochs=20):
+    for m in modalities:
+        autoencoder[m].load_on(device)
     opt = torch.optim.Adam(autoencoder.parameters())
     for epoch in range(epochs):
-        for m in modalities:
-            for x, y in data:
-                x[m] = x[m].reshape((160,1024)).to(device) # GPU
-                #print(x[m].size())
-                opt.zero_grad()
-                x_hat = autoencoder(x[m])
-                loss = ((x[m] - x_hat)**2).sum() + autoencoder.encoder.kl
-                loss.backward()
-                opt.step()
-                wandb.log({'log_loss': loss})
+        for i, (data, label) in enumerate(train_dataloader):
+            for m in modalities:
+                data[m] = data[m].permute(1, 0, 2)
+                # print(f"Data after permutation: {data[m].size()}")
+            
+            for i_c in range(args.test.num_clips):
+                for m in modalities:
+                    # extract the clip related to the modality
+                    clip = data[m][i_c].to(device)
+                    x_hat = autoencoder[m](clip)
+                    print(f"From autoencoder: {x_hat.size()}")
+                    loss = ((clip[m] - x_hat)**2).sum() + autoencoder.encoder.kl
+                    wandb.log({"Reconstruction loss": loss})
+                    loss.backward()
+                    opt.step()
     return autoencoder
 
-def plot_latent(autoencoder, data, device, num_batches=100):
-    plt.figure()
-    latent =[]#len(data)*5,2))
-    Y = []
-    ue = {}
-    for i, (x, y) in enumerate(data):
-        for m in modalities:
-            y = [[el]*5 for el in y]
-            y = [el for sub in y for el in sub]
-            print(type(y))
-            z = autoencoder.encoder(x[m].reshape((160,1024)).to(device))
-            z = z.to('cpu').detach().numpy()
-            reduced = TSNE().fit_transform(z)
-            Y.append(y)
-            latent.append(reduced)
-            
+def plot_latent(autoencoder, dataloader, device, num_batches=100):
+    output = []
+    for i, (data, label) in enumerate(dataloader):
+        for i_c in range(args.test.num_clips):
+            for m in modalities:
+                clip = data[m][i_c].to(device)
+                z = autoencoder.encoder(clip)
+                z = z.to('cpu').detach().numpy()
+                output.append(z) 
+
+    reconstruced_features = torch.tensor(output)        
             # if i > num_batches:
             #     plt.colorbar()
             #     break
