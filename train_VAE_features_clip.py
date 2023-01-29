@@ -136,6 +136,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     reconstruced_features = reconstruced_features.reshape(-1, 512)
     print(f"After reshape: {reconstruced_features.shape}")
     print(f'labels {len(labels)}')
+    x = TSNE.fit_transform(reconstruced_features)
             # if i > num_batches:
             #     plt.colorbar()
             #     break
@@ -148,14 +149,13 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     #     filtered['y'] = [ue['y'][j]  for j, out in enumerate(Y) if out==i ]
     #     plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
     
-    print(f'latent: {reconstruced_features.shape}, ')
+    print(f'latent: {x.shape}, ')
 
     # # Y = np.array(Y).reshape(7680)
-    # # print(f'latent: {latent.shape}, Y : {Y[:32]}')
+     ## print(f'latent: {latent.shape}, Y : {Y[:32]}')
    
-    # plt.scatter(latent[:,0], latent[:,1], =Y)
-    # #plt.title(title)
-    # plt.savefig("./img_VAE.png")
+    plt.scatter(x[:,0], x[:,1], label=labels)
+    plt.savefig("./img_VAE.png")
 
 if __name__ == '__main__':
     main()
