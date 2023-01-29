@@ -96,7 +96,7 @@ def main():
 def train(autoencoder, train_dataloader, device, epochs=20):
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.Adam(autoencoder.parameters())
+    opt = torch.optim.Adam(autoencoder['RGB'].parameters())
 
     for epoch in range(epochs):
         for i, (data, label) in enumerate(train_dataloader):
@@ -123,7 +123,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
             data[m] = data[m].permute(1, 0, 2)
             for i_c in range(args.test.num_clips):
                 clip = data[m][i_c].to(device)
-                z = autoencoder.encoder(clip)
+                z = autoencoder[m].encoder(clip)
                 z = z.to('cpu').detach().numpy()
 
                 output.append(z) 
