@@ -110,7 +110,7 @@ def train(autoencoder, train_dataloader, device, epochs=20):
                     clip = data[m][i_c].to(device)
                     x_hat = autoencoder[m](clip)
                     print(f"From autoencoder: {x_hat.size()}")
-                    loss = ((clip[m] - x_hat)**2).sum() + autoencoder.encoder.kl
+                    loss = ((clip - x_hat)**2).sum() + autoencoder.encoder.kl
                     wandb.log({"Reconstruction loss": loss})
                     loss.backward()
                     opt.step()
