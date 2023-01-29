@@ -117,7 +117,7 @@ def train(autoencoder, train_dataloader, device, epochs=20):
                     opt.step()
     return autoencoder
 
-def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = True):
+def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False):
     if not loaded:
         output = []
         labels = []
