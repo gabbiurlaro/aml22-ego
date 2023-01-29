@@ -117,42 +117,50 @@ def train(autoencoder, train_dataloader, device, epochs=20):
                     opt.step()
     return autoencoder
 
-def plot_latent(autoencoder, dataloader, device, num_batches=100):
-    output = []
-    labels = []
-    for i, (data, label) in enumerate(dataloader):
-        for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
-            for i_c in range(args.test.num_clips):
-                clip = data[m][i_c].to(device)
-                z = autoencoder[m].encoder(clip)
-                z = z.to('cpu').detach()
-                for j in range(len(label)):
-                    labels.append(label[j])
-                output.append(z) 
-    print(f"LEn of output: {len(output)}")
-    reconstruced_features = torch.stack(tuple(output), dim=0)
-    print(f"Once stacked: {reconstruced_features.shape}")
+def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = True):
+    if not loaded:
+        output = []
+        labels = []
+        for i, (data, label) in enumerate(dataloader):
+            for m in modalities:
+                data[m] = data[m].permute(1, 0, 2)
+                for i_c in range(args.test.num_clips):
+                    clip = data[m][i_c].to(device)
+                    z = autoencoder[m].encoder(clip)
+                    z = z.to('cpu').detach()
+                    for j in range(len(label)):
+                        labels.append(label[j])
+                    output.append(z) 
+        print(f"LEn of output: {len(output)}")
+        reconstruced_features = torch.stack(tuple(output), dim=0)
+        print(f"Once stacked: {reconstruced_features.shape}")
 
-    reconstruced_features = reconstruced_features.reshape(-1, 512)
-    print(f"After reshape: {reconstruced_features.shape}")
-    print(f'labels {len(labels)}')
+        reconstruced_features = reconstruced_features.reshape(-1, 512)
+        print(f"After reshape: {reconstruced_features.shape}")
+        print(f'labels {len(labels)}')
 
-    reduced = TSNE().fit_transform(reconstruced_features)
-            # if i > num_batches:
-            #     plt.colorbar()
-            #     break
-    #plt.show()
-    # filtered = {}
-    x_l = reduced[:, 0]
-    y_l = reduced[:, 1]
-    colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
-    for x, y, l in zip(x_l, y_l, labels):
-        print(colors[l])
-        plt.scatter(x, y, c=colors[l])    
-    plt.legend()
-    plt.savefig("./img_VAE.png")
-    plt.show()
+        reduced = TSNE().fit_transform(reconstruced_features)
+                # if i > num_batches:
+                #     plt.colorbar()
+                #     break
+        #plt.show()
+        # filtered = {}
+        x_l = reduced[:, 0]
+        y_l = reduced[:, 1]
+        import pickle
+        with open("latent.pkl", "wb") as file:
+            pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
+    else:
+        import pandas as pd
+    #     diz = pd.read_pickle("latent.pkl")
+
+    # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
+    # # for x, y, l in zip(x_l, y_l, labels):
+    # #     print(colors[l])
+    # plt.scatter(x_l, y_l, c=colors, label=labels)    
+    # plt.legend()
+    # plt.savefig("./img_VAE.png")
+    # plt.show()
 
 if __name__ == '__main__':
     main()
