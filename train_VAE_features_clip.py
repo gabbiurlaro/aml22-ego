@@ -136,7 +136,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     reconstruced_features = reconstruced_features.reshape(-1, 512)
     print(f"After reshape: {reconstruced_features.shape}")
     print(f'labels {len(labels)}')
-    x = TSNE.fit_transform(reconstruced_features)
+    x = TSNE().fit_transform(reconstruced_features)
             # if i > num_batches:
             #     plt.colorbar()
             #     break
