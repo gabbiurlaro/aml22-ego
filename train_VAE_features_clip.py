@@ -136,14 +136,15 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     reconstruced_features = reconstruced_features.reshape(-1, 512)
     print(f"After reshape: {reconstruced_features.shape}")
     print(f'labels {len(labels)}')
-    x = TSNE().fit_transform(reconstruced_features)
+
+    reduced = TSNE().fit_transform(reconstruced_features)
             # if i > num_batches:
             #     plt.colorbar()
             #     break
     #plt.show()
     # filtered = {}
-    x = x[:, 0]
-    y = x[:, 1]
+    x = reduced[:, 0]
+    y = reduced[:, 1]
     colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
     for i in range(8): # ek has 8 classes
         x = [x[j]  for j, out in enumerate(labels) if out==i ]
