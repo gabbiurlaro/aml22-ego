@@ -148,11 +148,11 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     y_l = reduced[:, 1]
     colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
     for x, y, l in zip(x_l, y_l, labels):
-        plt.scatter(x, y, c=l)
-    plt.show()
-    
+        print(colors[l])
+        plt.scatter(x, y, c=colors[l])    
     plt.legend()
     plt.savefig("./img_VAE.png")
+    plt.show()
 
 if __name__ == '__main__':
     main()
