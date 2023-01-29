@@ -42,10 +42,10 @@ def init_operations():
         config = {
             'learning_rate': args.models.RGB.lr,
             'architecture': args.models.RGB.model,
-            'epochs': args.train.num_iter
+            'epochs': args.train.num_iter,
         }
         logger.info(f"configuration of this run: {config}")
-        wandb.init(project="Egovision", notes="LSTM implementation", tags=["LSTM"], config = config, group="LSTM experiments 2")
+        wandb.init(project="Egovision", notes="LSTM implementation", tags=["LSTM"], config = config, group=args.wandb_group)
         wandb.run.name = f"{args.name}"
         # wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.login(key="ec198a4a4d14b77926dc5316ae6f02def3f71b17")
@@ -257,6 +257,10 @@ def validate(model, val_loader, device, it, num_classes):
                                                          int(model.accuracy.correct[i_class]),
                                                          int(model.accuracy.total[i_class]),
                                                          class_acc))
+        data = [["class " + str(label), val] for (label, val) in enumerate(class_accuracies)]
+        table = wandb.Table(data=data, columns = ["label", "value"])
+        wandb.log({"Class acurracies" : wandb.plot.bar(table, "label",
+                                    "Accuracies", title="Class accuracies barplot")})
 
     logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
                 .format(np.array(class_accuracies).mean(axis=0)))
