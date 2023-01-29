@@ -142,14 +142,14 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     #     filtered['y'] = [ue['y'][j]  for j, out in enumerate(Y) if out==i ]
     #     plt.scatter(filtered['x'], filtered['y'], c=Y[i], label=Y[i])
     
-    print(f'latent: {reconstruced_features.shape}, Y : {Y[:32]}')
+    print(f'latent: {reconstruced_features.shape}, ')
 
-    Y = np.array(Y).reshape(7680)
-    print(f'latent: {latent.shape}, Y : {Y[:32]}')
+    # # Y = np.array(Y).reshape(7680)
+    # # print(f'latent: {latent.shape}, Y : {Y[:32]}')
    
-    plt.scatter(latent[:,0], latent[:,1], =Y)
-    #plt.title(title)
-    plt.savefig("./img_VAE.png")
+    # plt.scatter(latent[:,0], latent[:,1], =Y)
+    # #plt.title(title)
+    # plt.savefig("./img_VAE.png")
 
 if __name__ == '__main__':
     main()
