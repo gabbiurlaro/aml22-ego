@@ -118,6 +118,7 @@ def train(autoencoder, train_dataloader, device, epochs=20):
 
 def plot_latent(autoencoder, dataloader, device, num_batches=100):
     output = []
+    labels = []
     for i, (data, label) in enumerate(dataloader):
         for m in modalities:
             data[m] = data[m].permute(1, 0, 2)
@@ -125,7 +126,8 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
                 clip = data[m][i_c].to(device)
                 z = autoencoder[m].encoder(clip)
                 z = z.to('cpu').detach()
-
+                for j in range(len(label)):
+                    labels.append(label[j])
                 output.append(z) 
     print(f"LEn of output: {len(output)}")
     reconstruced_features = torch.stack(tuple(output), dim=0)
@@ -133,7 +135,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
 
     reconstruced_features = reconstruced_features.reshape(-1, 512)
     print(f"After reshape: {reconstruced_features.shape}")
-
+    print(f'labels {len(labels)}')
             # if i > num_batches:
             #     plt.colorbar()
             #     break
