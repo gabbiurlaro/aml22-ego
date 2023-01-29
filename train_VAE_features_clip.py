@@ -97,6 +97,7 @@ def train(autoencoder, train_dataloader, device, epochs=20):
     for m in modalities:
         autoencoder[m].load_on(device)
     opt = torch.optim.Adam(autoencoder.parameters())
+
     for epoch in range(epochs):
         for i, (data, label) in enumerate(train_dataloader):
             for m in modalities:
@@ -142,7 +143,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100):
     Y = np.array(Y).reshape(7680)
     print(f'latent: {latent.shape}, Y : {Y[:32]}')
    
-    plt.scatter(latent[:,0], latent[:,1], label=Y)
+    plt.scatter(latent[:,0], latent[:,1], =Y)
     #plt.title(title)
     plt.savefig("./img_VAE.png")
 
