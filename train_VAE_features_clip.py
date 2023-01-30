@@ -1,6 +1,8 @@
 from datetime import datetime
+import enum
 from statistics import mean
 from turtle import color
+from wsgiref import validate
 from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
@@ -17,6 +19,7 @@ import wandb
 import matplotlib.pyplot as plt
 from  sklearn.manifold import TSNE
 #from models.VAE import Encoder, Decoder, VAE
+import pickle
 
 # global variables among training functions
 training_iterations = 0
@@ -93,8 +96,28 @@ def main():
        # train(action_classifier, train_loader, val_loader, device, num_classes)
         ae = train(models, train_loader, device)
         # plot_latent(ae, train_loader, device)
+        reconstruct(ae, train_loader, device)
+
+def reconstruct(autoencoder, datalaoder, device):
+    features = []
+    for m in modalities:
+        autoencoder[m].load_on(device)
+    with torch.no_grad():
         
-    
+        for i, (data, label) in enumerate(datalaoder):
+            for m in modalities:
+                data[m] = data[m].permut(1,0,2)
+            clips = []
+            for i_c in range(args.test.num_clips):
+                for m in modalities:
+                    clip = data[m][i_c].to(device)
+                    x_hat = autoencoder[m](clip)
+                    clips.append(x_hat)
+            clips = torch.stack(clips, dim=0)
+            features.append(clips)
+        with open("reconstructed_features.pkl", "wb") as file:
+            pickle.dump(features, file)
+            
 def train(autoencoder, train_dataloader, device, epochs=200):
     for m in modalities:
         autoencoder[m].load_on(device)
@@ -116,7 +139,7 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     x_hat = autoencoder[m](clip)
                    # print(f"From autoencoder: {x_hat.size()}")
                     loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
-                    losses.append(loss.detach().numpy())
+                    losses.append(((clip - x_hat)**2).sum().detach().numpy())
                     loss.backward()
                     opt.step()
         scheduler.step()
