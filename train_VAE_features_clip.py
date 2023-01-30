@@ -127,13 +127,13 @@ def train(autoencoder, train_dataloader, device, epochs=200):
     autoencoder['RGB'].train(True)
     for epoch in range(epochs):
         for i, (data, label) in enumerate(train_dataloader):
-            opt.zero_grad()
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)
                 # print(f"Data after permutation: {data[m].size()}")
             
             for i_c in range(args.test.num_clips):
                 for m in modalities:
+                    opt.zero_grad()
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
                     x_hat = autoencoder[m](clip)
