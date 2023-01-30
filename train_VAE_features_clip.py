@@ -122,7 +122,7 @@ def train(autoencoder, train_dataloader, device, epochs=100):
     for m in modalities:
         autoencoder[m].load_on(device)
     opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.00001, weight_decay=10e-5)
-    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=50, gamma=10e-4)
+    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=50, gamma=10e-2)
     losses = []
     autoencoder['RGB'].train(True)
     for epoch in range(epochs):
