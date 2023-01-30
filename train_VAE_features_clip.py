@@ -97,8 +97,9 @@ def main():
 def train(autoencoder, train_dataloader, device, epochs=200):
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.Adam(autoencoder['RGB'].parameters(), lr=0.0001)
+    opt = torch.optim.Adam(autoencoder['RGB'].parameters(), lr=0.00001)
 
+    losses = []
     for epoch in range(epochs):
         for i, (data, label) in enumerate(train_dataloader):
             for m in modalities:
@@ -112,9 +113,13 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     x_hat = autoencoder[m](clip)
                    # print(f"From autoencoder: {x_hat.size()}")
                     loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
-                    wandb.log({"Reconstruction loss": loss})
+                    losses.append(loss)
                     loss.backward()
                     opt.step()
+        losses = np.mean(np.array(losses))
+        wandb.log({"Reconstruction loss": losses})
+        losses = []
+
     return autoencoder
 
 def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False):
