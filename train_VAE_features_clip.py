@@ -110,7 +110,7 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
                     x_hat = autoencoder[m](clip)
-                    print(f"From autoencoder: {x_hat.size()}")
+                   # print(f"From autoencoder: {x_hat.size()}")
                     loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
                     wandb.log({"Reconstruction loss": loss})
                     loss.backward()
