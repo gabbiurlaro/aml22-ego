@@ -97,11 +97,13 @@ def main():
 def train(autoencoder, train_dataloader, device, epochs=200):
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.001)
+    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.001, weight_decay=10e-7)
 
     losses = []
+    autoencoder['RGB'].train(True)
     for epoch in range(epochs):
         for i, (data, label) in enumerate(train_dataloader):
+            opt.zero_grad()
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)
                 # print(f"Data after permutation: {data[m].size()}")
@@ -115,7 +117,7 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
                     losses.append(loss.detach().numpy())
                     loss.backward()
-            opt.step()
+                    opt.step()
         losses = np.mean(np.array(losses))
         wandb.log({"Reconstruction loss": losses})
         losses = []
