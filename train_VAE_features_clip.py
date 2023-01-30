@@ -113,16 +113,16 @@ def reconstruct(autoencoder, datalaoder, device):
                     x_hat = autoencoder[m](clip)
                     clips.append(x_hat)
             clips = torch.stack(clips, dim=0)
-            features.append(clips)
-            print(features.shape)
+            features.append(clips, label)
+            #print(features.shape)
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
 
-def train(autoencoder, train_dataloader, device, epochs=200):
+def train(autoencoder, train_dataloader, device, epochs=50):
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.0001, weight_decay=10e-5)
-    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=20, gamma=10e-4)
+    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.00001, weight_decay=10e-5)
+    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=50, gamma=10e-4)
     losses = []
     autoencoder['RGB'].train(True)
     for epoch in range(epochs):
