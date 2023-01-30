@@ -128,17 +128,18 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
     if not loaded:
         output = []
         labels = []
-        for i, (data, label) in enumerate(dataloader):
-            for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
-                for i_c in range(args.test.num_clips):
-                    clip = data[m][i_c].to(device)
-                    z = autoencoder[m].encoder(clip)
-                    z = z.to('cpu').detach()
-                    for j in range(len(label)):
-                        labels.append(label[j])
-                    output.append(z) 
-        print(f"LEn of output: {len(output)}")
+        with torch.no_grad():
+            for i, (data, label) in enumerate(dataloader):
+                for m in modalities:
+                    data[m] = data[m].permute(1, 0, 2)
+                    for i_c in range(args.test.num_clips):
+                        clip = data[m][i_c].to(device)
+                        z = autoencoder[m].encoder(clip)
+                        z = z.to('cpu').detach()
+                        for j in range(len(label)):
+                            labels.append(label[j])
+                        output.append(z) 
+        print(f"Len of output: {len(output)}")
         reconstruced_features = torch.stack(tuple(output), dim=0)
         print(f"Once stacked: {reconstruced_features.shape}")
 
