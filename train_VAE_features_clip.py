@@ -106,7 +106,7 @@ def reconstruct(autoencoder, datalaoder, device):
         
         for i, (data, label) in enumerate(datalaoder):
             for m in modalities:
-                data[m] = data[m].permut(1,0,2)
+                data[m] = data[m].permute(1,0,2)
             clips = []
             for i_c in range(args.test.num_clips):
                 for m in modalities:
@@ -117,7 +117,7 @@ def reconstruct(autoencoder, datalaoder, device):
             features.append(clips)
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
-            
+
 def train(autoencoder, train_dataloader, device, epochs=200):
     for m in modalities:
         autoencoder[m].load_on(device)
