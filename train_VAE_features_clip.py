@@ -92,7 +92,8 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
        # train(action_classifier, train_loader, val_loader, device, num_classes)
         ae = train(models, train_loader, device)
-        plot_latent(ae, train_loader, device)
+        # plot_latent(ae, train_loader, device)
+        
     
 def train(autoencoder, train_dataloader, device, epochs=200):
     for m in modalities:
