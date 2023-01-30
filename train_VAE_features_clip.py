@@ -113,7 +113,7 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     x_hat = autoencoder[m](clip)
                    # print(f"From autoencoder: {x_hat.size()}")
                     loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
-                    losses.append(loss)
+                    losses.append(loss.detach().numpy())
                     loss.backward()
                     opt.step()
         losses = np.mean(np.array(losses))
