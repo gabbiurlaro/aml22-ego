@@ -115,7 +115,7 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
                     losses.append(loss.detach().numpy())
                     loss.backward()
-                    opt.step()
+        opt.step()
         losses = np.mean(np.array(losses))
         wandb.log({"Reconstruction loss": losses})
         losses = []
