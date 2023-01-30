@@ -121,8 +121,8 @@ def reconstruct(autoencoder, datalaoder, device):
 def train(autoencoder, train_dataloader, device, epochs=100):
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=10e-5, weight_decay=10e-2)
-    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=20, gamma=10e-2)
+    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=10e-3, weight_decay=10e-2)
+    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=20, gamma=10e-1)
     losses = []
     autoencoder['RGB'].train(True)
     for epoch in range(epochs):
