@@ -120,6 +120,8 @@ def train(autoencoder, train_dataloader, device, epochs=200):
                     opt.step()
         scheduler.step()
         losses = np.mean(np.array(losses))
+        print(scheduler.get_last_lr())
+        exit(-1)
         wandb.log({"Reconstruction loss": losses, 'lr': scheduler.get_last_lr()})
         losses = []
 
