@@ -185,7 +185,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
             pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
     else:
         import pandas as pd
-    #     diz = pd.read_pickle("latent.pkl")
+        diz = pd.read_pickle("reconstructed_features.pkl")
 
     # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
     # # for x, y, l in zip(x_l, y_l, labels):
