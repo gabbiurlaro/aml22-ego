@@ -118,7 +118,7 @@ def reconstruct(autoencoder, datalaoder, device):
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
 
-def train(autoencoder, train_dataloader, device, epochs=50):
+def train(autoencoder, train_dataloader, device, epochs=100):
     for m in modalities:
         autoencoder[m].load_on(device)
     opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.00001, weight_decay=10e-5)
