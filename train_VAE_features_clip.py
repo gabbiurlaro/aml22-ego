@@ -97,7 +97,7 @@ def main():
 def train(autoencoder, train_dataloader, device, epochs=200):
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.Adam(autoencoder['RGB'].parameters(), lr=0.00001)
+    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.00001)
 
     losses = []
     for epoch in range(epochs):
