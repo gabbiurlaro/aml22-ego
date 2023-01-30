@@ -103,7 +103,6 @@ def reconstruct(autoencoder, datalaoder, device):
     for m in modalities:
         autoencoder[m].load_on(device)
     with torch.no_grad():
-        
         for i, (data, label) in enumerate(datalaoder):
             for m in modalities:
                 data[m] = data[m].permute(1,0,2)
@@ -115,6 +114,7 @@ def reconstruct(autoencoder, datalaoder, device):
                     clips.append(x_hat)
             clips = torch.stack(clips, dim=0)
             features.append(clips)
+            print(features.shape)
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
 
