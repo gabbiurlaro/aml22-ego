@@ -69,7 +69,6 @@ class EpicKitchensDataset(data.Dataset, ABC):
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [EpicVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
-        # self.emg_data = [tup[1]['myo_left_'] for tup in self.list_file.iterrows()]
         self.transform = transform  # pipeline of transforms
         self.load_feat = load_feat
 
@@ -335,7 +334,15 @@ class ActionNetDataset(data.Dataset, ABC):
         self.load_feat = load_feat
 
         if self.load_feat:
-            NotImplementedError
+            self.model_features = None
+            for m in self.modalities:
+                # load features for each modality
+                model_features = pd.DataFrame(pd.read_pickle(os.path.join("saved_features", self.dataset_conf[m].features_name + "_" + pickle_name))['features'])[["uid", "features_" + m]]
+                if self.model_features is None:
+                    self.model_features = model_features
+                else:
+                    self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
+                self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
     
     def _get_train_indices(self, record, modality='RGB'):
         if self.dense_sampling[modality]:
@@ -355,7 +362,6 @@ class ActionNetDataset(data.Dataset, ABC):
                 indices_old = indices[i]
                 for j in range(self.num_frames_per_clip[modality]):
                     indices[i + j] = indices[i + j] + offset if indices_old < 0 else indices[i + j]
-
             return indices
 
         else:
@@ -395,7 +401,8 @@ class ActionNetDataset(data.Dataset, ABC):
 
             return indices
 
-        else:  # uniform sampling
+        else:  
+            # uniform sampling
             # Code for "Deep Analysis of CNN-based Spatio-temporal Representations for Action Recognition"
             # arXiv: 2104.09952v1
             # Yuan Zhi, Zhan Tong, Limin Wang, Gangshan Wu
@@ -479,8 +486,6 @@ class ActionNetDataset(data.Dataset, ABC):
             # here the offset for the starting index of the sample is added
             idx_untrimmed = record.start_frame + idx
             try:
-                # print(f'[DEBUG] dp = {data_path}, tmpl = {tmpl.format(idx_untrimmed)}')
-                # print(f'[DEBUG] path = {os.path.join(data_path, tmpl.format(idx_untrimmed))}')
                 img = Image.open(os.path.join(data_path, tmpl.format(idx_untrimmed))).convert('RGB')
             except FileNotFoundError:
                 print("Img not found")
@@ -490,20 +495,11 @@ class ActionNetDataset(data.Dataset, ABC):
                 else:
                     raise FileNotFoundError
             return [img]
+        elif modality == 'sEMG':
+            raise NotImplementedError('sEMG modality is not implemented')
         else:
             raise NotImplementedError("Modality not implemented")
    
 
     def __len__(self):
         return len(self.video_list)
-
-
-class EMG_ActionNet(data.Dataset, ABC):
-    def __init__(self) -> None:
-        super().__init__()
-    
-    def __len__(self):
-        return 0
-
-    def __getitem__(self, index):
-        return None
