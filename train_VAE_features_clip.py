@@ -137,8 +137,6 @@ def reconstruct(autoencoder, dataloader, device):
     plt.show()
 
 
-        #po ci pensiamo
-
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
     autoencoder.train(False)
@@ -247,7 +245,7 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
     # plt.show()
 
 def load_model(ae, path):
-    ae.load_state_dict(torch.load(path))
+    ae.load_state_dict(torch.load(path), strict=False)
 
 
 
