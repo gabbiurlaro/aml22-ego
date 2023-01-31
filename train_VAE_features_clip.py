@@ -140,7 +140,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     return total_loss/len(val_dataloader)
 
 
-def train(autoencoder, train_dataloader, val_dataloader, device, epochs=2):
+def train(autoencoder, train_dataloader, val_dataloader, device, epochs=200):
     logger.info(f"Start VAE training.")
     train_loss = []
     for m in modalities:
@@ -190,6 +190,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
                 output = []
                 for m in modalities:
                     data[m] = data[m].permute(1, 0, 2)
+                    print(len(data[m]))
                     for i_c in range(args.test.num_clips):
                         clip = data[m][i_c].to(device)
                         z = autoencoder[m].encoder.encode(clip)
@@ -199,7 +200,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
                     output = output.permute(1,0,2)
                     for j in range(len(data[m])):
                         final_latents.append(output[j])
-                        labels.append(label[j])
+                        labels.append(label[j].item())
         final_latents = torch.stack(final_latents).reshape(-1,512)
         reduced = TSNE().fit_transform(final_latents)
         x_l = reduced[:, 0]
