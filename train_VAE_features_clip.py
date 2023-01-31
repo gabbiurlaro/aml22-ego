@@ -201,7 +201,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
                         final_latents.append(output[j])
                         labels.append(label[j])
         final_latents = torch.stack(final_latents)
-        print(final_latents.sahpe)
+        print(final_latents.shape)
         reduced = TSNE().fit_transform(final_latents)
         x_l = reduced[:, 0]
         y_l = reduced[:, 1]
