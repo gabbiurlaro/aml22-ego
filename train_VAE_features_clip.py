@@ -112,7 +112,7 @@ def reconstruct(autoencoder, dataloader, device):
                 print(len(data[m]))
                 for i_c in range(args.test.num_clips):
                     clip = data[m][i_c].to(device)
-                    z = autoencoder(clip)
+                    z, _, _, _ = autoencoder(clip)
                     z = z.to(device).detach()
                     output.append(z)
                 output = torch.stack(output)
@@ -205,12 +205,12 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
     labels = []
     final_latents = []
     with torch.no_grad():
-        print(len(dataloader))
+        #print(len(dataloader))
         for i, (data, label) in enumerate(dataloader):
             output = []
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)
-                print(len(data[m]))
+                #print(len(data[m]))
                 for i_c in range(args.test.num_clips):
                     clip = data[m][i_c].to(device)
                     z = autoencoder[m].encoder.encode(clip)
@@ -246,7 +246,7 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
 
 def load_model(ae, path):
     state_dict = torch.load(path)["model_state_dict"]
-    print([x for x in state_dict.keys()])
+    #print([x for x in state_dict.keys()])
     ae.load_state_dict(state_dict, strict=False)
 
 
