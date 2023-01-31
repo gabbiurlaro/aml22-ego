@@ -100,7 +100,7 @@ def main():
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
-def reconstruct(autoencoder, dataloader, device):
+def reconstruct(autoencoder, dataloader, device, split=None):
     output = []
     labels = []
     final_latents = []
