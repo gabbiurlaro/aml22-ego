@@ -5,6 +5,7 @@ from turtle import color
 from wsgiref import validate
 from utils.logger import logger
 import torch.nn.parallel
+import torch.nn as nn
 import torch.optim
 import torch
 from utils.loaders import EpicKitchensDataset
@@ -42,7 +43,7 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
+        wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17')
         wandb.init(project="test-project", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
@@ -96,7 +97,7 @@ def main():
        # train(action_classifier, train_loader, val_loader, device, num_classes)
         ae = train(models, train_loader, device)
         # plot_latent(ae, train_loader, device)
-        reconstruct(ae, train_loader, device)
+        # reconstruct(ae, train_loader, device)
 
 def reconstruct(autoencoder, datalaoder, device):
     features = []
@@ -118,35 +119,34 @@ def reconstruct(autoencoder, datalaoder, device):
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
 
-def train(autoencoder, train_dataloader, device, epochs=200):
+def train(autoencoder, train_dataloader, device, epochs=100):
+    logger.info(f"Start VAE training.")
+    train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
     opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.0001, weight_decay=10e-7)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=50, gamma=10e-5)
-    losses = []
+    reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
     for epoch in range(epochs):
-        for i, (data, label) in enumerate(train_dataloader):
+        for i, (data, labels) in enumerate(train_dataloader):
             opt.zero_grad()
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)
                 # print(f"Data after permutation: {data[m].size()}")
-            
             for i_c in range(args.test.num_clips):
                 for m in modalities:
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
-                    x_hat = autoencoder[m](clip)
-                   # print(f"From autoencoder: {x_hat.size()}")
-                    loss = ((clip - x_hat)**2).sum() + autoencoder[m].encoder.kl
-                    losses.append(((clip - x_hat)**2).sum().detach().numpy())
+                    x_hat, _, mean, log_var = autoencoder[m](clip)
+                    # print(f"From autoencoder: {x_hat.size()}")
+                    mse_loss = reconstruction_loss(x_hat, clip)
+                    kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
+                    loss = mse_loss + kld_loss
                     loss.backward()
                     opt.step()
+                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss})
         scheduler.step()
-        losses = np.mean(np.array(losses))
-        wandb.log({"Reconstruction loss": losses, 'lr': scheduler.get_last_lr()[0]})
-        losses = []
-
     return autoencoder
 
 def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False):
