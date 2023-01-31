@@ -89,7 +89,7 @@ def main():
         val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
                                                                      'val', args.dataset, None, None, None,
                                                                      None, load_feat=True),
-                                                 batch_size=args.batch_size, shuffle=False,
+                                                 batch_size=args.badtch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         #ae = train(models, train_loader, val_loader, device)
         #save_model(ae['RGB'],f"{args.name}.pth")
@@ -108,19 +108,18 @@ def reconstruct(autoencoder, dataloader, device, split=None):
         for i, (data, label) in enumerate(dataloader):
             output = []
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
-                print(len(data[m]))
-                for i_c in range(args.test.num_clips):
-                    clip = data[m][i_c].to(device)
-                    z, _, _, _ = autoencoder(clip)
-                    z = z.to(device).detach()
-                    output.append(z)
-                output = torch.stack(output)
-                output = output.permute(1, 0, 2)
+                samples = [(x, l) for x,l in zip(data[m], label)]
+                for sample,l in samples:
+                    for i_c in range(args.test.num_clips):
+                        clip = sample[i_c].to(device)
+                        z, _, _, _ = autoencoder(clip)
+                        z = z.to(device).detach()
+                        output.append(z, l)
                 #print(f'[DEBUG], Batch finito, output: {output.size()}')
                 for j in range(len(output)):
-                    final_latents.append(output[j])
-                    labels.append(label[j].item())
+                    final_latents.append(output[j][0])
+                    labels.append(output[j][1])
+    print(final_latents.shape, labels.shape)
     final_latents = torch.stack(final_latents).reshape(-1,1024)
     reduced = TSNE().fit_transform(final_latents)
     x_l = reduced[:, 0]
