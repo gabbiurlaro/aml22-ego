@@ -96,7 +96,7 @@ def main():
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         ae = train(models, train_loader, val_loader, device)
-        save_model(ae['RGB'],f"{args.name}+.pth")
+        save_model(ae['RGB'],f"{args.name}.pth")
         plot_latent(ae, val_loader, device)
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
@@ -175,7 +175,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, epochs=2):
 
 def save_model(model, filename):
         try:
-            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./aml22-ego/saved_models/VAE_RGB', filename))
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_RGB', filename))
         except Exception as e:
             logger.info("An error occurred while saving the checkpoint:")
             logger.info(e)
