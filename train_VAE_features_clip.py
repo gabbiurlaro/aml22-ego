@@ -97,6 +97,7 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         ae = train(models, train_loader, val_loader, device)
         save_model(ae['RGB'], args.name)
+        plot_latent(ae, val_loader, device)
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
