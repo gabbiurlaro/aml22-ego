@@ -140,7 +140,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     return total_loss/len(val_dataloader)
 
 
-def train(autoencoder, train_dataloader, val_dataloader, device, epochs=200):
+def train(autoencoder, train_dataloader, val_dataloader, device, epochs=2):
     logger.info(f"Start VAE training.")
     train_loss = []
     for m in modalities:
