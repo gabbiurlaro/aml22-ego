@@ -199,7 +199,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
                         output.append(z)
                     output = torch.stack(output)
                     output = output.permute(1,0,2)
-                    for j in range(len(data[m])):
+                    for j in range(len(output)):
                         final_latents.append(output[j])
                         labels.append(label[j].item())
         final_latents = torch.stack(final_latents).reshape(-1,512)
