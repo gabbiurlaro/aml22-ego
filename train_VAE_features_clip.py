@@ -112,7 +112,7 @@ def reconstruct(autoencoder, dataloader, device):
                 print(len(data[m]))
                 for i_c in range(args.test.num_clips):
                     clip = data[m][i_c].to(device)
-                    z = autoencoder[m](clip)
+                    z = autoencoder(clip)
                     z = z.to(device).detach()
                     output.append(z)
                 output = torch.stack(output)
