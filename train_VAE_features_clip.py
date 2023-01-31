@@ -128,7 +128,7 @@ def reconstruct(autoencoder, dataloader, device, split=None):
     with open(f"./latent_{split}.pkl", "wb") as file:
         pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
     
-    d = pd.read_pickle(f'./aml22-ego/latent_{split}.pkl')
+    d = pd.read_pickle(f'./latent_{split}.pkl')
 
     colors= ['green', 'red', 'yellow', 'grey', 'green', 'blue', 'black', 'purple']
     for x, y, l in zip(d['x'], d['y'], d['labels']):
