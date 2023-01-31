@@ -43,7 +43,8 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
+        # wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec') # salvatore
+        wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17') # gabbp
         wandb.init(project="test-project", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
