@@ -119,9 +119,13 @@ def reconstruct(autoencoder, dataloader, device, split=None):
                 #print(f'[DEBUG], Batch finito, output: {output.size()}')
                 for j in range(len(output)):
                     final_latents.append(output[j])
-                    labels.append(label[j].item())
+                    for _ in range(5):
+                        labels.append(label[j].item())
     print(f"Final latent: {len(final_latents)}, labels: {len(labels)}")
-    final_latents = torch.stack(final_latents).reshape(-1,1024)
+    final_latents = torch.stack(final_latents).reshape(-1, 1024)
+    print(f"Final latent: {len(final_latents)}, labels: {len(labels)}")
+
+    
     reduced = TSNE().fit_transform(final_latents)
     x_l = reduced[:, 0]
     y_l = reduced[:, 1]
