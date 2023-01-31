@@ -97,7 +97,7 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         ae = train(models, train_loader, val_loader, device)
         save_model(ae['RGB'],f"{args.name}.pth")
-        plot_latent(ae, val_loader, device)
+        plot_latent(ae, train_loader, device, split='D1_train')
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
@@ -140,7 +140,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     return total_loss/len(val_dataloader)
 
 
-def train(autoencoder, train_dataloader, val_dataloader, device, epochs=2):
+def train(autoencoder, train_dataloader, val_dataloader, device, epochs=75):
     logger.info(f"Start VAE training.")
     train_loss = []
     for m in modalities:
@@ -180,57 +180,35 @@ def save_model(model, filename):
             logger.info("An error occurred while saving the checkpoint:")
             logger.info(e)
 
-def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False):
-    if not loaded:
-        output = []
-        labels = []
-        final_latents = []
-        with torch.no_grad():
-            print(len(dataloader))
-            for i, (data, label) in enumerate(dataloader):
-                output = []
-                for m in modalities:
-                    data[m] = data[m].permute(1, 0, 2)
-                    print(len(data[m]))
-                    for i_c in range(args.test.num_clips):
-                        clip = data[m][i_c].to(device)
-                        z = autoencoder[m].encoder.encode(clip)
-                        z = z.to(device).detach()
-                        output.append(z)
-                    output = torch.stack(output)
-                    output = output.permute(1, 0, 2)
-                    print(f'[DEBUG], Batch finito, output: {output.size()}')
-                    for j in range(len(output)):
-                        final_latents.append(output[j])
-                        labels.append(label[j].item())
-        final_latents = torch.stack(final_latents).reshape(-1,512)
-        reduced = TSNE().fit_transform(final_latents)
-        x_l = reduced[:, 0]
-        y_l = reduced[:, 1]
-        with open("./latent.pkl", "wb") as file:
-            pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
-
-        # output = torch.tensor(output)
-        # print(f"Len of output: {output.shape}")
-        # reconstruced_features = torch.stack([(batch.reshape(-1,512)) for batch in output], dim=0)
-        # print(f"Once stacked: {reconstruced_features.shape}")
-
-        # reconstruced_features = reconstruced_features.reshape(-1, 512)
-        # print(f"After reshape: {reconstruced_features.shape}")
-        # for i in range(len(dataloader)):
-
-        # print(f'labels {len(labels)}')
-        
-                # if i > num_batches:
-                #     plt.colorbar()
-                #     break
-        #plt.show()
-        # filtered = {}
-        
-    else:
-        diz = pd.read_pickle("reconstructed_features.pkl")
-
-    # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
+def plot_latent(autoencoder, dataloader, device, split = 'train'):
+    output = []
+    labels = []
+    final_latents = []
+    with torch.no_grad():
+        print(len(dataloader))
+        for i, (data, label) in enumerate(dataloader):
+            output = []
+            for m in modalities:
+                data[m] = data[m].permute(1, 0, 2)
+                print(len(data[m]))
+                for i_c in range(args.test.num_clips):
+                    clip = data[m][i_c].to(device)
+                    z = autoencoder[m].encoder.encode(clip)
+                    z = z.to(device).detach()
+                    output.append(z)
+                output = torch.stack(output)
+                output = output.permute(1, 0, 2)
+                #print(f'[DEBUG], Batch finito, output: {output.size()}')
+                for j in range(len(output)):
+                    final_latents.append(output[j])
+                    labels.append(label[j].item())
+    final_latents = torch.stack(final_latents).reshape(-1,512)
+    reduced = TSNE().fit_transform(final_latents)
+    x_l = reduced[:, 0]
+    y_l = reduced[:, 1]
+    with open(f"./latent_{split}.pkl", "wb") as file:
+        pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
+  # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
     # # for x, y, l in zip(x_l, y_l, labels):
     # #     print(colors[l])
     # plt.scatter(x_l, y_l, c=colors, label=labels)    
