@@ -130,7 +130,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
             for m in modalities:
                 # extract the clip related to the modality
                 clip = data[m][i_c].to(device)
-                x_hat, _, mean, log_var = autoencoder[m](clip)
+                x_hat, _, mean, log_var = autoencoder(clip)
                 mse_loss = reconstruction_loss(x_hat, clip)
                 kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
                 loss = mse_loss + kld_loss
