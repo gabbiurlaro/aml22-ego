@@ -89,7 +89,7 @@ def main():
         val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
                                                                      'val', args.dataset, None, None, None,
                                                                      None, load_feat=True),
-                                                 batch_size=args.badtch_size, shuffle=False,
+                                                 batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         #ae = train(models, train_loader, val_loader, device)
         #save_model(ae['RGB'],f"{args.name}.pth")
