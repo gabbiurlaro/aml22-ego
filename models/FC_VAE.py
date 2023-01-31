@@ -26,6 +26,9 @@ class VariationalEncoder(nn.Module):
         self.fc1 = nn.Linear(latent_dims, latent_dims)
         self.fc2 = nn.Linear(latent_dims, latent_dims)
     
+    def encode(self, x):
+        return self.encoder(x)
+
     def forward(self, x):
         h = self.encoder(x)
         return self.fc1(h), self.fc2(h)

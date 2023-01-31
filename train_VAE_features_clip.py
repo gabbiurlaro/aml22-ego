@@ -96,6 +96,7 @@ def main():
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         ae = train(models, train_loader, val_loader, device)
+        save_model(ae['RGB'], args.name)
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
@@ -171,6 +172,15 @@ def train(autoencoder, train_dataloader, val_dataloader, device, epochs=200):
         scheduler.step()
     return autoencoder
 
+def save_model(model, filename):
+        for m in modalities:
+            try:
+                torch.save({'model_state_dict': model[m].state_dict()}, os.path.join('./aml22-ego/saved_models/VAE_RGB', filename))
+
+            except Exception as e:
+                logger.info("An error occurred while saving the checkpoint:")
+                logger.info(e)
+
 def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False):
     if not loaded:
         output = []
@@ -181,7 +191,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
                     data[m] = data[m].permute(1, 0, 2)
                     for i_c in range(args.test.num_clips):
                         clip = data[m][i_c].to(device)
-                        z = autoencoder[m].encoder(clip)
+                        z = autoencoder[m].encoder.encode(clip)
                         z = z.to('cpu').detach()
                         for j in range(len(label)):
                             labels.append(label[j])

@@ -14,6 +14,7 @@ class VariationalEncoder(nn.Module):
         #self.N.scale = self.N.scale.cuda()
         self.kl = 0
     
+    
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.linear1(x))
