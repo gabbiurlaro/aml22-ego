@@ -104,7 +104,6 @@ def reconstruct(autoencoder, datalaoder, device):
     for m in modalities:
         autoencoder[m].load_on(device)
     with torch.no_grad():
-        
         for i, (data, label) in enumerate(datalaoder):
             for m in modalities:
                 data[m] = data[m].permute(1,0,2)
@@ -115,7 +114,8 @@ def reconstruct(autoencoder, datalaoder, device):
                     x_hat = autoencoder[m](clip)
                     clips.append(x_hat)
             clips = torch.stack(clips, dim=0)
-            features.append(clips)
+            features.append(clips, label)
+            #print(features.shape)
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
 
@@ -136,6 +136,7 @@ def train(autoencoder, train_dataloader, device, epochs=100):
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
+                    opt.zero_grad()
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
                     x_hat, _, mean, log_var = autoencoder[m](clip)
@@ -185,7 +186,7 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
             pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
     else:
         import pandas as pd
-    #     diz = pd.read_pickle("latent.pkl")
+        diz = pd.read_pickle("reconstructed_features.pkl")
 
     # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
     # # for x, y, l in zip(x_l, y_l, labels):
