@@ -94,7 +94,6 @@ def main():
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-       # train(action_classifier, train_loader, val_loader, device, num_classes)
         ae = train(models, train_loader, device)
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
@@ -146,7 +145,7 @@ def train(autoencoder, train_dataloader, device, epochs=100):
                     loss = mse_loss + kld_loss
                     loss.backward()
                     opt.step()
-                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss})
+                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss})
         scheduler.step()
     return autoencoder
 
