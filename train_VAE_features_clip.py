@@ -245,7 +245,8 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
     # plt.show()
 
 def load_model(ae, path):
-    ae.load_state_dict(torch.load(path)["model_state_dict"], strict=True)
+    state_dict = torch.load(path)["model_state_dict"]
+    ae.load_state_dict(state_dict, strict=False)
 
 
 
