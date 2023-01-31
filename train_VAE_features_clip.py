@@ -1,7 +1,3 @@
-from datetime import datetime
-import enum
-from statistics import mean
-from turtle import color
 from wsgiref import validate
 from utils.logger import logger
 import torch.nn.parallel
@@ -15,12 +11,12 @@ import utils
 import numpy as np
 import os
 import models as model_list
-import tasks
 import wandb
 import matplotlib.pyplot as plt
 from  sklearn.manifold import TSNE
-#from models.VAE import Encoder, Decoder, VAE
 import pickle
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # global variables among training functions
 training_iterations = 0
@@ -95,31 +91,53 @@ def main():
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        ae = train(models, train_loader, val_loader, device)
-        save_model(ae['RGB'],f"{args.name}.pth")
-        plot_latent(ae, train_loader, device, split='D1_train')
+        #ae = train(models, train_loader, val_loader, device)
+        #save_model(ae['RGB'],f"{args.name}.pth")
+        #plot_latent(ae, train_loader, device, split='D1_train')
+        
+        load_model(models['RGB'], './saved_models/VAE_RGB/VAE_FT_D_16f.pth')
+        reconstruct(models['RGB'], train_loader, device)
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
-def reconstruct(autoencoder, datalaoder, device):
-    features = []
-    for m in modalities:
-        autoencoder[m].load_on(device)
+def reconstruct(autoencoder, dataloader, device):
+    output = []
+    labels = []
+    final_latents = []
     with torch.no_grad():
-        for i, (data, label) in enumerate(datalaoder):
+        for i, (data, label) in enumerate(dataloader):
+            output = []
             for m in modalities:
-                data[m] = data[m].permute(1,0,2)
-            clips = []
-            for i_c in range(args.test.num_clips):
-                for m in modalities:
+                data[m] = data[m].permute(1, 0, 2)
+                print(len(data[m]))
+                for i_c in range(args.test.num_clips):
                     clip = data[m][i_c].to(device)
-                    x_hat = autoencoder[m](clip)
-                    clips.append(x_hat)
-            clips = torch.stack(clips, dim=0)
-            features.append(clips, label)
-            #print(features.shape)
-        with open("reconstructed_features.pkl", "wb") as file:
-            pickle.dump(features, file)
+                    z = autoencoder[m](clip)
+                    z = z.to(device).detach()
+                    output.append(z)
+                output = torch.stack(output)
+                output = output.permute(1, 0, 2)
+                #print(f'[DEBUG], Batch finito, output: {output.size()}')
+                for j in range(len(output)):
+                    final_latents.append(output[j])
+                    labels.append(label[j].item())
+    final_latents = torch.stack(final_latents).reshape(-1,1024)
+    reduced = TSNE().fit_transform(final_latents)
+    x_l = reduced[:, 0]
+    y_l = reduced[:, 1]
+    with open(f"./latent_{split}.pkl", "wb") as file:
+        pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
+    
+    d = pd.read_pickle(f'./aml22-ego/latent_{split}.pkl')
+
+    colors= ['green', 'red', 'yellow', 'grey', 'green', 'blue', 'black', 'purple']
+    for x, y, l in zip(d['x'], d['y'], d['labels']):
+        plt.scatter(x, y, c=colors[l])
+    plt.savefig(f"./img_VAE_{split}.png")
+    plt.show()
+
+
+        #po ci pensiamo
 
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
@@ -181,6 +199,10 @@ def save_model(model, filename):
             logger.info(e)
 
 def plot_latent(autoencoder, dataloader, device, split = 'train'):
+    """
+    encodes rgb features, saves them in a latent_split.pkl file and plots them ina img_VAE_split.png file
+    """
+
     output = []
     labels = []
     final_latents = []
@@ -208,6 +230,14 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
     y_l = reduced[:, 1]
     with open(f"./latent_{split}.pkl", "wb") as file:
         pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
+    
+    d = pd.read_pickle(f'./aml22-ego/latent_{split}.pkl')
+
+    colors= ['green', 'red', 'yellow', 'grey', 'green', 'blue', 'black', 'purple']
+    for x, y, l in zip(d['x'], d['y'], d['labels']):
+        plt.scatter(x, y, c=colors[l])
+    plt.savefig(f"./img_VAE_{split}.png")
+    plt.show()
   # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
     # # for x, y, l in zip(x_l, y_l, labels):
     # #     print(colors[l])
@@ -215,6 +245,12 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
     # plt.legend()
     # plt.savefig("./img_VAE.png")
     # plt.show()
+
+def load_model(ae, path):
+    ae.load_state_dict(torch.load(path))
+
+
+
 
 if __name__ == '__main__':
     main()
