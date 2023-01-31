@@ -225,7 +225,8 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
                 #print(f'[DEBUG], Batch finito, output: {output.size()}')
                 for j in range(len(output)):
                     final_latents.append(output[j])
-                    labels.append(label[j].item())
+                    for _ in range(5):
+                        labels.append(label[j].item())
     final_latents = torch.stack(final_latents).reshape(-1,512)
     reduced = TSNE().fit_transform(final_latents)
     x_l = reduced[:, 0]
