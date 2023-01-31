@@ -108,19 +108,19 @@ def reconstruct(autoencoder, dataloader, device, split=None):
         for i, (data, label) in enumerate(dataloader):
             output = []
             for m in modalities:
-                samples = [(x, l) for x,l in zip(data[m], label)]
-                for sample,l in samples:
-                    for i_c in range(args.test.num_clips):
-                        clip = sample[i_c].to(device)
-                        print(clip.shape)
-                        z, _, _, _ = autoencoder(clip)
-                        z = z.to(device).detach()
-                        output.append(z, l)
+                data[m] = data[m].permute(1, 0, 2)
+                for i_c in range(args.test.num_clips):
+                    clip = data[m][i_c].to(device)
+                    z, _, _, _ = autoencoder(clip)
+                    z = z.to(device).detach()
+                    output.append(z)
+                output = torch.stack(output)
+                output = output.permute(1, 0, 2)
                 #print(f'[DEBUG], Batch finito, output: {output.size()}')
                 for j in range(len(output)):
-                    final_latents.append(output[j][0])
-                    labels.append(output[j][1])
-    print(final_latents.shape, labels.shape)
+                    final_latents.append(output[j])
+                    labels.append(label[j].item())
+    print(f"Final latent: {len(final_latents)}, labels: {len(labels)}")
     final_latents = torch.stack(final_latents).reshape(-1,1024)
     reduced = TSNE().fit_transform(final_latents)
     x_l = reduced[:, 0]
