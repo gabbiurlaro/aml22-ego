@@ -145,12 +145,7 @@ def train(autoencoder, train_dataloader, device, epochs=100):
                     loss = mse_loss + kld_loss
                     loss.backward()
                     opt.step()
-<<<<<<< HEAD
-                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss})
-            
-=======
                     wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss})
->>>>>>> e70378cc5ae7e3d67999add9941faba00ed6cb40
         scheduler.step()
     return autoencoder
 
