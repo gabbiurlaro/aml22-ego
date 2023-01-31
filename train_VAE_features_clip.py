@@ -112,6 +112,7 @@ def reconstruct(autoencoder, dataloader, device, split=None):
                 for sample,l in samples:
                     for i_c in range(args.test.num_clips):
                         clip = sample[i_c].to(device)
+                        print(clip.shape)
                         z, _, _, _ = autoencoder(clip)
                         z = z.to(device).detach()
                         output.append(z, l)
