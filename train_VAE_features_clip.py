@@ -94,7 +94,7 @@ def main():
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        ae = train(models, train_loader, device)
+        ae = train(models, train_loader, val_loader, device)
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
@@ -118,7 +118,26 @@ def reconstruct(autoencoder, datalaoder, device):
         with open("reconstructed_features.pkl", "wb") as file:
             pickle.dump(features, file)
 
-def train(autoencoder, train_dataloader, device, epochs=100):
+def validate(autoencoder, val_dataloader, device, reconstruction_loss):
+    total_loss = 0
+    autoencoder.train(False)
+    for i, (data, labels) in enumerate(val_dataloader):
+        for m in modalities:
+            data[m] = data[m].permute(1, 0, 2)
+            # print(f"Data after permutation: {data[m].size()}")
+        for i_c in range(args.test.num_clips):
+            for m in modalities:
+                # extract the clip related to the modality
+                clip = data[m][i_c].to(device)
+                x_hat, _, mean, log_var = autoencoder[m](clip)
+                mse_loss = reconstruction_loss(x_hat, clip)
+                kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
+                loss = mse_loss + kld_loss
+                total_loss += loss
+    return total_loss/len(val_dataloader)
+
+
+def train(autoencoder, train_dataloader, val_dataloader, device, epochs=200):
     logger.info(f"Start VAE training.")
     train_loss = []
     for m in modalities:
@@ -146,6 +165,8 @@ def train(autoencoder, train_dataloader, device, epochs=100):
                     loss.backward()
                     opt.step()
                     wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss})
+        if epoch % 20 == 0:
+            wandb.log({"Valdation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
         scheduler.step()
     return autoencoder
 
