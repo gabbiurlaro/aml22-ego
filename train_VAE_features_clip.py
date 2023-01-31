@@ -198,7 +198,8 @@ def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False
                         z = z.to(device).detach()
                         output.append(z)
                     output = torch.stack(output)
-                    output = output.permute(1,0,2)
+                    output = output.permute(1, 0, 2)
+                    print(f'[DEBUG], Batch finito, output: {output.size()}')
                     for j in range(len(output)):
                         final_latents.append(output[j])
                         labels.append(label[j].item())
