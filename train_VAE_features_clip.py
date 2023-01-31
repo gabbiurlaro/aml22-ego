@@ -174,50 +174,57 @@ def train(autoencoder, train_dataloader, val_dataloader, device, epochs=200):
     return autoencoder
 
 def save_model(model, filename):
-        for m in modalities:
-            try:
-                torch.save({'model_state_dict': model[m].state_dict()}, os.path.join('./aml22-ego/saved_models/VAE_RGB', filename))
-
-            except Exception as e:
-                logger.info("An error occurred while saving the checkpoint:")
-                logger.info(e)
+        try:
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./aml22-ego/saved_models/VAE_RGB', filename))
+        except Exception as e:
+            logger.info("An error occurred while saving the checkpoint:")
+            logger.info(e)
 
 def plot_latent(autoencoder, dataloader, device, num_batches=100, loaded = False):
     if not loaded:
         output = []
         labels = []
+        final_latents = []
         with torch.no_grad():
             for i, (data, label) in enumerate(dataloader):
+                output = []
                 for m in modalities:
                     data[m] = data[m].permute(1, 0, 2)
                     for i_c in range(args.test.num_clips):
                         clip = data[m][i_c].to(device)
                         z = autoencoder[m].encoder.encode(clip)
-                        z = z.to('cpu').detach()
-                        for j in range(len(label)):
-                            labels.append(label[j])
-                        output.append(z) 
-        print(f"Len of output: {len(output)}")
-        reconstruced_features = torch.stack(tuple(output), dim=0)
-        print(f"Once stacked: {reconstruced_features.shape}")
+                        z = z.to(device).detach()
+                        output.append(z)
+                    output = torch.tensor(output)
+                    output = output.permute(1,0,2)
+                    for j in range(len(data[m])):
+                        final_latents.append(output[j])
+                        labels.append(label[j])
+        final_latents = torch.stack(final_latents)
+        reduced = TSNE().fit_transform(final_latents)
+        x_l = reduced[:, 0]
+        y_l = reduced[:, 1]
+        with open("./latent.pkl", "wb") as file:
+            pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
 
-        reconstruced_features = reconstruced_features.reshape(-1, 512)
-        print(f"After reshape: {reconstruced_features.shape}")
-        print(f'labels {len(labels)}')
+        # output = torch.tensor(output)
+        # print(f"Len of output: {output.shape}")
+        # reconstruced_features = torch.stack([(batch.reshape(-1,512)) for batch in output], dim=0)
+        # print(f"Once stacked: {reconstruced_features.shape}")
 
-        reduced = TSNE().fit_transform(reconstruced_features)
+        # reconstruced_features = reconstruced_features.reshape(-1, 512)
+        # print(f"After reshape: {reconstruced_features.shape}")
+        # for i in range(len(dataloader)):
+
+        # print(f'labels {len(labels)}')
+        
                 # if i > num_batches:
                 #     plt.colorbar()
                 #     break
         #plt.show()
         # filtered = {}
-        x_l = reduced[:, 0]
-        y_l = reduced[:, 1]
-        import pickle
-        with open("./latent.pkl", "wb") as file:
-            pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
+        
     else:
-        import pandas as pd
         diz = pd.read_pickle("reconstructed_features.pkl")
 
     # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blu', 'black', 'purple']
