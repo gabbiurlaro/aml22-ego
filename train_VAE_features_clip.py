@@ -96,7 +96,7 @@ def main():
         #plot_latent(ae, train_loader, device, split='D1_train')
         
         load_model(models['RGB'], './saved_models/VAE_RGB/VAE_FT_D_16f.pth')
-        reconstruct(models['RGB'], train_loader, device, split="train")
+        reconstruct(models['RGB'], train_loader, device, split="D1_train")
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
 
