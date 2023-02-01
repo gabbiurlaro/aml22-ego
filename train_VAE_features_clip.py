@@ -39,8 +39,8 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec') # salvatore
-        #wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17') # gabbo
+        # wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec') # salvatore
+        wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17') # gabbo
         wandb.init(project="test-project", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
@@ -91,54 +91,74 @@ def main():
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        #ae = train(models, train_loader, val_loader, device)
-        #save_model(ae['RGB'],f"{args.name}.pth")
+        ae = train(models, train_loader, val_loader, device)
+        logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
+        save_model(ae['RGB'], f"{args.name}.pth")
+        logger.info(f"DONE")
+
         #plot_latent(ae, train_loader, device, split='D1_train')
         
-        load_model(models['RGB'], './saved_models/VAE_RGB/VAE_FT_D_16f.pth')
-        reconstruct(models['RGB'], train_loader, device, split="D1_train")
+        # load_model(models['RGB'], './saved_models/VAE_RGB/VAE_FT_D_16f.pth')
+        # reconstruct(models['RGB'], train_loader, device, split="D1_train")
         # plot_latent(ae, train_loader, device)
         # reconstruct(ae, train_loader, device)
+    elif args.action == "save":
+        loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       args.split , args.dataset, None, None, None,
+                                                                       None, load_feat=True),
+                                                   batch_size=1, shuffle=True,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        last_model = './saved_models/VAE_RGB/VAE_FT_D_16f.pth'
+        logger.info(f"Loading last model from {last_model}")
+        load_model(models['RGB'], last_model)
+        logger.info(f"Reconstructing features...")
+        reconstructed_features = reconstruct(models, loader, device, args.split, save = True)
+        
+        # some statitics:
+        logger.info(f"Reconstructed feature of {len(reconstructed_features['features_RGB'])} video")
+        # print(f"Un sample è di questo tipo: {reconstructed_features['features_RGB'][0]['features'].shape}")
+        logger.info(f"Filename is: ./saved_features/reconstructed/VAE.pkl")
 
-def reconstruct(autoencoder, dataloader, device, split=None):
-    output = []
-    labels = []
-    final_latents = []
+def reconstruct(autoencoder, dataloader, device, split=None, save = False):
+    result = {'features_RGB': []}
+
     with torch.no_grad():
         for i, (data, label) in enumerate(dataloader):
-            output = []
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
-                for i_c in range(args.test.num_clips):
-                    clip = data[m][i_c].to(device)
-                    z, _, _, _ = autoencoder(clip)
+                autoencoder[m].train(False)
+                data[m] = data[m].permute(1, 0, 2)     #  clip level
+                # print(f'[DEBUG]: data[m] ha come primo elemento la dimensione delle clip: {data[m].size()}')
+                clips = []
+                for i_c in range(args.test.num_clips): #  iterate over the clips
+                    clip = data[m][i_c].to(device)     #  retrieve the clip
+                    z, _, _, _ = autoencoder[m](clip)      
                     z = z.to(device).detach()
-                    output.append(z)
-                output = torch.stack(output)
-                output = output.permute(1, 0, 2)
-                #print(f'[DEBUG], Batch finito, output: {output.size()}')
-                for j in range(len(output)):
-                    final_latents.append(output[j])
-                    for _ in range(5):
-                        labels.append(label[j].item())
-    print(f"Final latent: {len(final_latents)}, labels: {len(labels)}")
-    final_latents = torch.stack(final_latents).reshape(-1, 1024)
-    print(f"Final latent: {len(final_latents)}, labels: {len(labels)}")
-
+                    clips.append(z)
+                # print(f"[DEBUG] clips è un array({type(clips)}, di dimensione 5({len(clips)})")
+                clips = torch.stack(clips, dim = 0)
+                # print(f"[DEBUG] clips è un TENSORE({type(clips)}, che rappresenta il video {clips.shape})")
+                clips = clips.permute(1, 0, 2).squeeze(0)
+                # print(f"[DEBUG] clips è un TENSORE({type(clips)}, che rappresenta il video ({clips.shape})[ho eliminato la dimensione inutile]")
+                result['features_RGB'].append({'features': clips.numpy(), 'label': label.item()})
+                
+    if save:
+        with open("./saved_features/reconstructed/VAE.pkl", "wb") as file:
+            pickle.dump(result, file)
+        
+    return result
+    # reduced = TSNE().fit_transform(final_latents)
+    # x_l = reduced[:, 0]
+    # y_l = reduced[:, 1]
+    # with open(f"./latent_{split}.pkl", "wb") as file:
+    #     pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
     
-    reduced = TSNE().fit_transform(final_latents)
-    x_l = reduced[:, 0]
-    y_l = reduced[:, 1]
-    with open(f"./latent_{split}.pkl", "wb") as file:
-        pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
-    
-    d = pd.read_pickle(f'./latent_{split}.pkl')
+    # d = pd.read_pickle(f'./latent_{split}.pkl')
 
-    colors= ['green', 'red', 'yellow', 'grey', 'green', 'blue', 'black', 'purple']
-    for x, y, l in zip(d['x'], d['y'], d['labels']):
-        plt.scatter(x, y, c=colors[l])
-    plt.savefig(f"./img_VAE_{split}.png")
-    plt.show()
+    # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blue', 'black', 'purple']
+    # for x, y, l in zip(d['x'], d['y'], d['labels']):
+    #     plt.scatter(x, y, c=colors[l])
+    # plt.savefig(f"./img_VAE_{split}.png")
+    # plt.show()
 
 
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
@@ -155,41 +175,51 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
                 x_hat, _, mean, log_var = autoencoder(clip)
                 mse_loss = reconstruction_loss(x_hat, clip)
                 kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
-                loss = mse_loss + kld_loss
+                loss = mse_loss # + kld_loss
                 total_loss += loss
+            
     return total_loss/len(val_dataloader)
 
 
-def train(autoencoder, train_dataloader, val_dataloader, device, epochs=75):
+def train(autoencoder, train_dataloader, val_dataloader, device, epochs=100):
     logger.info(f"Start VAE training.")
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
     opt = torch.optim.SGD(autoencoder['RGB'].parameters(), lr=0.0001, weight_decay=10e-7)
-    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=50, gamma=10e-5)
+    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=50, gamma=10e-2)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
     for epoch in range(epochs):
         for i, (data, labels) in enumerate(train_dataloader):
+            total_loss = 0
             opt.zero_grad()
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
-                    opt.zero_grad()
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
                     x_hat, _, mean, log_var = autoencoder[m](clip)
-                    # print(f"From autoencoder: {x_hat.size()}")
+                    # print(f"[DEBUG]: x_hat: {x_hat.type}, {x_hat.shape}  mean {mean.shape}, log_var {log_var.shape}")
                     mse_loss = reconstruction_loss(x_hat, clip)
+                    # print(f"[DEBUG]: mse_loss {type(mse_loss)} - {mse_loss.shape} -{mse_loss}")
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
+                    # print(f"[DEBUG]: kld {type(kld_loss)} - {kld_loss.shape} - {kld_loss}")
                     loss = mse_loss + kld_loss
+                    if loss.isnan():
+                        logger.info(f"Loss exploding...")
+                        exit(-1)
+                    # print(f"loss: {loss.shape} - {loss}")
+                    total_loss += loss
+                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
+
                     loss.backward()
                     opt.step()
-                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss})
         if epoch % 20 == 0:
-            wandb.log({"Valdation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
+            wandb.log({"Validation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
+        print(f"[{epoch+1}/{epochs}]")
         scheduler.step()
     return autoencoder
 
