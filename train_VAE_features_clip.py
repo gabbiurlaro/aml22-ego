@@ -117,7 +117,7 @@ def main():
         # some statitics:
         logger.info(f"Reconstructed feature of {len(reconstructed_features['features_RGB'])} video")
         # print(f"Un sample è di questo tipo: {reconstructed_features['features_RGB'][0]['features'].shape}")
-        logger.info(f"Filename is: ./saved_features/reconstructed/VAE.pkl")
+        logger.info(f"Filename is: ./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl")
 
 def reconstruct(autoencoder, dataloader, device, split=None, save = False):
     result = {'features_RGB': []}
