@@ -30,8 +30,8 @@ models:
     normalize: False
     resolution: 224
     kwargs: {}
-    lr_steps: 50
-    epochs: 100
+    lr_steps: 50 
+    epochs: 50
     lr: 0.01
     sgd_momentum: 0.9
     weight_decay: 1e-7

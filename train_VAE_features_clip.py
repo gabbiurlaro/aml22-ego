@@ -39,8 +39,8 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec') # salvatore
-        #wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17') # gabbo
+        # wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec') # salvatore
+        wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17') # gabbo
         wandb.init(project="test-project", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
@@ -91,6 +91,7 @@ def main():
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
         save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}.pth")
@@ -187,13 +188,15 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.SGD(autoencoder['RGB'].parameters(), model_args.lr, weight_decay = model_args.weight_decay)
+    opt = torch.optim.Adam(autoencoder['RGB'].parameters(), model_args.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
+    beta = 0.00001
+    step_value = 1
     for epoch in range(model_args.epochs):
+        total_loss = 0
         for i, (data, labels) in enumerate(train_dataloader):
-            total_loss = 0
             opt.zero_grad()
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)
@@ -208,19 +211,21 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     # print(f"[DEBUG]: mse_loss {type(mse_loss)} - {mse_loss.shape} -{mse_loss}")
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
                     # print(f"[DEBUG]: kld {type(kld_loss)} - {kld_loss.shape} - {kld_loss}")
-                    loss = mse_loss + kld_loss
+                    loss = mse_loss + beta*kld_loss
                     if loss.isnan():
                         logger.info(f"Loss exploding...")
                         exit(-1)
                     # print(f"loss: {loss.shape} - {loss}")
                     total_loss += loss
                     wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
-
                     loss.backward()
                     opt.step()
+        if epoch % 10 == 0:
+            step_value = 0.8*step_value
         if epoch % 20 == 0:
             wandb.log({"Validation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
-        print(f"[{epoch+1}/{model_args.epochs}]")
+        print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
+        wandb.log({'train_loss': train_loss})
         scheduler.step()
     return autoencoder
 
