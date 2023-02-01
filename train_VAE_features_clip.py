@@ -109,7 +109,7 @@ def main():
                                                                        None, load_feat=True),
                                                    batch_size=1, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-        last_model = args.resum_from
+        last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
