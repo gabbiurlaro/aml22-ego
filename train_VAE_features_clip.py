@@ -93,7 +93,7 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}.pth")
+        save_model(ae['RGB'], f"{args.name}_lr{args.modes.RGB.lr}.pth")
         logger.info(f"DONE")
 
         #plot_latent(ae, train_loader, device, split='D1_train')
@@ -108,7 +108,7 @@ def main():
                                                                        None, load_feat=True),
                                                    batch_size=1, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-        last_model = './saved_models/VAE_RGB/VAE_FT_D_16f.pth'
+        last_model = args.resum_from
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
