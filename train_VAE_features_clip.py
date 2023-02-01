@@ -112,14 +112,15 @@ def main():
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
-        reconstructed_features = reconstruct(models, loader, device, args.split, save = True)
+        filename = f"./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl"
+        reconstructed_features = reconstruct(models, loader, device, args.split, save = True, filename=filename)
         
         # some statitics:
         logger.info(f"Reconstructed feature of {len(reconstructed_features['features_RGB'])} video")
         # print(f"Un sample è di questo tipo: {reconstructed_features['features_RGB'][0]['features'].shape}")
         logger.info(f"Filename is: ./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl")
 
-def reconstruct(autoencoder, dataloader, device, split=None, save = False):
+def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None):
     result = {'features_RGB': []}
 
     with torch.no_grad():
@@ -142,7 +143,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False):
                 result['features_RGB'].append({'features': clips.numpy(), 'label': label.item()})
                 
     if save:
-        with open("./saved_features/reconstructed/VAE.pkl", "wb") as file:
+        with open(filename, "wb") as file:
             pickle.dump(result, file)
         
     return result
