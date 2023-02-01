@@ -93,8 +93,8 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{args.modes.RGB.lr}.pth")
-        logger.info(f"DONE")
+        save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}.pth")
+        logger.info(f"DONE in {args.name}_lr{args.models.RGB.lr}.pth")
 
         #plot_latent(ae, train_loader, device, split='D1_train')
         
