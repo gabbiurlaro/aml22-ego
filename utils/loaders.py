@@ -3,7 +3,7 @@ import math
 import torch
 import torchaudio
 import torchaudio.transforms as T
-import torchaduio.functional as F
+import torchaudio.functional as F
 from abc import ABC
 import pandas as pd
 from .epic_record import EpicVideoRecord
