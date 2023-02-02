@@ -1,9 +1,13 @@
 import glob
 import math
+import torch
+import torchaudio
+import torchaudio.transforms as T
+import torchaduio.functional as F
 from abc import ABC
 import pandas as pd
 from .epic_record import EpicVideoRecord
-from .actionnet_record import ActionnetRecord
+from .actionnet_record import ActionNetRecord
 import torch.utils.data as data
 from PIL import Image
 import os
@@ -291,7 +295,7 @@ class ActionNetDataset(data.Dataset, ABC):
     def __init__(self, split, modalities, mode, dataset_conf, num_frames_per_clip, num_clips, dense_sampling,
                  transform=None, load_feat=False, additional_info=False, **kwargs) -> None:
         """
-        - split: S0, S1, S2...
+        - split: ActionNet if modality is EMG or S04 if RGB
         - modalities can be RGB(not implemented yet) and EMG data
         - mode is a string (train, test)
         dataset_conf must contain the following:
@@ -310,7 +314,7 @@ class ActionNetDataset(data.Dataset, ABC):
         """
         super().__init__()
 
-        self.modalities = modalities  # considered modalities (ex. [RGB, Flow, Spec, Event])
+        self.modalities = modalities  # considered modalities (ex. [RGB,EMG])
         self.mode = mode  # 'train', 'val' or 'test'
         self.dataset_conf = dataset_conf
         self.num_frames_per_clip = num_frames_per_clip
@@ -321,17 +325,14 @@ class ActionNetDataset(data.Dataset, ABC):
 
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
-        elif kwargs.get('save', None) is not None:
-            pickle_name = split + "_" + kwargs["save"] + ".pkl"
         else:
-            pickle_name = "S04_test.pkl"
+            pickle_name = split + "_test.pkl"
+        
 
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
-        self.emg_list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, "EMG_train.pkl"))
-
-        logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
-        self.video_list = [ ActionnetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows() ]
         
+        logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
+        self.video_list = [ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         self.transform = transform  # pipeline of transforms
         self.load_feat = load_feat
 
@@ -433,8 +434,8 @@ class ActionNetDataset(data.Dataset, ABC):
         frames = {}
         label = None
         # record is a row of the pkl file containing one sample/action
-        # notice that it is already converted into a ActionnetRecord object so that here you can access
-        # all the properties of the sample easily. It contains also the information for each modality
+        # notice that it is already converted into a EpicVideoRecord object so that here you can access
+        # all the properties of the sample easily
         record = self.video_list[index]
 
         if self.load_feat:
@@ -469,9 +470,36 @@ class ActionNetDataset(data.Dataset, ABC):
             return frames, label
 
     def get(self, modality, record, indices):
-        if modality == "EMG":
-            data = []
-            return data, record.label
+        if modality == 'EMG':
+            n_fft = 30
+            win_length = None
+            hop_length = 1
+            spectrogram = T.Spectrogram(
+                n_fft=n_fft,
+                win_length=win_length,
+                hop_length=hop_length,
+                center=True,
+                pad_mode="reflect",
+                power=2.0,
+                normalized=True
+            )
+
+            readings = {
+                'left': record.myo_left_readings,
+                'right': record.myo_right_readings
+            }
+
+            freq = {}
+            result = []
+            for arm in ['left', 'right']:
+                signal = readings[arm]
+                freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
+                for channel in freq[arm]:
+                    spec_indices = [int(i/30*160) for i in indices]
+                    result.append(torch.stack([channel[:, i] for i in spec_indices]))
+            result = torch.stack(result)
+            return result, record.label
+
         else:
             images = list()
             for frame_index in indices:
@@ -484,6 +512,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 return images, record.label
             process_data = self.transform[modality](images)
             return process_data, record.label
+
 
     def _load_data(self, modality, record, idx):
         data_path = self.dataset_conf[modality].data_path
@@ -502,11 +531,11 @@ class ActionNetDataset(data.Dataset, ABC):
                     raise FileNotFoundError
             return [img]
         elif modality == 'EMG':
-            # get the spectrogram, all information in record
-            pass
+            idx_untrimmed = record.start_frame + idx
+            readings = {'myoleft_readings:'}
+            raise NotImplementedError('sEMG modality is not implemented')
         else:
             raise NotImplementedError("Modality not implemented")
-   
 
     def __len__(self):
         return len(self.video_list)
