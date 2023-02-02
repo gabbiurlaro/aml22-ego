@@ -8,5 +8,3 @@ dataset:
     data_path: '../action_net/frames/ActionNet_S04/' # path to RGB data
     tmpl: "img_{:010d}.jpg" # format of RGB filenames
     features_name: test_feat_actionnet
-  Event: # not neeeded for the project
-    rgb4e: 6

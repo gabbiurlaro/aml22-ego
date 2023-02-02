@@ -530,10 +530,6 @@ class ActionNetDataset(data.Dataset, ABC):
                 else:
                     raise FileNotFoundError
             return [img]
-        elif modality == 'EMG':
-            idx_untrimmed = record.start_frame + idx
-            readings = {'myoleft_readings:'}
-            raise NotImplementedError('sEMG modality is not implemented')
         else:
             raise NotImplementedError("Modality not implemented")
 
