@@ -472,6 +472,8 @@ class ActionNetDataset(data.Dataset, ABC):
     def get(self, modality, record, indices):
         if modality == 'EMG':
             n_fft = 30
+            # n_fft control the number of frequency bin bin=n_fft // 2+1
+            n_fft = 2*(self.num_frames_per_clip[modality] - 1)
             win_length = None
             hop_length = 1
             spectrogram = T.Spectrogram(
