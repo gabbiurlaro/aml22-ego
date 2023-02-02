@@ -3,7 +3,7 @@ import math
 from abc import ABC
 import pandas as pd
 from .epic_record import EpicVideoRecord
-from .actionnet_record import ActionNetVideoRecord
+from .actionnet_record import ActionnetRecord
 import torch.utils.data as data
 from PIL import Image
 import os
@@ -327,9 +327,11 @@ class ActionNetDataset(data.Dataset, ABC):
             pickle_name = "S04_test.pkl"
 
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
-        
+        self.emg_list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, "EMG_train.pkl"))
+
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
-        self.video_list = [ActionNetVideoRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
+        self.video_list = [ ActionnetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows() ]
+        
         self.transform = transform  # pipeline of transforms
         self.load_feat = load_feat
 
@@ -431,8 +433,8 @@ class ActionNetDataset(data.Dataset, ABC):
         frames = {}
         label = None
         # record is a row of the pkl file containing one sample/action
-        # notice that it is already converted into a EpicVideoRecord object so that here you can access
-        # all the properties of the sample easily
+        # notice that it is already converted into a ActionnetRecord object so that here you can access
+        # all the properties of the sample easily. It contains also the information for each modality
         record = self.video_list[index]
 
         if self.load_feat:
@@ -467,17 +469,21 @@ class ActionNetDataset(data.Dataset, ABC):
             return frames, label
 
     def get(self, modality, record, indices):
-        images = list()
-        for frame_index in indices:
-            p = int(frame_index)
-            # here the frame is loaded in memory
-            frame = self._load_data(modality, record, p)
-            images.extend(frame)
-        # finally, all the transformations are applied
-        if self.transform is None:
-            return images, record.label
-        process_data = self.transform[modality](images)
-        return process_data, record.label
+        if modality == "EMG":
+            data = []
+            return data, record.label
+        else:
+            images = list()
+            for frame_index in indices:
+                p = int(frame_index)
+                # here the frame is loaded in memory
+                frame = self._load_data(modality, record, p)
+                images.extend(frame)
+            # finally, all the transformations are applied
+            if self.transform is None:
+                return images, record.label
+            process_data = self.transform[modality](images)
+            return process_data, record.label
 
     def _load_data(self, modality, record, idx):
         data_path = self.dataset_conf[modality].data_path
@@ -495,8 +501,9 @@ class ActionNetDataset(data.Dataset, ABC):
                 else:
                     raise FileNotFoundError
             return [img]
-        elif modality == 'sEMG':
-            raise NotImplementedError('sEMG modality is not implemented')
+        elif modality == 'EMG':
+            # get the spectrogram, all information in record
+            pass
         else:
             raise NotImplementedError("Modality not implemented")
    

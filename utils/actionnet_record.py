@@ -1,7 +1,7 @@
 from .video_record import VideoRecord
 
 
-class ActionNetVideoRecord(VideoRecord):
+class ActionNetRecord(VideoRecord):
     def __init__(self, tup, dataset_conf):
         self._index = str(tup[0])
         self._series = tup[1]
@@ -32,3 +32,11 @@ class ActionNetVideoRecord(VideoRecord):
         if 'verb_class' not in self._series.keys().tolist():
             raise NotImplementedError
         return self._series['verb_class']
+
+    @property
+    def myo_left_readings(self):
+        return self._series['myo_left_readings']
+    
+    @property
+    def myo_right_readings(self):
+        return self._series['myo_right_readings']
