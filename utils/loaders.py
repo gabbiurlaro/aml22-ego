@@ -488,11 +488,10 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-
             freq = {}
             result = []
             for arm in ['left', 'right']:
-                signal = readings[arm]
+                signal = torch.from_numpy(readings[arm]).float()
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
                     spec_indices = [int(i/30*160) for i in indices]
