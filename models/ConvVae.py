@@ -116,7 +116,7 @@ class ImgVAE(nn.Module):
         else:
             eps = torch.FloatTensor(std.size()).normal_()
         # eps = torch.FloatTensor(std.size()).normal_()
-        eps = Variable(eps)
+        eps = Variable(eps).to(self.device)
         return eps.mul(std).add_(mu)
  
     def encode_and_sample(self, x):
