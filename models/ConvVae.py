@@ -120,7 +120,7 @@ class ImgVAE(nn.Module):
         return eps.mul(std).add_(mu)
  
     def encode_and_sample(self, x):
-        mu, logvar = self.encoder(x.view(-1, self.nc, self.imsize, self.imsize))
+        mu, logvar = self.encoder(x.reshape(-1, self.nc, self.imsize, self.imsize))
         z = self.reparametrize(mu, logvar)
         return z
  
@@ -134,7 +134,7 @@ class ImgVAE(nn.Module):
         self.device = device
 
     def forward(self, x):
-        mu, logvar = self.encoder(x.view(-1, self.nc, self.imsize, self.imsize))
+        mu, logvar = self.encoder(x.reshape(-1, self.nc, self.imsize, self.imsize))
         mu.to(self.device)
         z = self.reparametrize(mu, logvar)
         res = self.decoder(z)
