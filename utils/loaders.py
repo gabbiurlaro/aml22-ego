@@ -461,7 +461,7 @@ class ActionNetDataset(data.Dataset, ABC):
             segment_indices['EMG'] = self._get_val_indices(record, 'EMG')
 
         
-        img, label = self.get(m, record, segment_indices['EMG'])
+        img, label = self.get('EMG', record, segment_indices['EMG'])
         frames['EMG'] = img
 
         if self.additional_info:
