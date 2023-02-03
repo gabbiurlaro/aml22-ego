@@ -201,7 +201,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             for m in modalities:
                 print(data[m].shape)
                 data[m] = data[m].permute(2,1,0,3)
-                # print(f"Data after permutation: {data[m].size()}")
+                print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
                     # extract the clip related to the modality
