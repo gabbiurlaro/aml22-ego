@@ -102,6 +102,7 @@ class ImgVAE(nn.Module):
         self.imsize = imsize
         self.latent_variable_size = latent_variable_size
         self.batchnorm = batchnorm
+        self.device = None
 
         # encoder
         self.encoder = ImgEncoder(nc, ndf, latent_variable_size, batchnorm)
@@ -130,9 +131,11 @@ class ImgVAE(nn.Module):
     def load_on(self, device):
         self.encoder = self.encoder.to(device)
         self.decoder = self.decoder.to(device)
+        self.device = device
 
     def forward(self, x):
         mu, logvar = self.encoder(x.view(-1, self.nc, self.imsize, self.imsize))
+        mu.to(self.device)
         z = self.reparametrize(mu, logvar)
         res = self.decoder(z)
         return res, z, mu, logvar
