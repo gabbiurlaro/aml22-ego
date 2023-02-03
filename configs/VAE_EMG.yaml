@@ -7,21 +7,18 @@ save:
   num_clips: 5
   dense_sampling:
     RGB: True
+    EMG: True
   num_frames_per_clip:
     RGB: 16
+    EMG: 32
 
 dataset:
-  annotations_path: train_val
+  annotations_path: ./drive/MyDrive/train_val
   shift: ActionNet-ActionNet
   workers: 4
   stride: 2
   resolution: 224
-  RGB:
-    data_path: ???
-    tmpl: "img_{:010d}.jpg"
-  Event:
-    rgb4e: 6
-
+  
 # these are the action recognition models for each modality
   EMG:
     model: ImgVAE
@@ -30,7 +27,7 @@ dataset:
     resolution: 224
     kwargs: {}
     lr_steps: 50 
-    epochs: 50
+    epochs: 100
     lr: 0.0001
     sgd_momentum: 0.9
     weight_decay: 1e-7
