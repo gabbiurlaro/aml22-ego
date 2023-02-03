@@ -496,7 +496,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 #print(signal)
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
-                    spec_indices = [(int(record.start_frame +i / 30 * 160 )) for i in indices]
+                    spec_indices = [int(i) for i in indices]
                     #print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}")
                     result.append(torch.stack([channel[:, i] for i in spec_indices]))
             result = torch.stack(result)
