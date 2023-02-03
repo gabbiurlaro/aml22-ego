@@ -87,7 +87,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset,  {'EMG': 32}, 5, {'EMG': True},
+                                                                     'test', args.dataset,  {'EMG': 32}, 5, {'EMG': True},
                                                                      None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -169,6 +169,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
+            
             data[m] = data[m].reshape(32,16,5,32,32)
             data[m] = data[m].permute(2, 3, 1, 0,4 )
             # print(f"Data after permutation: {data[m].size()}")
