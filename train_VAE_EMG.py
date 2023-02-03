@@ -199,8 +199,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         for i, (data, labels) in enumerate(train_dataloader):
             opt.zero_grad()
             for m in modalities:
-                print(data[m].shape)
-                data[m] = data[m].permute(2,1,0,3)
+                print(data[m].shape) # torch.Size([32, 16, 160, 32])
+                data[m] = data[m].reshape(32,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
                 print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
