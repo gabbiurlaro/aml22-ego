@@ -126,7 +126,11 @@ class ImgVAE(nn.Module):
     def generate(self, z):
         res = self.decoder(z)
         return res
- 
+    
+    def load_on(self, device):
+        self.encoder = self.encoder.to(device)
+        self.decoder = self.decoder.to(device)
+
     def forward(self, x):
         mu, logvar = self.encoder(x.view(-1, self.nc, self.imsize, self.imsize))
         z = self.reparametrize(mu, logvar)
