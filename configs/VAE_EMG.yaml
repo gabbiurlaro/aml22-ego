@@ -23,7 +23,7 @@ dataset:
 models:
   EMG:
     model: ImgVAE
-    dropout: 0.5
+    dropout: 0.2
     normalize: False
     resolution: 224
     kwargs: {}
@@ -31,7 +31,7 @@ models:
     epochs: 100
     lr: 1e-6
     sgd_momentum: 0.9
-    weight_decay: 1e-7
+    weight_decay: 5e-7
     weight_i3d_rgb: './pretrained_i3d/rgb_imagenet.pt'
 
 
