@@ -199,7 +199,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         for i, (data, labels) in enumerate(train_dataloader):
             opt.zero_grad()
             for m in modalities:
-                print(data[m])
+                print(data[m].shape)
                 data[m] = data[m].permute(1, 0, 2)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
