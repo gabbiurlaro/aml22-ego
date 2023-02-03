@@ -475,6 +475,7 @@ class ActionNetDataset(data.Dataset, ABC):
             n_fft = 2*(self.num_frames_per_clip[modality] - 1)
             win_length = None
             hop_length = 1
+            print(n_fft)
             spectrogram = T.Spectrogram(
                 n_fft=n_fft,
                 win_length=win_length,
