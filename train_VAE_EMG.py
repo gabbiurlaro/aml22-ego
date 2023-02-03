@@ -94,7 +94,7 @@ def main():
 
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{args.models.EMG.lr}.pth")
+        save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}.pth")
         logger.info(f"DONE in {args.name}_lr{args.models.EMG.lr}.pth")
 
         #plot_latent(ae, train_loader, device, split='D1_train')
@@ -111,7 +111,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
-        load_model(models['RGB'], last_model)
+        load_model(models['EMG'], last_model)
         logger.info(f"Reconstructing features...")
         filename = f"./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl"
         reconstructed_features = reconstruct(models, loader, device, args.split, save = True, filename=filename)
