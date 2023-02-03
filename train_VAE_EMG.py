@@ -166,7 +166,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
 
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
-    autoencoder.train(False)
+    autoencoder['EMG'].train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
             
