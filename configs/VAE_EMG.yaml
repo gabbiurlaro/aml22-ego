@@ -20,6 +20,7 @@ dataset:
   resolution: 224
   
 # these are the action recognition models for each modality
+models:
   EMG:
     model: ImgVAE
     dropout: 0.5
