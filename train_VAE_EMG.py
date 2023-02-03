@@ -201,7 +201,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             for m in modalities:
                 print(data[m].shape) # torch.Size([32, 16, 160, 32])
                 data[m] = data[m].reshape(32,16,5,32,32)
-                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                data[m] = data[m].permute(2, 3, 1, 0,4 )
                 print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
@@ -225,7 +225,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         if epoch % 10 == 0:
             step_value = 0.8*step_value
         if epoch % 20 == 0:
-            wandb.log({"Validation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
+            wandb.log({"Validation loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
         wandb.log({'train_loss': train_loss})
         scheduler.step()
