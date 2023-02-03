@@ -200,7 +200,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.zero_grad()
             for m in modalities:
                 print(data[m].shape)
-                data[m] = data[m].permute(1, 0, 2)
+                data[m] = data[m].permute(2,1,0,3)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
