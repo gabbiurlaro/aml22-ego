@@ -452,17 +452,17 @@ class ActionNetDataset(data.Dataset, ABC):
         segment_indices = {}
         # notice that all indexes are sampled in the[0, sample_{num_frames}] range, then the start_index of the sample
         # is added as an offset
-        
-        if self.mode == "train":
+        for modality in self.modalities:
+            if self.mode == "train":
                 # here the training indexes are obtained with some randomization
-            segment_indices['EMG'] = self._get_train_indices(record, 'EMG')
-        else:
+                segment_indices[modality] = self._get_train_indices(record, modality)
+            else:
                 # here the testing indexes are obtained with no randomization, i.e., centered
-            segment_indices['EMG'] = self._get_val_indices(record, 'EMG')
+                segment_indices[modality] = self._get_val_indices(record, modality)
 
-        
-        img, label = self.get('EMG', record, segment_indices['EMG'])
-        frames['EMG'] = img
+        for m in self.modalities:
+            img, label = self.get(m, record, segment_indices[m])
+            frames[m] = img
 
         if self.additional_info:
             return frames, label, record.untrimmed_video_name, record.uid
