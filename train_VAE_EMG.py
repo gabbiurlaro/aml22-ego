@@ -1,4 +1,3 @@
-from wsgiref import validate
 from utils.logger import logger
 import torch.nn.parallel
 import torch.nn as nn
