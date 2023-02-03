@@ -484,19 +484,23 @@ class ActionNetDataset(data.Dataset, ABC):
                 power=2.0,
                 normalized=True
             )
-
+            # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
             readings = {
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
+
+            # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
             freq = {}
             result = []
             for arm in ['left', 'right']:
                 signal = torch.from_numpy(readings[arm]).float()
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
+                    # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
+                    # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
                     spec_indices = [int(i/30*160) for i in indices]
-                    print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}")
+                    # print(f"[ DEBUG ] spec_indices: {len(spec_indices)}, from {spec_indices[0]} to {spec_indices[-1]}")
                     result.append(torch.stack([channel[:, i] for i in spec_indices]))
             result = torch.stack(result)
             return result, record.label
