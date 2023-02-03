@@ -128,7 +128,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
         for i, (data, label) in enumerate(dataloader):
             for m in modalities:
                 autoencoder[m].train(False)
-                data[m] = data[m].reshape(32,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 3, 1, 0,4 )    #  clip level
                 # print(f'[DEBUG]: data[m] ha come primo elemento la dimensione delle clip: {data[m].size()}')
                 clips = []
@@ -170,7 +170,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
             print(m, data[m].shape)
-            data[m] = data[m].reshape(32,16,5,32,32)
+            data[m] = data[m].reshape(-1,16,5,32,32)
             data[m] = data[m].permute(2, 3, 1, 0,4 )
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
@@ -203,7 +203,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.zero_grad()
             for m in modalities:
                 print(data[m].shape) # torch.Size([32, 16, 160, 32])
-                data[m] = data[m].reshape(32,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 3, 1, 0,4 )
                 print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
@@ -254,7 +254,7 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
         for i, (data, label) in enumerate(dataloader):
             output = []
             for m in modalities:
-                data[m] = data[m].reshape(32,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 3, 1, 0,4 )
                 #print(len(data[m]))
                 for i_c in range(args.test.num_clips):
