@@ -34,11 +34,7 @@ class MLP_late_fusion(nn.Module):
 
     
 class action_TRN(nn.Module):
-<<<<<<< HEAD
-    def __init__(self, num_input, num_classes, num_clips) -> None:
-=======
     def __init__(self, num_input, num_clips, num_classes ) -> None:
->>>>>>> salvatore
         super().__init__()
         self.classifier= RelationModuleMultiScaleWithClassifier(num_input, num_clips, num_classes)
 

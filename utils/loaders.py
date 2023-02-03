@@ -332,7 +332,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.list_file = pd.read_pickle(os.path.join(self.dataset_conf.annotations_path, pickle_name))
         
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
-        self.video_list = [ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
+        self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         self.transform = transform  # pipeline of transforms
         self.load_feat = load_feat
 
@@ -471,7 +471,6 @@ class ActionNetDataset(data.Dataset, ABC):
 
     def get(self, modality, record, indices):
         if modality == 'EMG':
-            n_fft = 30
             # n_fft control the number of frequency bin bin=n_fft // 2+1
             n_fft = 2*(self.num_frames_per_clip[modality] - 1)
             win_length = None
