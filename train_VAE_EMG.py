@@ -166,10 +166,10 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
 
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
-    autoencoder['EMG'].train(False)
+    autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
-            
+            print(m, data[m].shape)
             data[m] = data[m].reshape(32,16,5,32,32)
             data[m] = data[m].permute(2, 3, 1, 0,4 )
             # print(f"Data after permutation: {data[m].size()}")
