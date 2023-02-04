@@ -500,6 +500,8 @@ class ActionNetDataset(data.Dataset, ABC):
                     spec_indices = [math.floor(i*160/30) for i in indices]
                     print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}, signal: {signal.shape}")
                     print(f'spec_indices from {min(spec_indices)} to {max(spec_indices)}' )
+                    print(f'indices from {min(indices)} to {max(indices)}' )
+
                     result.append(torch.stack([channel[:, i] for i in spec_indices]))
     
             result = torch.stack(result)
