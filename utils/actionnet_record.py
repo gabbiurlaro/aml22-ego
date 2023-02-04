@@ -9,11 +9,11 @@ class ActionNetRecord(VideoRecord):
 
     @property
     def start_frame(self):
-        return self._series['start_frame']-1
+        return self._series['start_frame'] - 1
 
     @property
     def end_frame(self):
-        return self._series['stop_frame']-2
+        return self._series['stop_frame'] - 2
 
     @property
     def uid(self):
@@ -41,4 +41,4 @@ class ActionNetRecord(VideoRecord):
     @property
     def num_frames(self):
         return {'RGB': self.end_frame - self.start_frame,
-                'EMG': len(self._series['myo_right_readings'])}
+                'EMG': len(self._series['myo_right_readings'])//2}
