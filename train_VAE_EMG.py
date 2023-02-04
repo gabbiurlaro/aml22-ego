@@ -86,14 +86,14 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset,  {'EMG': 32}, 5, {'EMG': True},
+                                                                     'test', args.dataset,  {'EMG': 32}, 5, {'EMG': True},
                                                                      None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{args.models.EMG.lr}.pth")
+        save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}.pth")
         logger.info(f"DONE in {args.name}_lr{args.models.EMG.lr}.pth")
 
         #plot_latent(ae, train_loader, device, split='D1_train')
@@ -110,7 +110,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
-        load_model(models['RGB'], last_model)
+        load_model(models['EMG'], last_model)
         logger.info(f"Reconstructing features...")
         filename = f"./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl"
         reconstructed_features = reconstruct(models, loader, device, args.split, save = True, filename=filename)
@@ -127,7 +127,8 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
         for i, (data, label) in enumerate(dataloader):
             for m in modalities:
                 autoencoder[m].train(False)
-                data[m] = data[m].permute(1, 0, 2)     #  clip level
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )  #  clip level
                 # print(f'[DEBUG]: data[m] ha come primo elemento la dimensione delle clip: {data[m].size()}')
                 clips = []
                 for i_c in range(args.test.num_clips): #  iterate over the clips
@@ -167,7 +168,9 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
+            print(m, data[m].shape)
+            data[m] = data[m].reshape(-1,16,5,32,32)
+            data[m] = data[m].permute(2, 0, 1, 3,4 )
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
             for m in modalities:
@@ -198,8 +201,10 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         for i, (data, labels) in enumerate(train_dataloader):
             opt.zero_grad()
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
-                # print(f"Data after permutation: {data[m].size()}")
+                print(data[m].shape) # torch.Size([32, 16, 160, 32])
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
                     # extract the clip related to the modality
@@ -222,7 +227,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         if epoch % 10 == 0:
             step_value = 0.8*step_value
         if epoch % 20 == 0:
-            wandb.log({"Validation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
+            wandb.log({"Validation loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
         wandb.log({'train_loss': train_loss})
         scheduler.step()
@@ -248,7 +253,8 @@ def plot_latent(autoencoder, dataloader, device, split = 'train'):
         for i, (data, label) in enumerate(dataloader):
             output = []
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
                 #print(len(data[m]))
                 for i_c in range(args.test.num_clips):
                     clip = data[m][i_c].to(device)

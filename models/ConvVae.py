@@ -75,7 +75,7 @@ class ImgDecoder(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             # # state size. (32) x 32 x 32
             nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.Sigmoid(),
+            nn.Sigmoid()
             # # state size. (16) x 64 x 64
         )
 
@@ -102,6 +102,7 @@ class ImgVAE(nn.Module):
         self.imsize = imsize
         self.latent_variable_size = latent_variable_size
         self.batchnorm = batchnorm
+        self.device = None
 
         # encoder
         self.encoder = ImgEncoder(nc, ndf, latent_variable_size, batchnorm)
@@ -115,11 +116,11 @@ class ImgVAE(nn.Module):
         else:
             eps = torch.FloatTensor(std.size()).normal_()
         # eps = torch.FloatTensor(std.size()).normal_()
-        eps = Variable(eps)
+        eps = Variable(eps).to(self.device)
         return eps.mul(std).add_(mu)
  
     def encode_and_sample(self, x):
-        mu, logvar = self.encoder(x.view(-1, self.nc, self.imsize, self.imsize))
+        mu, logvar = self.encoder(x.reshape(-1, self.nc, self.imsize, self.imsize))
         z = self.reparametrize(mu, logvar)
         return z
  
@@ -130,9 +131,11 @@ class ImgVAE(nn.Module):
     def load_on(self, device):
         self.encoder = self.encoder.to(device)
         self.decoder = self.decoder.to(device)
+        self.device = device
 
     def forward(self, x):
-        mu, logvar = self.encoder(x.view(-1, self.nc, self.imsize, self.imsize))
+        mu, logvar = self.encoder(x.reshape(-1, self.nc, self.imsize, self.imsize))
+        mu.to(self.device)
         z = self.reparametrize(mu, logvar)
         res = self.decoder(z)
         return res, z, mu, logvar

@@ -475,6 +475,7 @@ class ActionNetDataset(data.Dataset, ABC):
             n_fft = 2*(self.num_frames_per_clip[modality] - 1)
             win_length = None
             hop_length = 1
+            print(f'nfft +{n_fft}')
             spectrogram = T.Spectrogram(
                 n_fft=n_fft,
                 win_length=win_length,
@@ -495,12 +496,13 @@ class ActionNetDataset(data.Dataset, ABC):
             result = []
             for arm in ['left', 'right']:
                 signal = torch.from_numpy(readings[arm]).float()
+                #print(signal)
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
                     # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
                     # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    spec_indices = [int(i/30*160) for i in indices]
-                    # print(f"[ DEBUG ] spec_indices: {len(spec_indices)}, from {spec_indices[0]} to {spec_indices[-1]}")
+                    spec_indices = [int(i) for i in indices]
+                    ## print(f"[ DEBUG ] spec_indices: {len(spec_indices)}, from {spec_indices[0]} to {spec_indices[-1]}")
                     result.append(torch.stack([channel[:, i] for i in spec_indices]))
             result = torch.stack(result)
             return result, record.label
