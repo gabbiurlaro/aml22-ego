@@ -352,7 +352,7 @@ class ActionNetDataset(data.Dataset, ABC):
             # selecting one frame and discarding another (alternation), to avoid duplicates
             center_frames = np.linspace(0, record.num_frames[modality], self.num_clips + 2,
                                         dtype=np.int32)[1:-1]
-
+            print(center_frames.shape, max(center_frames))
             indices = [x for center in center_frames for x in
                        range(center - math.ceil(self.num_frames_per_clip[modality] / 2 * self.stride),
                              # start of the segment
@@ -475,13 +475,12 @@ class ActionNetDataset(data.Dataset, ABC):
             n_fft = 2*(self.num_frames_per_clip[modality] - 1)
             win_length = None
             hop_length = 1
-            print(f'nfft +{n_fft}')
+            #print(f'nfft +{n_fft}')
             spectrogram = T.Spectrogram(
                 n_fft=n_fft,
                 win_length=win_length,
                 hop_length=hop_length,
-                center=True,
-                pad_mode="reflect",
+                center=False,
                 power=2.0,
                 normalized=True
             )
@@ -496,15 +495,18 @@ class ActionNetDataset(data.Dataset, ABC):
             result = []
             for arm in ['left', 'right']:
                 signal = torch.from_numpy(readings[arm]).float()
-                #print(signal)
+                print(signal.shape)
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
-                    print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
-                    print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    spec_indices = [int(i/30*160) for i in indices]
-                    print(f"[ DEBUG ] spec_indices: {len(spec_indices)}, from {spec_indices[0]} to {spec_indices[-1]}")
+                    spec_indices = [math.floor(i) for i in indices]
+                    #print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}, signal: {signal.shape}")
+                    #print(f'spec_indices from {min(spec_indices)} to {max(spec_indices)}' )
+                    #print(f'indices from {min(indices)} to {max(indices)}' )
+
                     result.append(torch.stack([channel[:, i] for i in spec_indices]))
+    
             result = torch.stack(result)
+
             return result, record.label
 
         else:

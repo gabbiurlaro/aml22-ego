@@ -138,4 +138,5 @@ class ImgVAE(nn.Module):
         mu.to(self.device)
         z = self.reparametrize(mu, logvar)
         res = self.decoder(z)
+        print(res.shape)
         return res, z, mu, logvar
