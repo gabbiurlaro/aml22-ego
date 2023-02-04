@@ -86,7 +86,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'test', args.dataset,  {'EMG': 32}, 5, {'EMG': True},
+                                                                     'test', args.dataset,  {'EMG': 16}, 5, {'EMG': True},
                                                                      None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -127,7 +127,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
         for i, (data, label) in enumerate(dataloader):
             for m in modalities:
                 autoencoder[m].train(False)
-                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,5,16,16)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )  #  clip level
                 # print(f'[DEBUG]: data[m] ha come primo elemento la dimensione delle clip: {data[m].size()}')
                 clips = []
