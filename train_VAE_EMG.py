@@ -169,7 +169,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
             print(m, data[m].shape)
-            data[m] = data[m].reshape(-1,16,5,32,32)
+            data[m] = data[m].reshape(-1,16,5,16,16)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
@@ -202,7 +202,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.zero_grad()
             for m in modalities:
                 print(data[m].shape, m) # torch.Size([32, 16, 160, 32])
-                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,5,16,16)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 #print(f"Data after permutation: {data[m].size()} ")
                 i_c_p = 0
