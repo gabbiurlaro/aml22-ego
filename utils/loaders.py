@@ -352,7 +352,7 @@ class ActionNetDataset(data.Dataset, ABC):
             # selecting one frame and discarding another (alternation), to avoid duplicates
             center_frames = np.linspace(0, record.num_frames[modality], self.num_clips + 2,
                                         dtype=np.int32)[1:-1]
-
+            print(center_frames.shape, max(center_frames))
             indices = [x for center in center_frames for x in
                        range(center - math.ceil(self.num_frames_per_clip[modality] / 2 * self.stride),
                              # start of the segment
