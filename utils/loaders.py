@@ -497,7 +497,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 print(signal.shape)
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
-                    spec_indices = [math.floor(i*150/30) for i in indices]
+                    spec_indices = [math.floor(i*80/30) for i in indices]
                     print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}, signal: {signal.shape}")
                     print(f'spec_indices from {min(spec_indices)} to {max(spec_indices)}' )
                     print(f'indices from {min(indices)} to {max(indices)}' )
