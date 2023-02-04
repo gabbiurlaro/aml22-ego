@@ -227,6 +227,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
                     loss.backward()
                     opt.step()
+
         if epoch % 10 == 0:
             step_value = 0.8*step_value
         if epoch % 20 == 0:
