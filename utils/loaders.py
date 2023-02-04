@@ -494,6 +494,9 @@ class ActionNetDataset(data.Dataset, ABC):
             print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
             freq = {}
             result = []
+            if indices[-1] > len(readings['left']):
+                print("NON SI PUòòòò")
+                exit(9)
             for arm in ['left', 'right']:
                 signal = torch.from_numpy(readings[arm]).float()
                 #print(signal)
@@ -501,9 +504,8 @@ class ActionNetDataset(data.Dataset, ABC):
                 for channel in freq[arm]:
                     print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
                     print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    spec_indices = [i for i in indices]
-                    print(f"[ DEBUG ] spec_indices: {len(spec_indices)}, from {spec_indices[0]} to {spec_indices[-1]}")
-                    result.append(torch.stack([channel[:, i] for i in spec_indices]))
+                    print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
+                    result.append(torch.stack([channel[:, i] for i in indices]))
             result = torch.stack(result)
             return result, record.label
 
