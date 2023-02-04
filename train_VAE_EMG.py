@@ -80,15 +80,15 @@ def main():
         # training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 16}, 5, {'EMG': True},
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
-                                                   batch_size=args.batch_size, shuffle=True,
+                                                   batch_size=1, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'test', args.dataset,  {'EMG': 16}, 5, {'EMG': True},
+                                                                     'test', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
                                                                      None, load_feat=False),
-                                                 batch_size=args.batch_size, shuffle=False,
+                                                 batch_size=1, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
@@ -127,7 +127,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
         for i, (data, label) in enumerate(dataloader):
             for m in modalities:
                 autoencoder[m].train(False)
-                data[m] = data[m].reshape(-1,16,5,16,16)
+                data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )  #  clip level
                 # print(f'[DEBUG]: data[m] ha come primo elemento la dimensione delle clip: {data[m].size()}')
                 clips = []
@@ -169,7 +169,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
             print(m, data[m].shape)
-            data[m] = data[m].reshape(-1,16,5,16,16)
+            data[m] = data[m].reshape(-1,16,5,32,32)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
@@ -202,7 +202,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.zero_grad()
             for m in modalities:
                 print(data[m].shape, m) # torch.Size([32, 16, 160, 32])
-                data[m] = data[m].reshape(-1,16,5,16,16)
+                data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 #print(f"Data after permutation: {data[m].size()} ")
                 i_c_p = 0
@@ -227,6 +227,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
                     loss.backward()
                     opt.step()
+        exit(-1)
         if epoch % 10 == 0:
             step_value = 0.8*step_value
         if epoch % 20 == 0:
