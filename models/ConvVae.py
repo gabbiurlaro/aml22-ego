@@ -74,8 +74,7 @@ class ImgDecoder(nn.Module):
             nn.BatchNorm2d(32),
             nn.LeakyReLU(0.2, inplace=True),
             # # state size. (32) x 32 x 32
-            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.Sigmoid()
+            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1, bias=False)
             # # state size. (16) x 64 x 64
         )
 
