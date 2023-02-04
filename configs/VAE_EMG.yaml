@@ -16,7 +16,7 @@ dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
   shift: ActionNet-ActionNet
   workers: 4
-  stride: 1
+  stride: 2
   resolution: 224
   
 # these are the action recognition models for each modality
