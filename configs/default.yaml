@@ -19,7 +19,7 @@ train:
     EMG: True
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
-    EMG: 32
+    EMG: 16
 
 test:
   num_clips: 5 # number of clips in testing
