@@ -494,7 +494,7 @@ class ActionNetDataset(data.Dataset, ABC):
             result = []
             for arm in ['left', 'right']:
                 signal = torch.from_numpy(readings[arm]).float()
-                #print(signal.shape)
+                print(signal.shape)
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
                     spec_indices = [math.floor(i*80/30) for i in indices]
