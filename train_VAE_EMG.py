@@ -204,8 +204,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                 print(data[m].shape) # torch.Size([32, 16, 160, 32])
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
-                print(f"Data after permutation: {data[m].size()} ")
+                #print(f"Data after permutation: {data[m].size()} ")
                 i_c_p = 0
+                print(i)
             for i_c in range(args.test.num_clips):
                 for m in modalities:
                     # extract the clip related to the modality

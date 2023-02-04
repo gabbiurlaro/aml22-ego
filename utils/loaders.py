@@ -494,13 +494,15 @@ class ActionNetDataset(data.Dataset, ABC):
             result = []
             for arm in ['left', 'right']:
                 signal = torch.from_numpy(readings[arm]).float()
-                #print(signal)
+                print(signal.shape)
                 freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
                 for channel in freq[arm]:
                     spec_indices = [int(i) for i in indices]
-                    #print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}")
+                    print(f"arm : {arm} channel : {channel.shape} spec_indices: {len(spec_indices)}, signal: {signal.shape}")
                     result.append(torch.stack([channel[:, i] for i in spec_indices]))
+    
             result = torch.stack(result)
+
             return result, record.label
 
         else:
