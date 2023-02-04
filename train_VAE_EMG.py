@@ -106,7 +106,7 @@ def main():
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        args.split , args.dataset, None, None, None,
                                                                        None, load_feat=True),
-                                                   batch_size=1, shuffle=True,
+                                                   batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
