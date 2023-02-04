@@ -204,8 +204,12 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                 print(data[m].shape) # torch.Size([32, 16, 160, 32])
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
-                print(f"Data after permutation: {data[m].size()}")
+                print(f"Data after permutation: {data[m].size()} ")
+                i_c_p = 0
             for i_c in range(args.test.num_clips):
+                if i_c > i_c_p :
+                    i_c_p = i_c
+                    print(i, i_c_p)
                 for m in modalities:
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
@@ -227,6 +231,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         if epoch % 10 == 0:
             step_value = 0.8*step_value
         if epoch % 20 == 0:
+            print('problem is EPO')
             wandb.log({"Validation loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
         wandb.log({'train_loss': train_loss})
