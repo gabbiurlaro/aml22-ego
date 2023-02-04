@@ -10,7 +10,7 @@ save:
     EMG: True
   num_frames_per_clip:
     RGB: 16
-    EMG: 32
+    EMG: 16
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
