@@ -480,7 +480,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 n_fft=n_fft,
                 win_length=win_length,
                 hop_length=hop_length,
-                center=True,
+                center=False,
                 pad_mode="reflect",
                 power=2.0,
                 normalized=True
