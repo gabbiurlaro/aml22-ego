@@ -207,11 +207,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                 print(f"Data after permutation: {data[m].size()} ")
                 i_c_p = 0
             for i_c in range(args.test.num_clips):
-                if i_c > i_c_p :
-                    i_c_p = i_c
-                    print(i, i_c_p)
                 for m in modalities:
                     # extract the clip related to the modality
+                    print(data[m][i_c].shape)
                     clip = data[m][i_c].to(device)
                     x_hat, _, mean, log_var = autoencoder[m](clip)
                     # print(f"[DEBUG]: x_hat: {x_hat.type}, {x_hat.shape}  mean {mean.shape}, log_var {log_var.shape}")
