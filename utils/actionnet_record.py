@@ -13,7 +13,7 @@ class ActionNetRecord(VideoRecord):
 
     @property
     def end_frame(self):
-        return self._series['stop_frame']
+        return self._series['stop_frame'] - 2
 
     @property
     def num_frames(self):
