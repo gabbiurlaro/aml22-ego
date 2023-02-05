@@ -33,7 +33,7 @@ models:
       sgd_momentum: 0.9
       weight_decay: 5e-7
       weight_i3d_rgb: './pretrained_i3d/rgb_imagenet.pt'
-    EMG:
+  EMG:
     model: ImgVAE
     dropout: 0.2
     normalize: False
