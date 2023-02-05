@@ -92,7 +92,7 @@ class ImgDecoder(nn.Module):
 
 
 class ImgVAE(nn.Module):
-    def __init__(self, nc=16, ngf=32, ndf=32, latent_variable_size=512, imsize=32, batchnorm=False, *args, **kwargs):
+    def __init__(self, nc=16, ngf=16, ndf=16, latent_variable_size=512, imsize=32, batchnorm=False, *args, **kwargs):
         super().__init__()
  
         self.nc = nc
