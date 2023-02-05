@@ -1,4 +1,4 @@
-from aml22-ego.utils.loaders import EpicKitchensDataset
+from utils.loaders import EpicKitchensDataset
 from utils.logger import logger
 import torch.nn.parallel
 import torch.nn as nn
