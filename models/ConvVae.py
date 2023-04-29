@@ -74,8 +74,7 @@ class ImgDecoder(nn.Module):
             nn.BatchNorm2d(32),
             nn.LeakyReLU(0.2, inplace=True),
             # # state size. (32) x 32 x 32
-            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.Sigmoid()
+            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1, bias=False)
             # # state size. (16) x 64 x 64
         )
 
@@ -93,7 +92,7 @@ class ImgDecoder(nn.Module):
 
 
 class ImgVAE(nn.Module):
-    def __init__(self, nc=16, ngf=32, ndf=32, latent_variable_size=512, imsize=32, batchnorm=False, *args, **kwargs):
+    def __init__(self, nc=16, ngf=16, ndf=16, latent_variable_size=512, imsize=32, batchnorm=False, *args, **kwargs):
         super().__init__()
  
         self.nc = nc
@@ -140,3 +139,107 @@ class ImgVAE(nn.Module):
         res = self.decoder(z)
         print(res.shape)
         return res, z, mu, logvar
+
+
+
+class VariationalEncoder(nn.Module):
+    def __init__(self, in_channels, latent_dims):
+        super(VariationalEncoder, self).__init__()
+        self.in_channels = in_channels
+        self.latent_dims = latent_dims
+        self.encoder = nn.Sequential(nn.Linear(self.in_channels, latent_dims),
+                                     nn.ReLU(inplace=True),
+                                     nn.BatchNorm1d(latent_dims),
+                                     nn.Linear(latent_dims, latent_dims),
+                                     nn.BatchNorm1d(latent_dims),
+                                     nn.ReLU(inplace=True),
+                                     nn.Linear(latent_dims, latent_dims),
+                                     nn.BatchNorm1d(latent_dims),
+                                     nn.ReLU(inplace=True),
+                                     nn.Linear(latent_dims, latent_dims),
+                                     nn.BatchNorm1d(self.latent_dims),
+                                     nn.ReLU(inplace=True)
+                                     )
+
+        self.fc1 = nn.Linear(latent_dims, latent_dims)
+        self.fc2 = nn.Linear(latent_dims, latent_dims)
+    
+    def encode(self, x):
+        return self.encoder(x)
+
+    def forward(self, x):
+        h = self.encoder(x)
+        return self.fc1(h), self.fc2(h)
+    
+class Decoder(nn.Module):
+    def __init__(self, latent_dims, out_channels):
+        super(Decoder, self).__init__()
+        self.latent_dims = latent_dims
+        self.out_channels = out_channels
+        self.decoder = nn.Sequential(nn.Linear(self.latent_dims, self.latent_dims),
+                             nn.ReLU(inplace=True),
+                             nn.BatchNorm1d(self.latent_dims),
+                             nn.Linear(self.latent_dims, latent_dims),
+                             nn.BatchNorm1d(latent_dims),
+                             nn.ReLU(inplace=True),
+                             nn.Linear(latent_dims, latent_dims),
+                             nn.BatchNorm1d(latent_dims),
+                             nn.ReLU(inplace=True),
+                             nn.Linear(latent_dims, self.out_channels)
+                             )
+
+        
+    def forward(self, z):
+        return self.decoder(z)
+
+class VariationalAutoencoder(nn.Module):
+    def __init__(self, in_channels, latent_dims, out_channels):
+        super(VariationalAutoencoder, self).__init__()
+        self.encoder = VariationalEncoder(in_channels, latent_dims)
+        self.decoder = Decoder(latent_dims, out_channels)
+    
+    def load_on(self, device):
+        self.encoder = self.encoder.to(device)
+        self.decoder = self.decoder.to(device)
+    
+    def reparametrize(self, mu, logvar):
+        std = logvar.mul(0.5).exp_()
+        if std.is_cuda:
+            eps = torch.cuda.FloatTensor(std.size()).normal_()
+        else:
+            eps = torch.FloatTensor(std.size()).normal_()
+        eps = Variable(eps)
+        return eps.mul(std).add_(mu)
+    
+    def forward(self, x):
+        mu, log_var = self.encoder(x)
+        z = self.reparametrize(mu, log_var)
+        res = self.decoder(z)
+        return res, z, mu, log_var
+    
+
+
+class VariationalAutoencoder(nn.Module):
+    def __init__(self, in_channels, latent_dims, out_channels):
+        super(VariationalAutoencoder, self).__init__()
+        self.encoder = VariationalEncoder(in_channels, latent_dims)
+        self.decoder = ImgDecoder(latent_dims, out_channels)
+    
+    def load_on(self, device):
+        self.encoder = self.encoder.to(device)
+        self.decoder = self.decoder.to(device)
+    
+    def reparametrize(self, mu, logvar):
+        std = logvar.mul(0.5).exp_()
+        if std.is_cuda:
+            eps = torch.cuda.FloatTensor(std.size()).normal_()
+        else:
+            eps = torch.FloatTensor(std.size()).normal_()
+        eps = Variable(eps)
+        return eps.mul(std).add_(mu)
+    
+    def forward(self, x):
+        mu, log_var = self.encoder(x)
+        z = self.reparametrize(mu, log_var)
+        res = self.decoder(z)
+        return res, z, mu, log_var
