@@ -39,9 +39,12 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec') # salvatore
-        # wandb.login(key='ec198a4a4d14b77926dc5316ae6f02def3f71b17') # gabbo
-        wandb.init(project="test-project", entity="egovision-aml22")
+        WANDB_KEY = ""
+        if os.environ['WANDB_KEY'] is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY) # gabbo
+        wandb.init(project="Beta-VAE(RGB-RGB)", entity="egovision-aml22")
         #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
@@ -192,7 +195,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
-    beta = 0.00001
+    beta = 1
+    logger.info(f"Using beta parameter: {beta}")
     step_value = 1
     for epoch in range(model_args.epochs):
         total_loss = 0

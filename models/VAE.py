@@ -144,22 +144,3 @@ class VAE(torch.nn.Module):
         mu, log_var, q = self.encoder.encode(x)
         z = self.reparameterize(mu, log_var, q)
         return  [self.decoder.decode(z), x, q, mu, log_var]
-
-
-
-#self.min_temp = temperature
-        #self.anneal_rate = anneal_rate
-        #self.anneal_interval = anneal_interval
-        #self.alpha = alpha
-
-        #self.cont_min = latent_min_capacity
-        #self.cont_max = latent_max_capacity
-
-        # self.disc_min = categorical_min_capacity
-        # self.disc_max = categorical_max_capacity
-
-        # self.cont_gamma = latent_gamma
-        # self.disc_gamma = categorical_gamma
-
-        # self.cont_iter = latent_num_iter
-        # self.disc_iter = categorical_num_iter
