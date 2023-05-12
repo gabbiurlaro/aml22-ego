@@ -4,7 +4,7 @@ from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
 import torch
-from utils.loaders import EpicKitchensDataset
+from utils.loaders import ActionNetDataset
 from utils.args import args
 from utils.utils import pformat_dict
 import utils
@@ -76,15 +76,15 @@ def main():
         # notice, here it is multiplied by tot_batch/batch_size since gradient accumulation technique is adopted
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataloaders are generated here
-        train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, None, None, None,
-                                                                       None, load_feat=True),
+        train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset, None, None, None,
-                                                                     None, load_feat=True),
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
+                                                                     'test', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
+                                                                     None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         train(action_classifier, train_loader, val_loader, device, num_classes)
@@ -92,9 +92,9 @@ def main():
     elif args.action == "validate":
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset, None, None, None,
-                                                                     None, load_feat=True),
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       args.split , args.dataset, None, None, None,
+                                                                       None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
@@ -116,6 +116,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.train(True)
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
+    wandb.watch(action_classifier.task_models['RGB'])
 
     # the batch size should be total_batch but batch accumulation is done with batch size = batch_size.
     # real_iter is the number of iterations if the batch size was really total_batch
@@ -147,6 +148,13 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
         ''' Action recognition'''
         source_label = source_label.to(device)
+# properly reshaping the input data
+       # for m in modalities:
+            # put the data in the proper format for the model processing
+       #     batch, _, height, width = source_data[m].shape
+       #     source_data[m] = source_data[m].reshape(batch, args.train.num_clips, args.train.num_frames_per_clip[m],
+        #                                            -1, height, width)
+        #    source_data[m] = source_data[m].permute(1, 0, 3, 2, 4, 5)
         data = {}
         logits = []
 
@@ -190,7 +198,6 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
-
 def validate(model, val_loader, device, it, num_classes):
     """
     function to validate the model on the test set
@@ -213,6 +220,10 @@ def validate(model, val_loader, device, it, num_classes):
 
             for m in modalities:
                 batch = data[m].shape[0]
+                #batch, _, height, width = data[m].shape
+                #data[m] = data[m].reshape(batch, args.test.num_clips,
+                #                          args.test.num_frames_per_clip[m], -1, height, width)
+                #data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
                 logits[m] = torch.zeros((args.test.num_clips, batch, num_classes)).to(device)
 
             clip = {}

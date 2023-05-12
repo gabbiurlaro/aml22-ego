@@ -116,6 +116,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.train(True)
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
+    wandb.watch(action_classifier.task_models['RGB'])
+
     # the batch size should be total_batch but batch accumulation is done with batch size = batch_size.
     # real_iter is the number of iterations if the batch size was really total_batch
     for i in range(iteration, training_iterations):
@@ -146,6 +148,13 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
         ''' Action recognition'''
         source_label = source_label.to(device)
+# properly reshaping the input data
+       # for m in modalities:
+            # put the data in the proper format for the model processing
+       #     batch, _, height, width = source_data[m].shape
+       #     source_data[m] = source_data[m].reshape(batch, args.train.num_clips, args.train.num_frames_per_clip[m],
+        #                                            -1, height, width)
+        #    source_data[m] = source_data[m].permute(1, 0, 3, 2, 4, 5)
         data = {}
         logits = []
 
@@ -189,8 +198,6 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
-    print(f"COUNT: {count}")
-
 def validate(model, val_loader, device, it, num_classes):
     """
     function to validate the model on the test set
@@ -213,6 +220,10 @@ def validate(model, val_loader, device, it, num_classes):
 
             for m in modalities:
                 batch = data[m].shape[0]
+                #batch, _, height, width = data[m].shape
+                #data[m] = data[m].reshape(batch, args.test.num_clips,
+                #                          args.test.num_frames_per_clip[m], -1, height, width)
+                #data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
                 logits[m] = torch.zeros((args.test.num_clips, batch, num_classes)).to(device)
 
             clip = {}

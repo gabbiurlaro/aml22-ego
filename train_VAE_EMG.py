@@ -121,7 +121,7 @@ def main():
         logger.info(f"Filename is: ./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl")
 
 def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None):
-    result = {'features_RGB': []}
+    result = {'features_EMG': []}
 
     with torch.no_grad():
         for i, (data, label) in enumerate(dataloader):
