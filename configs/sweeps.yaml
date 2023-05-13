@@ -6,7 +6,6 @@ command:
   - config=configs/classifier_emg.yaml
   - dataset.shift=ActionNet-ActionNet
   - train.num_iter=2500
-  - wandb_name='class_emg'
   - models.RGB.lr=0.01
   - wandb_dir='Experiment_logs'
   - dataset.RGB.data_path=../ek_data/frames
@@ -24,4 +23,3 @@ parameters:
     max: 0.1
     min: 0.0001
 program: aml22-ego/train_classifier_EMG.py
-name: egovision-aml22/test-project/
