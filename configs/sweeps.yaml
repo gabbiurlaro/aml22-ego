@@ -8,6 +8,7 @@ command:
   - train.num_iter=2500
   - models.RGB.lr=0.01
   - wandb_dir='Experiment_logs'
+  - wandb_name='EMG_classification'
   - dataset.RGB.data_path=../ek_data/frames
 method: random
 metric:
