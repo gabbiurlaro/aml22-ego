@@ -122,7 +122,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     for i in range(iteration, training_iterations):
         # iteration w.r.t. the paper (w.r.t the bs to simulate).... i is the iteration with the actual bs( < tot_bs)
         real_iter = (i + 1) / (args.total_batch // args.batch_size)
-        if real_iter == args.train.lr_steps:
+        if real_iter == args.models['EMG'].lr_steps:
             # learning rate decay at iteration = lr_steps
             action_classifier.reduce_learning_rate()
         # gradient_accumulation_step is a bool used to understand if we accumulated at least total_batch
@@ -218,23 +218,19 @@ def validate(model, val_loader, device, it, num_classes):
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
-
+        
             for m in modalities:
+                print(f'yoyo1: {data[m].size()}, {data[m].shape}')
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                print(f'yoyo2: {data[m].size()}, {data[m].shape}')
+                data[m] = data[m].to(device)
                 batch = data[m].shape[0]
-                #batch, _, height, width = data[m].shape
-                #data[m] = data[m].reshape(batch, args.test.num_clips,
-                #                          args.test.num_frames_per_clip[m], -1, height, width)
-                #data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
-                logits[m] = torch.zeros((args.test.num_clips, batch, num_classes)).to(device)
+                logits[m] = torch.zeros((batch, num_classes)).to(device)
 
-            clip = {}
-            for i_c in range(args.test.num_clips):
-                for m in modalities:
-                    clip[m] = data[m][:, i_c].to(device)
-
-                output, _ = model(clip)
-                for m in modalities:
-                    logits[m][i_c] = output[m]
+            output, _ = model(data)
+            for m in modalities:
+                logits[m] = output[m]
 
             for m in modalities:
                 logits[m] = torch.mean(logits[m], dim=0)
