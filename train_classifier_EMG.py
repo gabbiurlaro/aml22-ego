@@ -185,7 +185,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
         # every eval_freq "real iteration" (iterations on total_batch) the validation is done, notice we validate and
         # save the last 9 models
-        if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
+        if gradient_accumulation_step and real_iter % 10 == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
             wandb.log({'accuracy on val': val_metrics['top1']})
             if val_metrics['top1'] <= action_classifier.best_iter_score:
