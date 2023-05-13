@@ -34,11 +34,11 @@ def init_operations():
 
     # wanbd logging configuration
     
-    # if args.wandb_name is not None:
-    #     wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
-    #     wandb.init()
-        # wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        # wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+    if args.wandb_name is not None:
+        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
+        wandb.init()
+        wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
+        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
 
 
@@ -65,8 +65,7 @@ def main():
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips, args.models, args=args, wandb=wandb.config)
-    action_classifier.load_on_gpu(device)
+                                                args.train.num_clips, args.models, args=args)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
