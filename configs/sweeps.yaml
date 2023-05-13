@@ -1,6 +1,6 @@
 command:
   - /usr/local/envs/egovision/bin/python
-  - train_classifier_EMG.py
+  - aml22-ego/train_classifier_EMG.py
   - action="train"
   - name="EMG_classification"
   - config=configs/classifier_emg.yaml
