@@ -3,6 +3,7 @@ name: ???
 split: train
 resume_from: ???
 num_clips: 5
+wandb_name: 'EMG_classification'
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
