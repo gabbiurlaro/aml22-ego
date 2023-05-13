@@ -164,11 +164,10 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             data[m] = data[m].reshape(-1,16,5,32,32)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             print(f'yoyo2: {data[m].size()}, {data[m].shape}')
-        
-        for m in modalities:
             data[m] = data[m].to(device)
-            logs, _  = action_classifier.forward(data[m])
-            logits.append(logs)
+        
+        logs, _  = action_classifier.forward(data)
+        logits.append(logs)
 
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
