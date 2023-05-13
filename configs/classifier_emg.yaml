@@ -19,7 +19,7 @@ models:
     normalize: False
     resolution: 224
     kwargs: {}
-    lr_steps: 50 
+    lr_steps: 20 
     epochs: 100
     lr: 1e-6
     sgd_momentum: 0.9
