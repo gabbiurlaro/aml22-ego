@@ -161,7 +161,6 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         for m in modalities:
             print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-
             data[m] = data[m].permute(1, 0, 2)
             print(f'yoyo2: {data[m].size()}, {data[m].shape}')
         
