@@ -3,7 +3,7 @@ command:
   - aml22-ego/train_classifier_EMG.py
   - action="train"
   - name="EMG_classification"
-  - config=configs/classifier_emg.yaml
+  - config=aml22-ego/configs/classifier_emg.yaml
   - dataset.shift=ActionNet-ActionNet
   - train.num_iter=2500
   - models.RGB.lr=0.01
