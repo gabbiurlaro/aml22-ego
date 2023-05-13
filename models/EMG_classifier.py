@@ -3,9 +3,11 @@ from torch import nn
 import torch
 
 class EMG_classifier(nn.Module):
-    def __init__(self, num_input, num_classes) -> None:
+    def __init__(self, num_input, num_classes, num_clips) -> None:
         super().__init__()
         self.num_input = num_input
+        self.num_classes = num_classes
+        self.num_clips = num_clips
         self.classifier = nn.Sequential(
             nn.Conv2d(num_input, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),

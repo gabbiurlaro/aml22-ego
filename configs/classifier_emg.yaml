@@ -2,6 +2,7 @@ action: train # train or test
 name: ???
 split: train
 resume_from: ???
+num_clips: 5
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
