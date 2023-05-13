@@ -170,12 +170,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 # extract the clip related to the modality
                 print(i_c, data[m][i_c].shape)
                 clip = data[m][i_c].to(device)
-        # in case of multi-clip training one clip per time is processed
-        for m in modalities:
-            data[m] = source_data[m].to(device)
-            data[m] = torch.reshape(data[m], (5,32,1024)) #to be uncommented for late fusion
-           
-        logits, _ = action_classifier.forward(data)
+                logits, _ += action_classifier.forward(data)
         
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
