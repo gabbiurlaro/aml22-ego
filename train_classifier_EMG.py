@@ -155,12 +155,13 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
        #     source_data[m] = source_data[m].reshape(batch, args.train.num_clips, args.train.num_frames_per_clip[m],
         #                                            -1, height, width)
         #    source_data[m] = source_data[m].permute(1, 0, 3, 2, 4, 5)
-        data = {}
+        data = source_data
         logits = []
-
+        
+        print(f'yoyo: {data[m].size()}, {data[m].shape}')
         
         for m in modalities:
-            print(data[m].size(), data[m].shape)
+            
             data[m] = data[m].permute(1, 0, 2)
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
