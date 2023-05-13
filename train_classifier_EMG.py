@@ -170,7 +170,9 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 # extract the clip related to the modality
                 print(i_c, data[m][i_c].shape)
                 clip = data[m][i_c].to(device)
-                logits, _ += action_classifier.forward(data)
+                logs, _  = action_classifier.forward(data)
+                logits.append(logs)
+
         
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
