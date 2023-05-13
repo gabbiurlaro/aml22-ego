@@ -166,8 +166,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
         
-        logs, _  = action_classifier.forward(data)
-        logits.append(logs)
+        logits, _  = action_classifier.forward(data)
+        print(f'yoyo3: {logits.size()}, {logits.shape}')
 
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
