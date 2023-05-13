@@ -17,10 +17,11 @@ class EMG_classifier(nn.Module):
             nn.ReLU(),
             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.Dropout(p=0.6)
+            nn.Dropout(p=0.6),
+            nn.MaxPool2d(2)
         )
         self.fc = nn.Sequential(
-            nn.MaxPool2d(2),
+            
             nn.Linear(256, 128),
             nn.Linear(128, num_classes)
         )
