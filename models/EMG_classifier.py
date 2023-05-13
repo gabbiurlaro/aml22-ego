@@ -18,7 +18,7 @@ class EMG_classifier(nn.Module):
             nn.Dropout(p=0.6),
             nn.MaxPool2d(2),
             nn.Linear(256, 128),
-            nn.Linear(128, 11)
+            nn.Linear(128, num_classes)
         )
 
     def forward(self, x):

@@ -158,8 +158,16 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         data = {}
         logits = []
 
-        # for clip in range(args.train.num_clips):
-            # in case of multi-clip training one clip per time is processed
+        
+        for m in modalities:
+            print(data[m].size(), data[m].shape)
+            data[m] = data[m].permute(1, 0, 2)
+            # print(f"Data after permutation: {data[m].size()}")
+        for i_c in range(args.test.num_clips):
+            for m in modalities:
+                # extract the clip related to the modality
+                clip = data[m][i_c].to(device)
+        # in case of multi-clip training one clip per time is processed
         for m in modalities:
             data[m] = source_data[m].to(device)
             data[m] = torch.reshape(data[m], (5,32,1024)) #to be uncommented for late fusion
