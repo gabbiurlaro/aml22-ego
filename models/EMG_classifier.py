@@ -27,8 +27,7 @@ class EMG_classifier(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(256, 128),
             nn.ReLU(),
-            nn.Linear(128, num_classes),
-            nn.Softmax(dim=num_classes)
+            nn.Linear(128, num_classes)
         )
 
     def forward(self, x):
