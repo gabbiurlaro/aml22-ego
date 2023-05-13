@@ -18,7 +18,7 @@ class EMG_classifier(nn.Module):
             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
             nn.Dropout(p=0.6),
-            nn.MaxPool2d(2)
+            nn.MaxPool2d(2, stride=1)
         )
         self.fc = nn.Sequential(
             
@@ -30,8 +30,8 @@ class EMG_classifier(nn.Module):
         logits = []
         for clip in range(self.num_clips):
             y = self.classifier(x[clip,:])
-            print(f'y shape: {y.shape}')
-            exit(-1)
+            y.squeeze_()
+            print(f'y shape: {y.shape}') 
             logits.append(self.fc(y))
 
         return torch.stack(logits, dim=0).mean(dim=0), {}
