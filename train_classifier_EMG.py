@@ -197,7 +197,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 action_classifier.best_iter = real_iter
                 action_classifier.best_iter_score = val_metrics['top1']
 
-            action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
+            #action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
             exit(-1)
 
@@ -215,7 +215,7 @@ def validate(model, val_loader, device, it, num_classes):
     model.reset_acc()
     model.train(False)
     logits = {}
-    print('here')
+    print(val_loader)
     # Iterate over the models
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
