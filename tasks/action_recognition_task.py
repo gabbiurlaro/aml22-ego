@@ -54,6 +54,7 @@ class ActionRecognition(tasks.Task, ABC):
     def compute_accuracy(self, logits, label):
         # fuse all modalities together by summing the logits
         fused_logits = reduce(lambda x, y: x + y, logits.values())
+        print(f'fused_logits shape: {fused_logits.shape}')
         self.accuracy.update(fused_logits, label)
 
     def wandb_log(self):

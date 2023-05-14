@@ -59,7 +59,7 @@ class Accuracy(object):
         """
         maxk = max(topk)
         batch_size = target.size(0)
-
+        print(f' maxk: {maxk} , output: {output} , target: {target}')
         _, pred = output.topk(maxk, 1, True, True)
         pred = pred.t()
         correct = pred.eq(target.view(1, -1).expand_as(pred))
