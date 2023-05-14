@@ -24,7 +24,7 @@ modalities = None
 np.random.seed(13696641)
 torch.manual_seed(13696641)
 
-
+# with this script we trained and tested FC_VAE.VariationalAutoencoder to reconstruct features from the RGB modality
 def init_operations():
     """
     parse all the arguments, generate the logger, check gpus to be used and wandb

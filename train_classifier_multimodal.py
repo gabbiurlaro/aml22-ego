@@ -4,7 +4,7 @@ from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
 import torch
-from utils.loaders import EpicKitchensDataset
+from utils.loaders import ActionNetDataset
 from utils.args import args
 from utils.utils import pformat_dict
 import utils
@@ -33,9 +33,13 @@ def init_operations():
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpus)
 
     # wanbd logging configuration
+    
     if args.wandb_name is not None:
-        wandb.init(group=args.wandb_name, dir=args.wandb_dir)
+        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
+        wandb.init()
         wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
+        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+
 
 
 def main():
@@ -51,41 +55,35 @@ def main():
 
     # these dictionaries are for more multi-modal training/testing, each key is a modality used
     models = {}
-    train_augmentations = {}
-    test_augmentations = {}
     logger.info("Instantiating models per modality")
     for m in modalities:
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
-        models[m] = getattr(model_list, args.models[m].model)(num_classes, m, args.models[m], **args.models[m].kwargs)
-        train_augmentations[m], test_augmentations[m] = models[m].get_augmentation(m)
+        # notice that here, the first parameter passed is the input dimension
+        # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
+        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, args.num_clips)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips, args.models, args=args)
-    action_classifier.load_on_gpu(device)
+                                                args.train.num_clips, args.models, args=args, device=device)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
-        # define number of iterations I'll do with the actual batch: we do not reason with epochs but with iterations
         # i.e. number of batches passed
         # notice, here it is multiplied by tot_batch/batch_size since gradient accumulation technique is adopted
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataloaders are generated here
-        train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset,
-                                                                       args.train.num_frames_per_clip,
-                                                                       args.train.num_clips, args.train.dense_sampling,
-                                                                       train_augmentations),
+        train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset, args.test.num_frames_per_clip,
-                                                                     args.test.num_clips, args.test.dense_sampling,
-                                                                     test_augmentations),
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
+                                                                     'z', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
+                                                                     None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         train(action_classifier, train_loader, val_loader, device, num_classes)
@@ -93,43 +91,13 @@ def main():
     elif args.action == "validate":
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset, args.test.num_frames_per_clip,
-                                                                     args.test.num_clips, args.test.dense_sampling,
-                                                                     test_augmentations),
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       args.split , args.dataset, None, None, None,
+                                                                       None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
         validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
-
-    else:
-        # [WARN] this testing procedure is not useful in your case
-        test_results = {'top1': [], 'top5': [], 'class_accuracies': []}
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset, args.test.num_frames_per_clip,
-                                                                     args.test.num_clips, args.test.dense_sampling,
-                                                                     test_augmentations),
-                                                 batch_size=args.batch_size, shuffle=False,
-                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        for i_model in range(1, 10):
-            # this is the testing pipeline adopted in the literature to have more robust results, the last 9 models
-            # saved in checkpoints are saved and tested and the results are averaged. Read the paper below for more
-            # details
-            # https://openaccess.thecvf.com/content_CVPR_2020/html/Munro_Multi-Modal_Domain_Adaptation_for_Fine-Grained_Action_Recognition_CVPR_2020_paper.html
-            action_classifier.load_model(args.resume_from, i_model)
-            t_r = validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
-            for k in test_results.keys():
-                test_results[k].append(t_r[k])
-        test_results['class_accuracies'] = np.array(test_results['class_accuracies']).mean(0)
-        logger.info("FINAL RESULTS OVER 9 MODELS: \nTop@1 %.2f%%\nTop@5: %.2f%%\n"
-                    % (mean(test_results['top1']), mean(test_results['top5'])))
-        for i_class, class_acc in enumerate(test_results['class_accuracies']):
-            logger.info('Class %d = %.2f%%' % (i_class, class_acc))
-        with open(os.path.join(args.log_dir, "summary_" + args.action + "_" + args.dataset.shift + ".txt"), 'w') as f:
-            f.write("FINAL RESULTS OVER 9 MODELS: \nTop@1 %.2f%%\nTop@5: %.2f%%\n"
-                    % (mean(test_results['top1']), mean(test_results['top5'])))
-            for i_class, class_acc in enumerate(test_results['class_accuracies']):
-                f.write('Class %d = %.2f%%\n' % (i_class, class_acc))
 
 
 def train(action_classifier, train_loader, val_loader, device, num_classes):
@@ -147,13 +115,14 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.train(True)
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
+    wandb.watch(action_classifier.task_models['EMG'])
 
     # the batch size should be total_batch but batch accumulation is done with batch size = batch_size.
     # real_iter is the number of iterations if the batch size was really total_batch
     for i in range(iteration, training_iterations):
         # iteration w.r.t. the paper (w.r.t the bs to simulate).... i is the iteration with the actual bs( < tot_bs)
         real_iter = (i + 1) / (args.total_batch // args.batch_size)
-        if real_iter == args.train.lr_steps:
+        if real_iter == args.models['EMG'].lr_steps:
             # learning rate decay at iteration = lr_steps
             action_classifier.reduce_learning_rate()
         # gradient_accumulation_step is a bool used to understand if we accumulated at least total_batch
@@ -178,25 +147,31 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
         ''' Action recognition'''
         source_label = source_label.to(device)
-        # properly reshaping the input data
-        for m in modalities:
+# properly reshaping the input data
+       # for m in modalities:
             # put the data in the proper format for the model processing
-            batch, _, height, width = source_data[m].shape
-            source_data[m] = source_data[m].reshape(batch, args.train.num_clips, args.train.num_frames_per_clip[m],
-                                                    -1, height, width)
-            source_data[m] = source_data[m].permute(1, 0, 3, 2, 4, 5)
+       #     batch, _, height, width = source_data[m].shape
+       #     source_data[m] = source_data[m].reshape(batch, args.train.num_clips, args.train.num_frames_per_clip[m],
+        #                                            -1, height, width)
+        #    source_data[m] = source_data[m].permute(1, 0, 3, 2, 4, 5)
+        data = source_data
+        logits = []
+        
+        
+        for m in modalities:
+            #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
+            data[m] = data[m].reshape(-1,16,5,32,32)
+            data[m] = data[m].permute(2, 0, 1, 3,4 )
+            #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
+            data[m] = data[m].to(device)
+        
+        logits, _  = action_classifier.forward(data)
 
-        data = {}
+        action_classifier.compute_loss(logits, source_label, loss_weight=1)
+        action_classifier.backward(retain_graph=False)
+        action_classifier.compute_accuracy(logits, source_label)
 
-        for clip in range(args.train.num_clips):
-            # in case of multi-clip training one clip per time is processed
-            for m in modalities:
-                data[m] = source_data[m][clip].to(device)
-
-            logits, _ = action_classifier.forward(data)
-            action_classifier.compute_loss(logits, source_label, loss_weight=1)
-            action_classifier.backward(retain_graph=False)
-            action_classifier.compute_accuracy(logits, source_label)
+        action_classifier.wandb_log()
 
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
@@ -208,14 +183,12 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.step()
             action_classifier.zero_grad()
 
-        # every eval_freq "real iteration" (iterations on total_batch) the validation is done
-        # we save every 9 models (MM-sada policy,
-        # https://openaccess.thecvf.com/content_CVPR_2020/html/Munro_Multi-Modal_Domain_Adaptation_for_Fine-Grained_Action_Recognition_CVPR_2020_paper.html
-        # to validate, it takes the last 9 models, it tests them all, and then it computes the average.
-        # This is done to avoid peaks in the performances)
-        if gradient_accumulation_step and real_iter % args.train.eval_freq == 0:
+        # every eval_freq "real iteration" (iterations on total_batch) the validation is done, notice we validate and
+        # save the last 9 models
+        if gradient_accumulation_step and real_iter % 10 == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
-
+            wandb.log({'accuracy on val': val_metrics['top1']})
+           
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))
@@ -224,9 +197,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 action_classifier.best_iter = real_iter
                 action_classifier.best_iter_score = val_metrics['top1']
 
-            action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
+            #action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
-
 
 def validate(model, val_loader, device, it, num_classes):
     """
@@ -242,51 +214,50 @@ def validate(model, val_loader, device, it, num_classes):
     model.reset_acc()
     model.train(False)
     logits = {}
-
+    print(f'val: {val_loader.dataset.__len__()}')
     # Iterate over the models
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
-
+            #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
-                batch, _, height, width = data[m].shape
-                data[m] = data[m].reshape(batch, args.test.num_clips,
-                                          args.test.num_frames_per_clip[m], -1, height, width)
-                data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
+                print(f'yoyo1: {data[m].size()}, {data[m].shape}')
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                print(f'yoyo2: {data[m].size()}, {data[m].shape}')
+                data[m] = data[m].to(device)
+                batch = data[m].shape[0]
+                print('num_classes: ', num_classes)
+                logits[m] = torch.zeros((batch, num_classes)).to(device)
 
-                logits[m] = torch.zeros((args.test.num_clips, batch, num_classes)).to(device)
 
-            clip = {}
-            for i_c in range(args.test.num_clips):
-                for m in modalities:
-                    clip[m] = data[m][i_c].to(device)
-
-                output, _ = model(clip)
-                for m in modalities:
-                    logits[m][i_c] = output[m]
-
+            output, _ = model(data)
+            #print(f'output: {output.size()}, {output.shape}')
             for m in modalities:
-                logits[m] = torch.mean(logits[m], dim=0)
-
+                logits[m] = output[m]
+            
+            print(f"label: {label.size()}, {label.shape}")
+            # for m in modalities:
+            #     logits[m] = torch.mean(logits[m], dim=0)
+            print(f"output1: {output}, {output['EMG']} {output['EMG'].shape}")
             model.compute_accuracy(logits, label)
 
-            if (i_val + 1) % (len(val_loader) // 5) == 0:
-                logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(val_loader),
-                                                                          model.accuracy.avg[1], model.accuracy.avg[5]))
+            # if (i_val + 1) % (len(val_loader) // 5) == 0:
+            #     logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(val_loader),
+            #                                                               model.accuracy.avg[1], model.accuracy.avg[5]))
 
-        class_accuracies = [(x / y) * 100 for x, y in zip(model.accuracy.correct, model.accuracy.total)]
+        # class_accuracies = [(x / y) * 100 for x, y in zip(model.accuracy.correct, model.accuracy.total)]
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
                                                                       model.accuracy.avg[5]))
-        for i_class, class_acc in enumerate(class_accuracies):
-            logger.info('Class %d = [%d/%d] = %.2f%%' % (i_class,
-                                                         int(model.accuracy.correct[i_class]),
-                                                         int(model.accuracy.total[i_class]),
-                                                         class_acc))
+        # for i_class, class_acc in enumerate(class_accuracies):
+        #     logger.info('Class %d = [%d/%d] = %.2f%%' % (i_class,
+        #                                                  int(model.accuracy.correct[i_class]),
+        #                                                  int(model.accuracy.total[i_class]),
+        #                                                  class_acc))
 
-    logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
-                .format(np.array(class_accuracies).mean(axis=0)))
-    test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
-                    'class_accuracies': np.array(class_accuracies)}
+    # logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
+    #             .format(np.array(class_accuracies).mean(axis=0)))
+    test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5]}
 
     with open(os.path.join(args.log_dir, f'val_precision_{args.dataset.shift.split("-")[0]}-'
                                          f'{args.dataset.shift.split("-")[-1]}.txt'), 'a+') as f:

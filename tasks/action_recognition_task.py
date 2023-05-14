@@ -12,7 +12,7 @@ class ActionRecognition(tasks.Task, ABC):
     optimizer = {}
 
     def __init__(self, name, task_models, batch_size, total_batch, models_dir, num_classes,
-                 num_clips, model_args, args, **kwargs) -> None:
+                 num_clips, model_args, args, wandb=None,  device=None, **kwargs) -> None:
         super().__init__(name, task_models, batch_size, total_batch, models_dir, args, **kwargs)
         # Accuracy measures
         self.model_args = model_args
@@ -22,10 +22,13 @@ class ActionRecognition(tasks.Task, ABC):
         self.criterion = torch.nn.CrossEntropyLoss(weight=None, size_average=None, ignore_index=-100,
                                                    reduce=None, reduction='none')
         optim_params = {}
+
         for m in self.modalities:
+            if device:
+                self.task_models[m].to(device)
             optim_params[m] = filter(lambda parameter: parameter.requires_grad, self.task_models[m].parameters())
-            self.optimizer[m] = torch.optim.SGD(optim_params[m], model_args[m].lr,
-                                                weight_decay=model_args[m].weight_decay,
+            self.optimizer[m] = torch.optim.SGD(optim_params[m], (wandb.lr if wandb else model_args[m].lr),
+                                                weight_decay=(wandb.weight_decay if wandb else model_args[m].weight_decay),
                                                 momentum=model_args[m].sgd_momentum)
 
     def forward(self, data, **kwargs):
@@ -51,6 +54,7 @@ class ActionRecognition(tasks.Task, ABC):
     def compute_accuracy(self, logits, label):
         # fuse all modalities together by summing the logits
         fused_logits = reduce(lambda x, y: x + y, logits.values())
+        print(f'fused_logits shape: {fused_logits.shape}')
         self.accuracy.update(fused_logits, label)
 
     def wandb_log(self):
