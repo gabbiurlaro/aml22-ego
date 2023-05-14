@@ -218,7 +218,7 @@ def validate(model, val_loader, device, it, num_classes):
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
-        
+            print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 print(f'yoyo1: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].reshape(-1,16,5,32,32)
@@ -228,13 +228,15 @@ def validate(model, val_loader, device, it, num_classes):
                 batch = data[m].shape[0]
                 logits[m] = torch.zeros((batch, num_classes)).to(device)
 
+
             output, _ = model(data)
+            print(f'output: {output.size()}, {output.shape}'
             for m in modalities:
                 logits[m] = output[m]
 
             for m in modalities:
                 logits[m] = torch.mean(logits[m], dim=0)
-
+            print(f'output: {logits['EMG'].size()}, {output['EMG'].shape}'
             model.compute_accuracy(logits, label)
 
             if (i_val + 1) % (len(val_loader) // 5) == 0:
