@@ -238,8 +238,8 @@ def validate(model, val_loader, device, it, num_classes):
                 logits[m] = output[m]
             
             print(f"label: {label.size()}, {label.shape}")
-            for m in modalities:
-                logits[m] = torch.mean(logits[m], dim=0)
+            # for m in modalities:
+            #     logits[m] = torch.mean(logits[m], dim=0)
             print(f"output1: {output}, {output['EMG']} {output['EMG'].shape}")
             model.compute_accuracy(logits, label)
 
