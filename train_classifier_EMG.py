@@ -220,7 +220,7 @@ def validate(model, val_loader, device, it, num_classes):
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
-            print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
+            #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 print(f'yoyo1: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].reshape(-1,16,5,32,32)
