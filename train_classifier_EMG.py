@@ -215,7 +215,7 @@ def validate(model, val_loader, device, it, num_classes):
     model.reset_acc()
     model.train(False)
     logits = {}
-    print(val_loader)
+    print(f'val: {val_loader}')
     # Iterate over the models
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
