@@ -228,6 +228,7 @@ def validate(model, val_loader, device, it, num_classes):
                 print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
                 batch = data[m].shape[0]
+                print('num_classes: ', num_classes)
                 logits[m] = torch.zeros((batch, num_classes)).to(device)
 
 
