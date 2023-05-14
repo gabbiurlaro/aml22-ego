@@ -94,15 +94,9 @@ def main():
 
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}.pth")
-        logger.info(f"DONE in {args.name}_lr{args.models.RGB.lr}.pth")
+        save_model(ae['RGB'], f"{args.name}_lr{wandb.config.lr}_1.pth")
+        logger.info(f"DONE in {args.name}_lr{wandb.config.lr}_1.pth")
 
-        #plot_latent(ae, train_loader, device, split='D1_train')
-        
-        # load_model(models['RGB'], './saved_models/VAE_RGB/VAE_FT_D_16f.pth')
-        # reconstruct(models['RGB'], train_loader, device, split="D1_train")
-        # plot_latent(ae, train_loader, device)
-        # reconstruct(ae, train_loader, device)
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        args.split , args.dataset, None, None, None,
@@ -163,6 +157,20 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
     # plt.show()
 
 
+def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # linear schedule
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop and (int(i+c*period) < n_epoch):
+            L[int(i+c*period)] = v
+            v += step
+            i += 1
+    return L  
+
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
     autoencoder.train(False)
@@ -190,10 +198,11 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         autoencoder[m].load_on(device)
     opt = build_optimizer(autoencoder['RGB'], "adam", wandb.config.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
+    scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, )
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
-    beta = wandb.config.beta
-    logger.info(f"Using beta: {beta}")
+    beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
+
     step_value = 1
     for epoch in range(model_args.epochs):
         total_loss = 0
@@ -212,21 +221,19 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     # print(f"[DEBUG]: mse_loss {type(mse_loss)} - {mse_loss.shape} -{mse_loss}")
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
                     # print(f"[DEBUG]: kld {type(kld_loss)} - {kld_loss.shape} - {kld_loss}")
-                    loss = mse_loss + beta*kld_loss
+                    loss = mse_loss + beta[epoch]*kld_loss
                     if loss.isnan():
                         logger.info(f"Loss exploding...")
                         exit(-1)
                     # print(f"loss: {loss.shape} - {loss}")
                     total_loss += loss
-                    wandb.log({"MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
+                    wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
                     loss.backward()
                     opt.step()
+        scheduler_plateau.step(total_loss)
         if epoch % 10 == 0:
-            step_value = 0.8*step_value
-        if epoch % 20 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
-        wandb.log({'train_loss': train_loss})
         scheduler.step()
     return autoencoder
 
