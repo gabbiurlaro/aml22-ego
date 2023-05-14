@@ -188,7 +188,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         if gradient_accumulation_step and real_iter % 4 == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes)
             wandb.log({'accuracy on val': val_metrics['top1']})
-            exit(-1)
+           
             if val_metrics['top1'] <= action_classifier.best_iter_score:
                 logger.info("New best accuracy {:.2f}%"
                             .format(action_classifier.best_iter_score))
@@ -199,6 +199,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
 
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
+            exit(-1)
 
 def validate(model, val_loader, device, it, num_classes):
     """
