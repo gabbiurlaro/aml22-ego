@@ -62,6 +62,7 @@ class Accuracy(object):
         print(f' maxk: {maxk} , output: {output} , target: {target}')
         _, pred = output.topk(maxk, 0, True, True)
         pred = pred.t()
+        print('pred: ', pred, 'target',(target.view(1, -1).expand_as(pred)))
         correct = pred.eq(target.view(1, -1).expand_as(pred))
         res = []
         for k in topk:
