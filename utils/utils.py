@@ -35,6 +35,7 @@ class Accuracy(object):
         # compute separately all the top-k accuracies and the per-class accuracy
         for i_tk, top_k in enumerate(self.topk):
             if i_tk == 0:
+                print('output2: ', outputs, outputs['EMG'] )
                 res = self.accuracy(outputs, labels, perclass_acc=True, topk=[top_k])
                 class_correct = res[1]
                 class_total = res[2]
@@ -57,6 +58,7 @@ class Accuracy(object):
         target: torch.Tensor -> ground truth labels
         perclass_acc -> bool, True if you want to compute also the top-1 accuracy per class
         """
+        print('output3: ', output, output['EMG'])
         maxk = max(topk)
         batch_size = target.size(0)
         print(f' maxk: {maxk} , output: {output} , target: {target}')
