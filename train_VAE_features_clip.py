@@ -43,12 +43,9 @@ def init_operations():
         if os.environ['WANDB_KEY'] is not None:
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
-        wandb.login(key=WANDB_KEY) # gabbo
-        wandb.init(project="Beta-VAE(RGB-RGB)", entity="egovision-aml22")
-        #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
+        wandb.login(key=WANDB_KEY)
+        run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
-
-
 
 def main():
     global training_iterations, modalities
@@ -191,12 +188,12 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = torch.optim.Adam(autoencoder['RGB'].parameters(), model_args.lr)
+    opt = build_optimizer(autoencoder['RGB'], "adam", wandb.config.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
-    beta = 1
-    logger.info(f"Using beta parameter: {beta}")
+    beta = wandb.config.beta
+    logger.info(f"Using beta: {beta}")
     step_value = 1
     for epoch in range(model_args.epochs):
         total_loss = 0
@@ -227,7 +224,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         if epoch % 10 == 0:
             step_value = 0.8*step_value
         if epoch % 20 == 0:
-            wandb.log({"Validation loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
+            wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
         wandb.log({'train_loss': train_loss})
         scheduler.step()
@@ -294,7 +291,14 @@ def load_model(ae, path):
     #print([x for x in state_dict.keys()])
     ae.load_state_dict(state_dict, strict=False)
 
-
+def build_optimizer(network, optimizer, learning_rate):
+    if optimizer == "sgd":
+        optimizer = torch.optim.SGD(network.parameters(),
+                              lr=learning_rate, momentum=0.9)
+    elif optimizer == "adam":
+        optimizer = torch.optim.Adam(network.parameters(),
+                               lr=learning_rate)
+    return optimizer
 
 
 if __name__ == '__main__':

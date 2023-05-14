@@ -189,7 +189,6 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
-    print(f"COUNT: {count}")
 
 def validate(model, val_loader, device, it, num_classes):
     """
