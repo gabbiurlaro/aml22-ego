@@ -232,7 +232,7 @@ def validate(model, val_loader, device, it, num_classes):
 
 
             output, _ = model(data)
-            print(f'output: {output.size()}, {output.shape}')
+            #print(f'output: {output.size()}, {output.shape}')
             for m in modalities:
                 logits[m] = output[m]
 
