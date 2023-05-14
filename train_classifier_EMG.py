@@ -230,13 +230,13 @@ def validate(model, val_loader, device, it, num_classes):
 
 
             output, _ = model(data)
-            print(f'output: {output.size()}, {output.shape}'
+            print(f'output: {output.size()}, {output.shape}')
             for m in modalities:
                 logits[m] = output[m]
 
             for m in modalities:
                 logits[m] = torch.mean(logits[m], dim=0)
-            print(f'output: {logits['EMG'].size()}, {output['EMG'].shape}'
+            print(f"output: {logits['EMG'].size()}, {output['EMG'].shape}")
             model.compute_accuracy(logits, label)
 
             if (i_val + 1) % (len(val_loader) // 5) == 0:
