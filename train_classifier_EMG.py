@@ -243,9 +243,9 @@ def validate(model, val_loader, device, it, num_classes):
             print(f"output1: {output}, {output['EMG']} {output['EMG'].shape}")
             model.compute_accuracy(logits, label)
 
-            if (i_val + 1) % (len(val_loader) // 5) == 0:
-                logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(val_loader),
-                                                                          model.accuracy.avg[1], model.accuracy.avg[5]))
+            # if (i_val + 1) % (len(val_loader) // 5) == 0:
+            #     logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(val_loader),
+            #                                                               model.accuracy.avg[1], model.accuracy.avg[5]))
 
         # class_accuracies = [(x / y) * 100 for x, y in zip(model.accuracy.correct, model.accuracy.total)]
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
