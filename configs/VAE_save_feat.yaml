@@ -39,4 +39,4 @@ models:
 
 wandb:
   config:
-    lr: 1e-2
+    lr: 1e-3
