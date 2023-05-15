@@ -26,7 +26,7 @@ dataset:
 models:
   RGB:
     model: VAE
-    dropout: 0.5
+    dropout: 0.2
     normalize: False
     resolution: 224
     kwargs: {}
