@@ -32,7 +32,7 @@ models:
     kwargs: {}
     lr_steps: 50 
     epochs: 25
-    lr: 1e-2
+    lr: 1e-1
     sgd_momentum: 0.9
     weight_decay: 1e-7
     weight_i3d_rgb: './pretrained_i3d/rgb_imagenet.pt'
