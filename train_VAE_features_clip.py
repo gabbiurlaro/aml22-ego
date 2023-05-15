@@ -39,11 +39,7 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        WANDB_KEY = ""
-        if os.environ['WANDB_KEY'] is not None:
-            WANDB_KEY = os.environ['WANDB_KEY']
-            logger.info("Using key retrieved from enviroment.")
-        wandb.login(key=WANDB_KEY)
+        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
         run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
