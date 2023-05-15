@@ -90,8 +90,8 @@ def main():
 
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{wandb.config.lr if wandb.config.lr else args.wandb.config.lr}_1.pth")
-        logger.info(f"DONE in {args.name}_lr{wandb.config.lr if wandb.config.lr else args.wandb.config.lr}_1.pth")
+        save_model(ae['RGB'], f"{args.name}_lr{wandb.config.lr if wandb.config else args.wandb.config.lr}_1.pth")
+        logger.info(f"DONE in {args.name}_lr{wandb.config.lr if wandb.config else args.wandb.config.lr}_1.pth")
 
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
