@@ -90,8 +90,8 @@ def main():
 
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{wandb.config.lr if wandb.config else args.wandb.config.lr}_1.pth")
-        logger.info(f"DONE in {args.name}_lr{wandb.config.lr if wandb.config else args.wandb.config.lr}_1.pth")
+        save_model(ae['RGB'], f"{args.name}_lr{args.wandb.config.lr}_1.pth")
+        logger.info(f"DONE in {args.name}_lr{args.wandb.config.lr}_1.pth")
 
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
@@ -192,7 +192,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = build_optimizer(autoencoder['RGB'], "adam", wandb.config.lr if wandb.config else args.wandb.config.lr)
+    opt = build_optimizer(autoencoder['RGB'], "adam", args.wandb.config.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
     scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, )
     reconstruction_loss = nn.MSELoss()
