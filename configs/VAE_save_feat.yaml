@@ -31,7 +31,7 @@ models:
     resolution: 224
     kwargs: {}
     lr_steps: 50 
-    epochs: 50
+    epochs: 25
     lr: 0.01
     sgd_momentum: 0.9
     weight_decay: 1e-7
