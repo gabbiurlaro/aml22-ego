@@ -220,7 +220,6 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     loss = mse_loss + beta[epoch]*kld_loss
                     if loss.isnan():
                         logger.info(f"Loss exploding...")
-                        exit(-1)
                     # print(f"loss: {loss.shape} - {loss}")
                     total_loss += loss
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
