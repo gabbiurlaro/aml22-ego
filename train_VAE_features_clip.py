@@ -192,7 +192,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = build_optimizer(autoencoder['RGB'], "sgd", args.wandb.config.lr)
+    opt = build_optimizer(autoencoder['RGB'], "adam", args.wandb.config.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
     scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, )
     reconstruction_loss = nn.MSELoss()
