@@ -40,11 +40,7 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        WANDB_KEY = ""
-        if os.environ['WANDB_KEY'] is not None:
-            WANDB_KEY = os.environ['WANDB_KEY']
-            logger.info("Using key retrieved from enviroment.")
-        wandb.login(key=WANDB_KEY)
+        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
         run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
@@ -192,7 +188,11 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
+<<<<<<< HEAD
     opt = build_optimizer(autoencoder['RGB'], "adam", model_args.lr)
+=======
+    opt = build_optimizer(autoencoder['RGB'], "adam", args.wandb.config.lr)
+>>>>>>> 868e408a570be0bc20eb696dbe7f9c8700c2ed36
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
     scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt)
     reconstruction_loss = nn.MSELoss()
@@ -220,7 +220,6 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     loss = mse_loss + beta[epoch]*kld_loss
                     if loss.isnan():
                         logger.info(f"Loss exploding...")
-                        exit(-1)
                     # print(f"loss: {loss.shape} - {loss}")
                     total_loss += loss
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
