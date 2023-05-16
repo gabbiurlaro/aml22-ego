@@ -192,8 +192,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
-    beta = frange_cycle_linear(0, 0.01, model_args.epochs, n_cycle=2)
-    #beta = 200*[1]
+    #beta = frange_cycle_linear(0, 0.01, model_args.epochs, n_cycle=2)
+    beta = 200*[1]
     step_value = 1
     for epoch in range(model_args.epochs):
         total_loss = 0
