@@ -31,17 +31,19 @@ As a reference, `colab_runner.ipynb` provides an example of how to set up a work
 
 NOTE: you need to stay connected to the Google Colab interface at all times for your python scripts to keep training.
 
-
-
-
-
 ### 3. Recreate our experiments
 
-
 #### 3.2 Use reconstructed feature to train a classifier
+First, we need to train the vae and save the model.
 
 ```bash
-python train_VAE_features_clip.py action="save" name="VAE_FT_D_16f"   config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE' resume_from='saved_models/VAE_RGB/VAE_FT_D_16f_lr1e-05_(wandb sweep).pth'
+python /home/gabb/egovision_project/aml22-ego/train_VAE_features_clip.py action="train"  name="VAE_FT_D_16f" \
+  config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
+  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE'
+```
+
+```bash
+python train_VAE_features_clip.py action="save" name="VAE_FT_D_16f"   config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE' resume_from='saved_models/VAE_RGB/VAE_FT_D_16f_lr0.0001_1.pth'
 ```
 
 Feature in `./saved_features/reconstructed/VAE_FT_D_16f_0.01.pkl`. We can use the feature generated to train a classifier:

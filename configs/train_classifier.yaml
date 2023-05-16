@@ -30,6 +30,6 @@ models:
     normalize: False
     kwargs: {}
     lr_steps: 100
-    lr: 0.1
+    lr: 0.001
     sgd_momentum: 0.9
     weight_decay: 1e-2

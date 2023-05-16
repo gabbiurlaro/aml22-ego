@@ -5,10 +5,13 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 class VariationalEncoder(nn.Module):
-    def __init__(self, in_channels, latent_dims):
+    def __init__(self, in_channels, latent_dims, variational=True):
         super(VariationalEncoder, self).__init__()
         self.in_channels = in_channels
         self.latent_dims = latent_dims
+
+        self.variational = variational
+
         self.encoder = nn.Sequential(nn.Linear(self.in_channels, latent_dims),
                                      nn.ReLU(inplace=True),
                                      nn.BatchNorm1d(latent_dims),
@@ -25,7 +28,10 @@ class VariationalEncoder(nn.Module):
 
     def forward(self, x):
         h = self.encoder(x)
-        return self.fc1(h), self.fc2(h)
+        if self.variational:
+            return self.fc1(h), self.fc2(h)
+        else:
+            return h
     
 class Decoder(nn.Module):
     def __init__(self, latent_dims, out_channels):
@@ -46,9 +52,10 @@ class Decoder(nn.Module):
         return self.decoder(z)
 
 class VariationalAutoencoder(nn.Module):
-    def __init__(self, in_channels, latent_dims, out_channels):
+    def __init__(self, in_channels, latent_dims, out_channels, variational=True):
         super(VariationalAutoencoder, self).__init__()
-        self.encoder = VariationalEncoder(in_channels, latent_dims)
+        self.variational = variational
+        self.encoder = VariationalEncoder(in_channels, latent_dims, variational=self.variational)
         self.decoder = Decoder(latent_dims, out_channels)
     
     def load_on(self, device):
@@ -65,7 +72,12 @@ class VariationalAutoencoder(nn.Module):
         return eps.mul(std).add_(mu)
     
     def forward(self, x):
-        mu, log_var = self.encoder(x)
-        z = self.reparametrize(mu, log_var)
-        res = self.decoder(z)
-        return res, z, mu, log_var
+        if self.variational:
+            mu, log_var = self.encoder(x)
+            z = self.reparametrize(mu, log_var)
+            res = self.decoder(z)
+            return res, z, mu, log_var
+        else:
+            z = self.encoder(x)
+            res = self.decoder(z)
+            return res, z

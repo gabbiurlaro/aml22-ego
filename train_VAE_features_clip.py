@@ -17,6 +17,7 @@ from  sklearn.manifold import TSNE
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 # global variables among training functions
 training_iterations = 0
@@ -66,12 +67,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024)
-
-    # the models are wrapped into the ActionRecognition task which manages all the training steps
-    # action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
-    #                                             args.total_batch, args.models_dir, num_classes,
-    #   
+        models[m] = getattr(model_list, args.models[m].model)(1024, 256, 1024)
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
         # if args.resume_from is not None:
@@ -87,39 +83,40 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'val', args.dataset, None, None, None,
+                                                                     'test', args.dataset, None, None, None,
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
-        save_model(ae['RGB'], f"{args.name}_lr{wandb.config.lr}_1.pth")
-        logger.info(f"DONE in {args.name}_lr{wandb.config.lr}_1.pth")
+        save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}_{datetime.now()}.pth")
+        logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}_{datetime.now()}.pth")
 
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        args.split , args.dataset, None, None, None,
-                                                                       None, load_feat=True),
+                                                                       None, load_feat=True, additional_info=True),
+                                                   batch_size=1, shuffle=True,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        loader_test = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       "test", args.dataset, None, None, None,
+                                                                       None, load_feat=True, additional_info=True),
                                                    batch_size=1, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
-        filename = f"./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl"
-        reconstructed_features = reconstruct(models, loader, device, args.split, save = True, filename=filename)
-        
-        # some statitics:
-        logger.info(f"Reconstructed feature of {len(reconstructed_features['features_RGB'])} video")
-        # print(f"Un sample è di questo tipo: {reconstructed_features['features_RGB'][0]['features'].shape}")
-        logger.info(f"Filename is: ./saved_features/reconstructed/{args.name}_{args.models.RGB.lr}.pkl")
+        filename = f"./saved_features/reconstructed/{datetime.now()}"
+        reconstructed_features = reconstruct(models, loader, device, "train", save = True, filename=filename)
+        reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
 
 def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None):
-    result = {'features_RGB': []}
+    result = {'features': []}
 
     with torch.no_grad():
-        for i, (data, label) in enumerate(dataloader):
+        for i, (data, label, video_name, uid) in enumerate(dataloader):
             for m in modalities:
                 autoencoder[m].train(False)
                 data[m] = data[m].permute(1, 0, 2)     #  clip level
@@ -135,10 +132,10 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
                 # print(f"[DEBUG] clips è un TENSORE({type(clips)}, che rappresenta il video {clips.shape})")
                 clips = clips.permute(1, 0, 2).squeeze(0)
                 # print(f"[DEBUG] clips è un TENSORE({type(clips)}, che rappresenta il video ({clips.shape})[ho eliminato la dimensione inutile]")
-                result['features_RGB'].append({'features': clips.numpy(), 'label': label.item()})
+                result['features'].append({'features_RGB': clips.numpy(), 'label': label.item(), 'uid': uid.item(), 'video_name': video_name})
                 
     if save:
-        with open(filename, "wb") as file:
+        with open(f"{filename}_D1_{split}.pkl", "wb") as file:
             pickle.dump(result, file)
         
     return result
@@ -190,15 +187,14 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
             
     return total_loss/len(val_dataloader)
 
-
 def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     logger.info(f"Start VAE training.")
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
-    opt = build_optimizer(autoencoder['RGB'], "adam", wandb.config.lr)
+    opt = build_optimizer(autoencoder['RGB'], "adam", model_args.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
-    scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, )
+    scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
     beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
@@ -306,7 +302,6 @@ def build_optimizer(network, optimizer, learning_rate):
         optimizer = torch.optim.Adam(network.parameters(),
                                lr=learning_rate)
     return optimizer
-
 
 if __name__ == '__main__':
     main()

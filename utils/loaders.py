@@ -184,6 +184,9 @@ class EpicKitchensDataset(data.Dataset, ABC):
         if self.load_feat:
             sample = {}
             sample_row = self.model_features[self.model_features["uid"] == int(record.uid)]
+            if len(sample_row) != 1:
+                print(f"Exited because len is {len(sample_row)}, with uid: {int(record.uid)}")
+                exit(-1)
             assert len(sample_row) == 1
             for m in self.modalities:
                 sample[m] = sample_row["features_" + m].values[0]
