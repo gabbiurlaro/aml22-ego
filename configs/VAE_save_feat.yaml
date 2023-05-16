@@ -38,6 +38,3 @@ models:
     weight_decay: 1e-7
     weight_i3d_rgb: './pretrained_i3d/rgb_imagenet.pt'
 
-wandb:
-  config:
-    lr: 1e-3
