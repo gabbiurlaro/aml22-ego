@@ -104,7 +104,7 @@ def main():
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
-        filename = f"./saved_features/reconstructed/{datetime.now()}"
+        filename = f"./saved_features/reconstructed/VAE_{args.models.RGB.lr}_{datetime.now()}"
         reconstructed_features = reconstruct(models, loader, device, "train", save = True, filename=filename)
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
 
@@ -185,37 +185,44 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
 
 def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     logger.info(f"Start VAE training.")
-    train_loss = []
+
     for m in modalities:
         autoencoder[m].load_on(device)
+
     opt = build_optimizer(autoencoder['RGB'], "adam", model_args.lr)
+
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
+
     reconstruction_loss = nn.MSELoss()
+
     autoencoder['RGB'].train(True)
-    #beta = frange_cycle_linear(0, 0.01, model_args.epochs, n_cycle=2)
-    beta = 10*[1]
-    step_value = 1
+
+    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
+
+    beta = 200*[1]
+
     for epoch in range(model_args.epochs):
         total_loss = 0
-        for i, (data, labels) in enumerate(train_dataloader):
+        for i, (data, _) in enumerate(train_dataloader):
             opt.zero_grad()
+            
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
+                data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
+
                     x_hat, _, mean, log_var = autoencoder[m](clip)
-                    # print(f"[DEBUG]: x_hat: {x_hat.type}, {x_hat.shape}  mean {mean.shape}, log_var {log_var.shape}")
+
                     mse_loss = reconstruction_loss(x_hat, clip)
-                    # print(f"[DEBUG]: mse_loss {type(mse_loss)} - {mse_loss.shape} -{mse_loss}")
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
-                    # print(f"[DEBUG]: kld {type(kld_loss)} - {kld_loss.shape} - {kld_loss}")
                     loss = mse_loss + beta[epoch]*kld_loss
+
+                    # generate an error if loss is nan
                     if loss.isnan():
-                        logger.info(f"Loss exploding...")
-                    # print(f"loss: {loss.shape} - {loss}")
+                        raise ValueError("Loss is NaN.")
                     total_loss += loss
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
         total_loss.backward()
@@ -223,7 +230,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
-        print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
+        print(f"[{epoch+1}/{model_args.epochs}] - Loss: {total_loss/(args.test.num_clips * len(train_dataloader))}")
         scheduler.step()
     return autoencoder
 
