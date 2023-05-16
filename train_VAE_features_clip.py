@@ -193,7 +193,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
     #beta = frange_cycle_linear(0, 0.01, model_args.epochs, n_cycle=2)
-    beta = 200*[1]
+    beta = 10*[1]
     step_value = 1
     for epoch in range(model_args.epochs):
         total_loss = 0
