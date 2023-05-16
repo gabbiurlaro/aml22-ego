@@ -188,17 +188,12 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     train_loss = []
     for m in modalities:
         autoencoder[m].load_on(device)
-<<<<<<< HEAD
     opt = build_optimizer(autoencoder['RGB'], "adam", model_args.lr)
-=======
-    opt = build_optimizer(autoencoder['RGB'], "adam", args.wandb.config.lr)
->>>>>>> 868e408a570be0bc20eb696dbe7f9c8700c2ed36
-    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
-    scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt)
+    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
     reconstruction_loss = nn.MSELoss()
     autoencoder['RGB'].train(True)
-    beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
-
+    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
+    beta = 200*[1]
     step_value = 1
     for epoch in range(model_args.epochs):
         total_loss = 0
@@ -223,9 +218,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     # print(f"loss: {loss.shape} - {loss}")
                     total_loss += loss
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
-                    loss.backward()
-                    opt.step()
-        scheduler_plateau.step(total_loss)
+        total_loss.backward()
+        opt.step()
+
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")

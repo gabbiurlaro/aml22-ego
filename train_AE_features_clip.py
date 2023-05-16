@@ -63,10 +63,7 @@ def main():
     models = {}
     logger.info("Instantiating models per modality")
     for m in modalities:
-        logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
-        # notice that here, the first parameter passed is the input dimension
-        # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
-        #print(getattr(model_list, args.models[m].model)())
+        logger.info('{} Net \t Modality: {}'.format(args.models[m].model, m))
         models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024, variational=False)
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
@@ -189,44 +186,54 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
 
 def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     logger.info(f"Start VAE training.")
-    train_loss = []
+
     for m in modalities:
         autoencoder[m].load_on(device)
+    
+    # From here we use always the same modality(RGB)
     opt = build_optimizer(autoencoder['RGB'], "adam", model_args.lr)
+
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=10e-2)
-    scheduler_plateau = torch.optim.lr_scheduler.ReduceLROnPlateau(opt)
+
     reconstruction_loss = nn.MSELoss()
+
     autoencoder['RGB'].train(True)
+
+    # beta scheduling to avoid vanishing KL term
     beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
 
-    step_value = 1
     for epoch in range(model_args.epochs):
-        total_loss = 0
-        for i, (data, labels) in enumerate(train_dataloader):
-            opt.zero_grad()
+        total_loss = 0 # total loss for the epoch, to be zeroud every time
+
+        for i, (data, _) in enumerate(train_dataloader):
+            opt.zero_grad() # zero the gradients
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
+                data[m] = data[m].permute(1, 0, 2) # Data is in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
                 for m in modalities:
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
-                    x_hat, _ = autoencoder[m](clip)
+                    # print(f"[DEBUG]: clip: {clip.type}, {clip.shape}")
+                    x_hat, _ = autoencoder[m](clip) # autoencoder[m] works on clip level
                     # print(f"[DEBUG]: x_hat: {x_hat.type}, {x_hat.shape}  mean {mean.shape}, log_var {log_var.shape}")
-                    mse_loss = reconstruction_loss(x_hat, clip)
+                    mse_loss = reconstruction_loss(x_hat, clip) # once reconstructed, we compute the loss as the MSE between the original and the reconstructed
                     # print(f"[DEBUG]: mse_loss {type(mse_loss)} - {mse_loss.shape} -{mse_loss}")
                     # kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
                     # print(f"[DEBUG]: kld {type(kld_loss)} - {kld_loss.shape} - {kld_loss}")
-                    loss = mse_loss #+ beta[epoch]*kld_loss
+                    loss = mse_loss # + beta[epoch]*kld_loss
+
+                    # check if loss is nan, we stop the training with an error message
                     if loss.isnan():
                         logger.info(f"Loss exploding...")
                         exit(-1)
                     # print(f"loss: {loss.shape} - {loss}")
                     total_loss += loss
+                    # We log the losses for every clip, data, and epoch
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
-                    loss.backward()
-                    opt.step()
-        scheduler_plateau.step(total_loss)
+        total_loss.backward()
+        opt.step()
+
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - {total_loss/len(train_dataloader)}")
