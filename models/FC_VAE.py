@@ -17,7 +17,8 @@ class VariationalEncoder(nn.Module):
                                      nn.BatchNorm1d(latent_dims),
                                      nn.Linear(latent_dims, latent_dims),
                                      nn.BatchNorm1d(self.latent_dims),
-                                     nn.ReLU(inplace=True)
+                                     nn.ReLU(inplace=True),
+                                     nn.Dropout(0.2),
                                      )
 
         self.fc1 = nn.Linear(latent_dims, latent_dims)
@@ -44,7 +45,8 @@ class Decoder(nn.Module):
                              nn.Linear(latent_dims, latent_dims),
                              nn.BatchNorm1d(latent_dims),
                              nn.ReLU(inplace=True),
-                             nn.Linear(latent_dims, self.out_channels)
+                             nn.Linear(latent_dims, self.out_channels),
+                             nn.Dropout(0.2),
                              )
 
         
