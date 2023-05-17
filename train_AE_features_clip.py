@@ -231,8 +231,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     total_loss += loss
                     # We log the losses for every clip, data, and epoch
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
-        total_loss.backward()
-        opt.step()
+            total_loss.backward()
+            opt.step()
 
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
