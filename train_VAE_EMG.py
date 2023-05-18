@@ -89,7 +89,7 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         for i in train_loader:
-            print(f'shape: {i.shape}')
+            print(f'shape: {len(i)}, i: {i[0].shape}')
             break
         exit(-1)
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
