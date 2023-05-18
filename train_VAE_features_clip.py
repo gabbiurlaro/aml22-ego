@@ -40,7 +40,11 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
+        WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
+        if os.environ['WANDB_KEY'] is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY)
         run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
@@ -81,7 +85,7 @@ def main():
         val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
                                                                      'test', args.dataset, None, None, None,
                                                                      None, load_feat=True),
-                                                 batch_size=args.batch_size, shuffle=False,
+                                                 batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
@@ -93,62 +97,98 @@ def main():
         loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        args.split , args.dataset, None, None, None,
                                                                        None, load_feat=True, additional_info=True),
-                                                   batch_size=1, shuffle=True,
+                                                   batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         loader_test = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        "test", args.dataset, None, None, None,
                                                                        None, load_feat=True, additional_info=True),
-                                                   batch_size=1, shuffle=True,
+                                                   batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
         filename = f"./saved_features/reconstructed/VAE_{args.models.RGB.lr}_{datetime.now()}"
-        reconstructed_features = reconstruct(models, loader, device, "train", save = True, filename=filename)
+        reconstructed_features, output = reconstruct(models, loader, device, "train", save = True, filename=filename, debug=True)
+        logger.debug(f"Train Output {output}")
+        reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
+        logger.debug(f"Test Output {output}")
+
+    elif args.action == "train_and_save":
+        train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       'train', args.dataset, None, None, None,
+                                                                       None, load_feat=True),
+                                                   batch_size=args.batch_size, shuffle=True,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+
+        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
+                                                                     'test', args.dataset, None, None, None,
+                                                                     None, load_feat=True),
+                                                 batch_size=args.batch_size, shuffle=True,
+                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        
+        loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       args.split , args.dataset, None, None, None,
+                                                                       None, load_feat=True, additional_info=True),
+                                                   batch_size=1, shuffle=False,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        
+        loader_test = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       "test", args.dataset, None, None, None,
+                                                                       None, load_feat=True, additional_info=True),
+                                                   batch_size=1, shuffle=False,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        timestamp = datetime.now()
+        ae = train(models, train_loader, val_loader, device, args.models.RGB)
+        save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
+        logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
+        logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
+
+        filename = f"./saved_features/reconstructed/VAE_{args.models.RGB.lr}_{timestamp}"
+        reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
+        logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
+    
 
-def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None):
+def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None, debug = False):
     result = {'features': []}
-
+    # for debugging purpose, I introduce also a loss in reconstruction
+    reconstruction_loss = nn.MSELoss()
+    avg_video_level_loss = 0
     with torch.no_grad():
         for i, (data, label, video_name, uid) in enumerate(dataloader):
             for m in modalities:
                 autoencoder[m].train(False)
+                # logger.debug(f"Data shape(before squeeze): {data[m].shape}")
                 data[m] = data[m].permute(1, 0, 2)     #  clip level
-                # print(f'[DEBUG]: data[m] ha come primo elemento la dimensione delle clip: {data[m].size()}')
+                # logger.debug(f"Data shape(after squeeze): {data[m].shape}")
                 clips = []
+                clip_loss = 0
                 for i_c in range(args.test.num_clips): #  iterate over the clips
                     clip = data[m][i_c].to(device)     #  retrieve the clip
-                    z, _, _, _ = autoencoder[m](clip)      
-                    z = z.to(device).detach()
-                    clips.append(z)
-                # print(f"[DEBUG] clips è un array({type(clips)}, di dimensione 5({len(clips)})")
+                    x_hat, _, _, _ = autoencoder[m](clip)      
+                    x_hat = x_hat.to(device).detach()
+                    # logger.debug(f"Clip: {clip.shape}, x_hat: {x_hat.shape}")
+                    # logger.debug(f"Reconstruction loss: {reconstruction_loss(clip, x_hat)}")
+                    clip_loss += reconstruction_loss(clip, x_hat)
+                    clips.append(x_hat)
+                # avg_video_level_loss += clip_loss
+                # logger.debug(f"clips è un array({type(clips)}, di dimensione 5({len(clips)})")
                 clips = torch.stack(clips, dim = 0)
-                # print(f"[DEBUG] clips è un TENSORE({type(clips)}, che rappresenta il video {clips.shape})")
-                clips = clips.permute(1, 0, 2).squeeze(0)
-                # print(f"[DEBUG] clips è un TENSORE({type(clips)}, che rappresenta il video ({clips.shape})[ho eliminato la dimensione inutile]")
+                # logger.debug(f"clips è un TENSORE({type(clips)}, che rappresenta il video {clips.shape})")
+                clips = clips.permute(1, 0, 2)
+                # logger.debug(f"clips è un TENSORE({type(clips)}, che rappresenta il video ({clips.shape})[ho eliminato la dimensione inutile]")
+                avg_video_level_loss += reconstruction_loss(data[m].permute(1, 0, 2), clips)
+                clips = clips.squeeze(0)
+                # logger.debug(f"Reconstruction loss: {reconstruction_loss(data[m], clips)}")
                 result['features'].append({'features_RGB': clips.numpy(), 'label': label.item(), 'uid': uid.item(), 'video_name': video_name})
-                
-    if save:
+    if save:    
         with open(f"{filename}_D1_{split}.pkl", "wb") as file:
             pickle.dump(result, file)
-        
-    return result
-    # reduced = TSNE().fit_transform(final_latents)
-    # x_l = reduced[:, 0]
-    # y_l = reduced[:, 1]
-    # with open(f"./latent_{split}.pkl", "wb") as file:
-    #     pickle.dump({'x': x_l, 'y': y_l, 'labels': labels}, file)
-    
-    # d = pd.read_pickle(f'./latent_{split}.pkl')
-
-    # colors= ['green', 'red', 'yellow', 'grey', 'green', 'blue', 'black', 'purple']
-    # for x, y, l in zip(d['x'], d['y'], d['labels']):
-    #     plt.scatter(x, y, c=colors[l])
-    # plt.savefig(f"./img_VAE_{split}.png")
-    # plt.show()
-
+    if debug:
+        return result, {'total_loss': avg_video_level_loss, 'avg_loss': avg_video_level_loss/len(dataloader)}
+    else:
+        return result
 
 def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
     L = np.ones(n_epoch)
@@ -178,7 +218,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
                 x_hat, _, mean, log_var = autoencoder(clip)
                 mse_loss = reconstruction_loss(x_hat, clip)
                 kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
-                loss = mse_loss # + kld_loss
+                loss = mse_loss + kld_loss
                 total_loss += loss
             
     return total_loss/len(val_dataloader)
@@ -193,7 +233,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
-    reconstruction_loss = nn.MSELoss()
+    reconstruction_loss = nn.MSELoss(reduction='sum')
 
     autoencoder['RGB'].train(True)
 
@@ -204,12 +244,12 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     for epoch in range(model_args.epochs):
         total_loss = 0
         for i, (data, _) in enumerate(train_dataloader):
-            opt.zero_grad()
-            
+            opt.zero_grad()        
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
+                clip_level_loss = 0
                 for m in modalities:
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
@@ -219,14 +259,14 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     mse_loss = reconstruction_loss(x_hat, clip)
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
                     loss = mse_loss + beta[epoch]*kld_loss
-
+                    loss.backward()
                     # generate an error if loss is nan
                     if loss.isnan():
                         raise ValueError("Loss is NaN.")
-                    total_loss += loss
-                    wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, "KLD Loss": kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
-        total_loss.backward()
-        opt.step()
+                    clip_level_loss += loss
+                    wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
+            total_loss += clip_level_loss.item()
+            opt.step()
 
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
@@ -236,7 +276,10 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
 def save_model(model, filename):
         try:
-            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_RGB', filename))
+            date = str(datetime.now().date())
+            if not os.path.isdir(os.path.join('./saved_models/VAE_RGB', date)):
+                os.mkdir(os.path.join('./saved_models/VAE_RGB', date))
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_RGB', date, filename))
         except Exception as e:
             logger.info("An error occurred while saving the checkpoint:")
             logger.info(e)
