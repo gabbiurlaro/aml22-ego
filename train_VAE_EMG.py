@@ -88,9 +88,6 @@ def main():
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
-        for i in train_loader:
-            print(f"shape: {len(i)}, i: {i[1]}")
-
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{datetime.now()}.pth")
@@ -163,7 +160,9 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
             for m in modalities:
                 autoencoder[m].train(False)
                 # logger.debug(f"Data shape(before squeeze): {data[m].shape}")
-                data[m] = data[m].permute(1, 0, 2)     #  clip level
+               
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )     #  clip level
                 # logger.debug(f"Data shape(after squeeze): {data[m].shape}")
                 clips = []
                 clip_loss = 0
