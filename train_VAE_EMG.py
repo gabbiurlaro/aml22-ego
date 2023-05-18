@@ -257,6 +257,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
 
+                    print(f"Clip shape: {clip.shape}")
                     x_hat, _, mean, log_var = autoencoder[m](clip)
 
                     mse_loss = reconstruction_loss(x_hat, clip)
