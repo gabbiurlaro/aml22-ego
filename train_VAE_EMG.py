@@ -67,7 +67,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(32, 512, 32)
+        models[m] = getattr(model_list, args.models[m].model)(16, 512, 16)
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
         # if args.resume_from is not None:
