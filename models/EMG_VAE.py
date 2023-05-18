@@ -38,7 +38,7 @@ class VariationalEncoder(nn.Module):
             # nn.Conv2d(256, latent_dims, kernel_size=4, stride=2, padding=1),
             
             # nn.Dropout(p=0.2),
-            nn.Flatten(0),
+            nn.Flatten(),
         )
 
         self.fc1 = nn.Linear(latent_dims, latent_dims)
