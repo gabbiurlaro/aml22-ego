@@ -60,7 +60,7 @@ class Decoder(nn.Module):
         self.latent_dims = latent_dims
         self.out_channels = out_channels
         self.decoder = nn.Sequential(
-            nn.Unflatten(0, (latent_dims, 1, 1)),
+            nn.Unflatten(1, (latent_dims, 1, 1)),
             nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(inplace=True),
             
