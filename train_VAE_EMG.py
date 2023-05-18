@@ -41,9 +41,9 @@ def init_operations():
     
     if args.wandb_name is not None:
         WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
-        if os.environ['WANDB_KEY'] is not None:
-            WANDB_KEY = os.environ['WANDB_KEY']
-            logger.info("Using key retrieved from enviroment.")
+        #if os.environ['WANDB_KEY'] is not None:
+        #    WANDB_KEY = os.environ['WANDB_KEY']
+        #    logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
         run = wandb.init(project="FC-VAE(EMG)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.EMG.model}'
