@@ -21,7 +21,7 @@ class VariationalEncoder(nn.Module):
             
             nn.Conv2d(256, latent_dims, kernel_size=4, stride=2, padding=1),
             
-            nn.Dropout(p=0.8),
+            nn.Dropout(p=0.2),
             nn.Flatten(0),
         )
 
@@ -55,7 +55,7 @@ class Decoder(nn.Module):
             
             nn.ConvTranspose2d(32, out_channels, kernel_size=4, stride=2, padding=1),
             
-            nn.Dropout(p=0.8)
+            nn.Dropout(p=0.2)
         )
 
         
