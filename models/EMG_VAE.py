@@ -53,21 +53,21 @@ class Decoder(nn.Module):
         self.decoder = nn.Sequential(
             nn.Unflatten(0, (latent_dims, 1, 1)),
             nn.ConvTranspose2d(latent_dims, 256, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(256),
+            
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(128),
+            
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(64),
+            
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(32),
+            
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(32, out_channels, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.5)
         )
 
         
