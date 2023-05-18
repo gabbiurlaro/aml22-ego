@@ -89,9 +89,7 @@ def main():
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         for i in train_loader:
-            print(f"shape: {len(i)}, i: {i[0]}")
-            break
-        exit(-1)
+            print(f"shape: {len(i)}, i: {i[0]['EMG'].shape}")
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{datetime.now()}.pth")
