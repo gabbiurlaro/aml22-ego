@@ -67,7 +67,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(1024)
+        #models[m] = getattr(model_list, args.models[m].model)(1024)
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
         # if args.resume_from is not None:
@@ -83,7 +83,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -91,7 +91,7 @@ def main():
         for i in train_loader:
             print(f'shape: {i.shape}')
             break
-
+        exit(-1)
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{datetime.now()}.pth")
@@ -104,7 +104,7 @@ def main():
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
@@ -126,7 +126,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -138,7 +138,7 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
