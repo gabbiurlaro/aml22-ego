@@ -28,7 +28,7 @@ models:
     kwargs: {}
     lr_steps: 30 
     epochs: 100
-    lr: 0.00001
+    lr: 0.01
     lr_gamma: 0.01
     sgd_momentum: 0.9
     weight_decay: 1e-7
