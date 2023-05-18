@@ -211,8 +211,9 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
-            # print(f"Data after permutation: {data[m].size()}")
+            
+            data[m] = data[m].reshape(-1,16,5,32,32)
+            data[m] = data[m].permute(2, 0, 1, 3,4 )
         for i_c in range(args.test.num_clips):
             for m in modalities:
                 # extract the clip related to the modality
@@ -248,8 +249,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         for i, (data, _) in enumerate(train_dataloader):
             opt.zero_grad()        
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
-                # print(f"Data after permutation: {data[m].size()}")
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
             for i_c in range(args.test.num_clips):
                 clip_level_loss = 0
                 for m in modalities:
