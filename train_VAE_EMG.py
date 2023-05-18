@@ -77,14 +77,14 @@ def main():
         # training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, None, None, None,
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'test', args.dataset, None, None, None,
-                                                                     None, load_feat=False),
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
@@ -99,12 +99,12 @@ def main():
 
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       args.split , args.dataset, None, None, None,
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       "test", args.dataset, None, None, None,
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
@@ -120,26 +120,26 @@ def main():
 
     elif args.action == "train_and_save":
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, None, None, None,
-                                                                       None),
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'test', args.dataset, None, None, None,
-                                                                     None),
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       args.split , args.dataset, None, None, None,
-                                                                       None),
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       "test", args.dataset, None, None, None,
-                                                                       None),
+                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         timestamp = datetime.now()
