@@ -26,7 +26,7 @@ class VariationalEncoder(nn.Module):
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.Conv2d(256, latent_dims, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(latent_dims),
+            
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.5),
             nn.Flatten(0),
