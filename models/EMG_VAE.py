@@ -65,7 +65,6 @@ class Decoder(nn.Module):
             
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(32, out_channels, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.5)
         )
