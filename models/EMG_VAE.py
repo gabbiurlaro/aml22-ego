@@ -74,7 +74,7 @@ class Decoder(nn.Module):
             nn.BatchNorm1d(16384),
             nn.ReLU(inplace=True),
             nn.Dropout(0.2),
-            nn.Unflatten(1, (32, 16, 32, 32)),
+            nn.Unflatten(1, (16, 32, 32)),
             # nn.Unflatten(1, (latent_dims, 1, 1)),
             # nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
             # nn.LeakyReLU(0.5),
