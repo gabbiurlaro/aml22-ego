@@ -257,6 +257,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                 clip_level_loss = 0
                 for m in modalities:
                     # extract the clip related to the modality
+                
                     clip = data[m][i_c].to(device)
 
                     print(f"Clip shape: {clip.shape}")

@@ -19,7 +19,7 @@ class VariationalEncoder(nn.Module):
             nn.BatchNorm1d(1024),
             nn.Linear(1024, latent_dims),
             nn.ReLU(inplace=True),
-            nn.BatchNorm1d(1024),
+            nn.BatchNorm1d(latent_dims),
             nn.Dropout(0.6),
 
             ###################################################
