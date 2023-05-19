@@ -232,7 +232,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     for m in modalities:
         autoencoder[m].load_on(device)
 
-    opt = build_optimizer(autoencoder['EMG'], "adam", model_args.lr)
+    opt = build_optimizer(autoencoder['EMG'], "sgd", model_args.lr)
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
@@ -242,6 +242,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
 
+    
     #beta = 200*[1]
 
     for epoch in range(model_args.epochs):
