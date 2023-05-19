@@ -13,29 +13,36 @@ class VariationalEncoder(nn.Module):
         self.variational = variational
 
         self.encoder = nn.Sequential(
-            # nn.Conv2d(in_channels, 64, kernel_size=4, stride=2, padding=1),
-            # nn.LeakyReLU(0.5),
-            # nn.Conv2d(64, latent_dims, kernel_size=4, stride=2, padding=1),
-            # nn.LeakyReLU(0.5),
-            # nn.Flatten()
+            nn.Flatten(1),
+            nn.Linear(16384, 4096),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(4096),
+            nn.Linear(4096, 1024),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, latent_dims),
+            nn.BatchNorm1d(latent_dims),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.2),
+
             ###################################################
-            nn.Conv2d(16, 64, kernel_size=3, stride=1, padding=1),
-            nn.LeakyReLU(0.5),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            # nn.Conv2d(16, 64, kernel_size=3, stride=1, padding=1),
+            # nn.LeakyReLU(0.5),
+            # nn.MaxPool2d(kernel_size=2, stride=2),
             
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.LeakyReLU(0.5),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            # nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+            # nn.LeakyReLU(0.5),
+            # nn.MaxPool2d(kernel_size=2, stride=2),
             
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
-            nn.LeakyReLU(0.5),
-            nn.MaxPool2d(kernel_size=3, stride=3),
+            # nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
+            # nn.LeakyReLU(0.5),
+            # nn.MaxPool2d(kernel_size=3, stride=3),
             
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
-            nn.LeakyReLU(0.5),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            # nn.Dropout(p=0.2),
-            nn.Flatten(),
+            # nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
+            # nn.LeakyReLU(0.5),
+            # nn.MaxPool2d(kernel_size=2, stride=2),
+            # # nn.Dropout(p=0.2),
+            # nn.Flatten(),
         )
 
         self.fc1 = nn.Linear(latent_dims, latent_dims)
@@ -57,20 +64,31 @@ class Decoder(nn.Module):
         self.latent_dims = latent_dims
         self.out_channels = out_channels
         self.decoder = nn.Sequential(
-            nn.Unflatten(1, (latent_dims, 1, 1)),
-            nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.LeakyReLU(0.5),
+            nn.Linear(latent_dims, 1024),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(1024),
+            nn.Linear(1024, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, 16384),
+            nn.BatchNorm1d(16384),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.2),
+            nn.Unflatten(1, (32, 16, 32, 32)),
+            # nn.Unflatten(1, (latent_dims, 1, 1)),
+            # nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
+            # nn.LeakyReLU(0.5),
             
-            nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.LeakyReLU(0.5),
+            # nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
+            # nn.LeakyReLU(0.5),
             
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.LeakyReLU(0.5),
+            # nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            # nn.LeakyReLU(0.5),
             
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.LeakyReLU(0.5),
-            nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.LeakyReLU(0.5)
+            # nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
+            # nn.LeakyReLU(0.5),
+            # nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1),
+            # nn.LeakyReLU(0.5)
         )
 
         
