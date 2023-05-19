@@ -24,7 +24,7 @@ models:
   EMG:
     model: EMG_VAE
     dropout: 0.2
-    normalize: False
+    normalize: True
     kwargs: {}
     lr_steps: 30 
     epochs: 100

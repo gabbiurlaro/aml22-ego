@@ -246,9 +246,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     for epoch in range(model_args.epochs):
         total_loss = 0
-        opt.zero_grad()
+       
         for i, (data, _) in enumerate(train_dataloader):
-                    
+            opt.zero_grad()       
             for m in modalities:
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
@@ -271,7 +271,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     clip_level_loss += loss
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
             total_loss += clip_level_loss.item()
-        opt.step()
+            opt.step()
 
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss)})
