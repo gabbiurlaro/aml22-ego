@@ -43,14 +43,4 @@ dataset:
   Event: # not neeeded for the project
     rgb4e: 6
 
-# these are the action recognition models for each modality
-models:
-  RGB:
-    model: Classifier
-    normalize: False
-    kwargs: {}
-    lr_steps: 100
-  
-    sgd_momentum: 0.9
-    weight_decay: 1e-7
  
