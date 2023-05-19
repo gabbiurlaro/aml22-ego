@@ -14,14 +14,11 @@ class VariationalEncoder(nn.Module):
 
         self.encoder = nn.Sequential(
             nn.Flatten(1),
-            nn.Linear(16384, 4096),
+            nn.Linear(16384, 1024),
             nn.ReLU(inplace=True),
-            nn.BatchNorm1d(4096),
-            nn.Linear(4096, 1024),
             nn.BatchNorm1d(1024),
-            nn.ReLU(inplace=True),
             nn.Linear(1024, latent_dims),
-            nn.BatchNorm1d(latent_dims),
+            nn.BatchNorm1d(1024),
             nn.ReLU(inplace=True),
             nn.Dropout(0.2),
 
@@ -67,10 +64,7 @@ class Decoder(nn.Module):
             nn.Linear(latent_dims, 1024),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(1024),
-            nn.Linear(1024, 4096),
-            nn.BatchNorm1d(4096),
-            nn.ReLU(inplace=True),
-            nn.Linear(4096, 16384),
+            nn.Linear(1024, 16384),
             nn.BatchNorm1d(16384),
             nn.ReLU(inplace=True),
             nn.Dropout(0.2),
