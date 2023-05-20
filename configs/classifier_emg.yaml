@@ -1,5 +1,4 @@
-
-test
+action: train # train or test
 name: ???
 shift: ActionNet-ActionNet
 split: train
