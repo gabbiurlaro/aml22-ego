@@ -13,6 +13,7 @@ import os
 import models as model_list
 import tasks
 import wandb
+import pickle
 
 # global variables among training functions
 training_iterations = 0
@@ -87,6 +88,7 @@ def main():
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         train(action_classifier, train_loader, val_loader, device, num_classes)
+        save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}.pth")
 
     elif args.action == "validate":
         if args.resume_from is not None:
@@ -99,6 +101,138 @@ def main():
 
         validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
 
+    elif args.action == "save":
+        if args.resume_from is not None:
+            action_classifier.load_last_model(args.resume_from)
+        
+        loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                 args.split, args.dataset,
+                                                                 args.save.num_frames_per_clip,
+                                                                 args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                 **{"save": args.split}),
+                                             batch_size=1, shuffle=False,
+                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+    
+    elif args.action == "job_feature_extraction":
+        if args.resume_from is not None:
+            action_classifier.load_last_model(args.resume_from)
+        
+            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                    args.split, args.dataset,
+                                                                    args.save.num_frames_per_clip,
+                                                                    args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                    **{"save": args.split}),
+                                                batch_size=1, shuffle=False,
+                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+        else:
+            training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
+            # all dataloaders are generated here
+            train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                        None, load_feat=False),
+                                                    batch_size=args.batch_size, shuffle=True,
+                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+
+            val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
+                                                                        'z', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
+                                                                        None, load_feat=False),
+                                                    batch_size=args.batch_size, shuffle=False,
+                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+            
+
+            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                 args.split, args.dataset,
+                                                                 args.save.num_frames_per_clip,
+                                                                 args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                 **{"save": args.split}),
+                                             batch_size=1, shuffle=False,
+                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        
+            train(action_classifier, train_loader, val_loader, device, num_classes)
+            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
+            save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}.pth")
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+
+
+    else:
+        raise NotImplementedError
+    
+
+
+
+def save_feat(model, loader, device, it, num_classes):
+    """
+    function to validate the model on the test set
+    model: Task containing the model to be tested
+    val_loader: dataloader containing the validation data
+    device: device on which you want to test
+    it: int, iteration among the training num_iter at which the model is tested
+    num_classes: int, number of classes in the classification problem
+    """
+    global modalities
+
+    model.reset_acc()
+    model.train(False)
+    results_dict = {"features": []}
+    num_samples = 0
+    logits = {}
+    features = {}
+    # Iterate over the models
+    with torch.no_grad():
+        for i_val, (data, label, video_name, uid) in enumerate(loader):
+            label = label.to(device)
+
+            for m in modalities:
+                batch, _, height, width = data[m].shape
+                data[m] = data[m].reshape(batch, args.save.num_clips,
+                                          args.save.num_frames_per_clip[m], -1, height, width)
+                data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
+
+                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
+                features[m] = torch.zeros((args.save.num_clips, batch, model.task_models[m]
+                                           .module.feat_dim)).to(device)
+
+            clip = {}
+            for i_c in range(args.save.num_clips):
+                for m in modalities:
+                    clip[m] = data[m][i_c].to(device)
+
+                output, feat = model(clip)
+                feat = feat["features"]
+                for m in modalities:
+                    logits[m][i_c] = output[m]
+                    features[m][i_c] = feat[m]
+            for m in modalities:
+                logits[m] = torch.mean(logits[m], dim=0)
+            for i in range(batch):
+                sample = {"uid": int(uid[i].cpu().detach().numpy()), "video_name": video_name[i]}
+                for m in modalities:
+                    sample["features_" + m] = features[m][:, i].cpu().detach().numpy()
+                results_dict["features"].append(sample)
+            num_samples += batch
+
+            model.compute_accuracy(logits, label)
+
+            if (i_val + 1) % (len(loader) // 5) == 0:
+                logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(loader),
+                                                                          model.accuracy.avg[1], model.accuracy.avg[5]))
+
+        os.makedirs("saved_features", exist_ok=True)
+        pickle.dump(results_dict, open(os.path.join("saved_features/ACTIONNET", args.name + "_" +
+                                                    args.dataset.shift.split("-")[1] + "_" +
+                                                    args.split + ".pkl"), 'wb'))
+    #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
+    #            .format(np.array(class_accuracies.values()).mean()))
+    #test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
+    #                'class_accuracies': np.array(class_accuracies.values())}
+
+    # with open(os.path.join(args.log_dir, f'val_precision_{args.dataset.shift.split("-")[0]}-'
+    #                                      f'{args.dataset.shift.split("-")[-1]}.txt'), 'a+') as f:
+    #     f.write("[%d/%d]\tAcc@top1: %.2f%%\n" % (it, args.train.num_iter #test_results['top1']))
+
+    return 0
 
 def train(action_classifier, train_loader, val_loader, device, num_classes):
     """
@@ -197,7 +331,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 action_classifier.best_iter = real_iter
                 action_classifier.best_iter_score = val_metrics['top1']
 
-            #action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
+            action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
 def validate(model, val_loader, device, it, num_classes):
@@ -264,6 +398,16 @@ def validate(model, val_loader, device, it, num_classes):
         f.write("[%d/%d]\tAcc@top1: %.2f%%\n" % (it, args.train.num_iter, test_results['top1']))
 
     return test_results
+
+
+def save_model(model, filename):
+        try:
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_RGB', filename))
+        except Exception as e:
+            logger.info("An error occurred while saving the checkpoint:")
+            logger.info(e)
+
+
 
 
 if __name__ == '__main__':
