@@ -209,7 +209,7 @@ def save_feat(model, loader, device, it, num_classes):
             
                 output, feat = model(data)
                 print('jeez')
-                print(feat)
+                print(feat[0])
                 exit(-1)
                 logits[m] = output[m]
                 features[m] = feat[m]
