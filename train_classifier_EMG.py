@@ -1,5 +1,6 @@
 from datetime import datetime
 from statistics import mean
+from tkinter import ttk
 from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
@@ -124,7 +125,7 @@ def main():
                                                                         None, load_feat=False),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
             logger.info(f'Finished extracting train features, now exiting...')
 
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
@@ -132,7 +133,7 @@ def main():
                                                                         None, load_feat=False),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
             logger.info(f'Finished extracting test features, now exiting...')
 
         else:
@@ -168,7 +169,7 @@ def main():
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
             logger.info(f'Finished extracting {args.split} features, now exiting...')
 
     else:
@@ -177,7 +178,7 @@ def main():
 
 
 
-def save_feat(model, loader, device, it, num_classes):
+def save_feat(model, loader, device, it, num_classes, train=False):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -226,7 +227,7 @@ def save_feat(model, loader, device, it, num_classes):
 
         os.makedirs("saved_features", exist_ok=True)
         pickle.dump(results_dict, open(os.path.join("./saved_features/ACTIONNET_EMG/", args.name + "_" +
-                                                    args.dataset.shift.split("-")[1] + "_" +
+                                                    'train' if train else 'test' + "_" +
                                                     args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
     #            .format(np.array(class_accuracies.values()).mean()))
