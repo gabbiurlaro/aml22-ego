@@ -205,9 +205,8 @@ def save_feat(model, loader, device, it, num_classes):
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
 
-                logits[m] = torch.zeros((args.save.num_clips, 1, num_classes)).to(device)
-                features[m] = torch.zeros((args.save.num_clips, 1, model.task_models[m]
-                                           .module.feat_dim)).to(device)
+                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
+                features[m] = torch.zeros((args.save.num_clips, batch, 1024)).to(device)
 
             clip = {}
             for i_c in range(args.save.num_clips):
