@@ -121,8 +121,7 @@ def main():
         
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        None, load_feat=False,
-                                                                    **{"save": 'train'}),
+                                                                        None, load_feat=False),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
@@ -130,8 +129,7 @@ def main():
 
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        None, load_feat=False,
-                                                                    **{"save": 'test'}),
+                                                                        None, load_feat=False),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
@@ -147,7 +145,7 @@ def main():
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                        'z', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
+                                                                        'test', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
                                                                         None, load_feat=False),
                                                     batch_size=args.batch_size, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
