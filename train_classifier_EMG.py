@@ -227,7 +227,7 @@ def save_feat(model, loader, device, it, num_classes, train=False):
 
         os.makedirs("saved_features", exist_ok=True)
         pickle.dump(results_dict, open(os.path.join("./saved_features/ACTIONNET_EMG/", args.name + "_" +
-                                                    'train' if train else 'test' + "_" +
+                                                    ('train' if train else 'test') + "_" +
                                                     args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
     #            .format(np.array(class_accuracies.values()).mean()))
