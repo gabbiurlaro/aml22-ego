@@ -149,12 +149,17 @@ def main():
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
                                              num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        
+            logger.info(f'Starting training...')
             train(action_classifier, train_loader, val_loader, device, num_classes)
+            logger.info(f'Finished training, now validating...')
             validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
-            save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}.pth")
+            logger.info(f'Finished validating, now saving model...')
+            timestamp = datetime.now()
+            save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
+            logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
+            logger.info(f'Finished saving model, now extracting features...')
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
-
+            logger.info(f'Finished extracting features, now exiting...')
 
     else:
         raise NotImplementedError
@@ -220,7 +225,7 @@ def save_feat(model, loader, device, it, num_classes):
                                                                           model.accuracy.avg[1], model.accuracy.avg[5]))
 
         os.makedirs("saved_features", exist_ok=True)
-        pickle.dump(results_dict, open(os.path.join("saved_features/ACTIONNET", args.name + "_" +
+        pickle.dump(results_dict, open(os.path.join("saved_features/ACTIONNET_EMG/", args.name + "_" +
                                                     args.dataset.shift.split("-")[1] + "_" +
                                                     args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
@@ -398,7 +403,6 @@ def validate(model, val_loader, device, it, num_classes):
         f.write("[%d/%d]\tAcc@top1: %.2f%%\n" % (it, args.train.num_iter, test_results['top1']))
 
     return test_results
-
 
 def save_model(model, filename):
         try:
