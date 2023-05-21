@@ -207,7 +207,7 @@ def save_feat(model, loader, device, it, num_classes):
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
                 features[m] = torch.zeros((args.save.num_clips, batch, 1024)).to(device)
             
-                output, feat = model(data[m])
+                output, feat = model(data)
                 feat = feat["features"]
                 logits[m] = output[m]
                 features[m] = feat[m]
