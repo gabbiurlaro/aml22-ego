@@ -117,16 +117,27 @@ def main():
     elif args.action == "job_feature_extraction":
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
+
         
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    args.split, args.dataset,
+                                                                    'train', args.dataset,
                                                                     args.save.num_frames_per_clip,
                                                                     args.save.num_clips, args.save.dense_sampling,additional_info=True,
-                                                                    **{"save": args.split}),
+                                                                    **{"save": 'train'}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
-            logger.info(f'Finished extracting {args.split} features, now exiting...')
+            logger.info(f'Finished extracting train features, now exiting...')
+
+            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                    'test', args.dataset,
+                                                                    args.save.num_frames_per_clip,
+                                                                    args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                    **{"save": 'test'}),
+                                                batch_size=1, shuffle=False,
+                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+            logger.info(f'Finished extracting test features, now exiting...')
 
         else:
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
