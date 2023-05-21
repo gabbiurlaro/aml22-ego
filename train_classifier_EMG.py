@@ -197,7 +197,7 @@ def save_feat(model, loader, device, it, num_classes):
     # Iterate over the models
     with torch.no_grad():
         print(f'val: ,\n {loader.dataset.__len__()},\n {loader.dataset.__getitem__(0)}')
-        for i_val, (data, label, _, _) in enumerate(loader):
+        for i_val, (data, label) in enumerate(loader):
             print(f' geg: {data}, {label}')
             exit(1)
             label = label.to(device)
