@@ -208,11 +208,8 @@ def save_feat(model, loader, device, it, num_classes):
                 features[m] = torch.zeros((args.save.num_clips, batch, 1024)).to(device)
             
                 output, feat = model(data)
-                print('jeez')
-                print(feat[0])
-                exit(-1)
                 logits[m] = output[m]
-                features[m] = feat[m]
+                features[m] = [feat[i][m] for i in range(args.save.num_clips)]
                 logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
            
                 sample={}
