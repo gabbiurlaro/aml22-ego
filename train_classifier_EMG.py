@@ -196,7 +196,6 @@ def save_feat(model, loader, device, it, num_classes):
     features = {}
     # Iterate over the models
     with torch.no_grad():
-        print(f'val: ,\n {loader.dataset.__len__()},\n {loader.dataset.__getitem__(0)}')
         for i_val, (data, label) in enumerate(loader):
             
             label = label.to(device)
@@ -204,7 +203,7 @@ def save_feat(model, loader, device, it, num_classes):
             for m in modalities:
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
-
+                data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
                 features[m] = torch.zeros((args.save.num_clips, batch, 1024)).to(device)
             
@@ -216,6 +215,7 @@ def save_feat(model, loader, device, it, num_classes):
            
                 sample={}
                 sample["features_" + m] = features[m].cpu().detach().numpy()
+                sample['label'] = label.item()
                 results_dict["features"].append(sample)
             num_samples += batch
 
