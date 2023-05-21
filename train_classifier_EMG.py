@@ -197,7 +197,8 @@ def save_feat(model, loader, device, it, num_classes):
     # Iterate over the models
     with torch.no_grad():
         print(f'val: ,\n {loader.dataset.__len__()},\n {loader.dataset.__getitem__(0)}')
-        for i_val, (data, label, video_name, uid) in enumerate(loader['EMG']):
+        for i_val, (data, label, _, _) in enumerate(loader['EMG']):
+            print(f' geg: {data}, {label}')
             label = label.to(device)
 
             for m in modalities:
