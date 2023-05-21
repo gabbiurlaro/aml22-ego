@@ -218,11 +218,11 @@ def save_feat(model, loader, device, it, num_classes):
                 results_dict["features"].append(sample)
             num_samples += batch
 
-            model.compute_accuracy(logits, label)
+            #model.compute_accuracy(logits, label)
 
-            if (i_val + 1) % (len(loader) // 5) == 0:
-                logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(loader),
-                                                                          model.accuracy.avg[1], model.accuracy.avg[5]))
+            #if (i_val + 1) % (len(loader) // 5) == 0:
+            #    logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(loader),
+            #                                                              model.accuracy.avg[1], model.accuracy.avg[5]))
 
         os.makedirs("saved_features", exist_ok=True)
         pickle.dump(results_dict, open(os.path.join("saved_features/ACTIONNET_EMG/", args.name + "_" +
