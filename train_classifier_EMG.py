@@ -187,7 +187,7 @@ def save_feat(model, loader, device, it, num_classes):
     num_classes: int, number of classes in the classification problem
     """
     global modalities
-
+    batch = 1
     model.reset_acc()
     model.train(False)
     results_dict = {"features": []}
@@ -202,13 +202,11 @@ def save_feat(model, loader, device, it, num_classes):
             label = label.to(device)
 
             for m in modalities:
-                batch, _, height, width = data[m].shape
-                data[m] = data[m].reshape(batch, args.save.num_clips,
-                                          args.save.num_frames_per_clip[m], -1, height, width)
-                data[m] = data[m].permute(1, 0, 3, 2, 4, 5)
+                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].permute(2, 0, 1, 3,4 )
 
-                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
-                features[m] = torch.zeros((args.save.num_clips, batch, model.task_models[m]
+                logits[m] = torch.zeros((args.save.num_clips, 1, num_classes)).to(device)
+                features[m] = torch.zeros((args.save.num_clips, 1, model.task_models[m]
                                            .module.feat_dim)).to(device)
 
             clip = {}
