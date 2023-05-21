@@ -126,6 +126,8 @@ def main():
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
+            logger.info(f'Finished extracting {args.split} features, now exiting...')
+
         else:
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
@@ -149,6 +151,7 @@ def main():
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
                                              num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                                             
             logger.info(f'Starting training...')
             train(action_classifier, train_loader, val_loader, device, num_classes)
             logger.info(f'Finished training, now validating...')
@@ -156,10 +159,10 @@ def main():
             logger.info(f'Finished validating, now saving model...')
             timestamp = datetime.now()
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
-            logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
+            logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
-            logger.info(f'Finished extracting features, now exiting...')
+            logger.info(f'Finished extracting {args.split} features, now exiting...')
 
     else:
         raise NotImplementedError
