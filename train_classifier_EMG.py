@@ -207,23 +207,15 @@ def save_feat(model, loader, device, it, num_classes):
 
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
                 features[m] = torch.zeros((args.save.num_clips, batch, 1024)).to(device)
-
-            clip = {}
-            for i_c in range(args.save.num_clips):
-                for m in modalities:
-                    clip[m] = data[m][i_c].to(device)
-
-                output, feat = model(clip)
+            
+                output, feat = model(data[m])
                 feat = feat["features"]
-                for m in modalities:
-                    logits[m][i_c] = output[m]
-                    features[m][i_c] = feat[m]
-            for m in modalities:
-                logits[m] = torch.mean(logits[m], dim=0)
-            for i in range(batch):
+                logits[m] = output[m]
+                features[m] = feat[m]
+                logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
+           
                 sample={}
-                for m in modalities:
-                    sample["features_" + m] = features[m][:, i].cpu().detach().numpy()
+                sample["features_" + m] = features[m].cpu().detach().numpy()
                 results_dict["features"].append(sample)
             num_samples += batch
 
