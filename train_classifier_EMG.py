@@ -120,9 +120,8 @@ def main():
 
         
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'train', args.dataset,
-                                                                    args.save.num_frames_per_clip,
-                                                                    args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                    'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                        None, load_feat=False,
                                                                     **{"save": 'train'}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -130,9 +129,8 @@ def main():
             logger.info(f'Finished extracting train features, now exiting...')
 
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'test', args.dataset,
-                                                                    args.save.num_frames_per_clip,
-                                                                    args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                    'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                        None, load_feat=False,
                                                                     **{"save": 'test'}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
