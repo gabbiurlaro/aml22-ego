@@ -69,13 +69,13 @@ def main():
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
         models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024)
-
-    transform = augmentation_transforms = transforms.Compose([
-            transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
-            transforms.RandomRotation(degrees=15),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.ToTensor(),
-        ])
+    transform = None
+    # transform = augmentation_transforms = transforms.Compose([
+    #         transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+    #         transforms.RandomRotation(degrees=15),
+    #         transforms.RandomHorizontalFlip(p=0.5),
+    #         transforms.ToTensor(),
+    #     ])
     
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
