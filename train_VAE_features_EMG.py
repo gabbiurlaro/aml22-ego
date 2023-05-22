@@ -251,7 +251,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     weights = {'mse': list([1 for _ in range(25)] + [1 -0.3*i/75 for i in range(75)]),
                 'kld': list([1 for _ in range(50)] + [1 - 0.2*i/75 for i in range(50)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
-    noise = True
+    
     noise_level = 0.2
 
     for epoch in range(model_args.epochs):
@@ -271,8 +271,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     logger.info(clip.shape)
                     
                     
-                    if noise:
-                        if np.random.rand() < 0.5:
+                    if np.random.rand() < 0.5:
                             noise = torch.randn(clip.size()).to(device)
                             clip = clip + noise_level * noise
                     
