@@ -248,8 +248,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
     beta = [0 for _ in range(model_args.epochs)]
-    weights = {'mse': list([0.6 for _ in range(25)] + [0.6 + 0.4*i/75 for i in range(75)]),
-                'kld': list([0.8 for _ in range(25)] + [0.8 - 0.8*i/75 for i in range(75)])}
+    weights = {'mse': list([1 for _ in range(25)] + [1 - 0.4*i/75 for i in range(75)]),
+                'kld': list([0.3 for _ in range(25)] + [0.3 + 0.7*i/75 for i in range(75)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
 
     for epoch in range(model_args.epochs):
