@@ -117,8 +117,9 @@ def main():
     
     elif args.action == "job_feature_extraction":
         if args.resume_from is not None:
+            logger.info(f"Loading model from {args.resume_from}")
             action_classifier.load_last_model(args.resume_from)
-
+            logger.info(f'modalities: {modalities}')
         
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
