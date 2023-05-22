@@ -271,8 +271,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     
                     logger.info(clip.shape)
                     
-                    yes = bool(random.random() < 0.2)
-                    if noise and yes:
+                    yes = random.random()
+
+                    if noise and yes < 0.5:
                         noise = torch.randn(clip.size()).to(device)
                         clip = clip + noise_level * noise
                     
