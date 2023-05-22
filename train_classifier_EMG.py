@@ -211,7 +211,7 @@ def save_feat(model, loader, device, it, num_classes, train=False):
             
                 output, feat = model(data)
                 logits[m] = output[m]
-                logger.info(f'feat: {feat.size()}, {feat.shape}')
+                logger.info(f'feat: {feat.keys()}, {feat[0].shape}')
                 exit(-1)
                 features[m] = torch.Tensor([ feat[i][m] for i in range(args.save.num_clips)])
                 logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
