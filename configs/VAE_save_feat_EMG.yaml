@@ -29,6 +29,6 @@ models:
     lr_steps: 30 
     epochs: 100
     lr: 0.001
-    lr_gamma: 0.01
+    lr_gamma: 0.0001
     sgd_momentum: 0.9
     weight_decay: 1e-7
