@@ -222,7 +222,7 @@ def save_feat(model, loader, device, it, num_classes, train=False):
                 sample["features_" + m] = features[m].cpu().detach().numpy()
                 sample['label'] = label.item()
                 sample['uid'] = uid.item()
-                sample['video_name'] = video_name
+                sample['untrimmed_video_name'] = video_name
                 results_dict["features"].append(sample)
             num_samples += batch
 
