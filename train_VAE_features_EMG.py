@@ -248,8 +248,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
     beta = [0 for _ in range(model_args.epochs)]
-    weights = {'mse': list([1 for _ in range(25)] + [1  for i in range(75)]),
-                'kld': list([0.5 for _ in range(50)] + [0.5 + 0.5*i/75 for i in range(50)])}
+    weights = {'mse': list([1 for _ in range(25)] + [1 -0.8*i/75 for i in range(75)]),
+                'kld': list([0.8 for _ in range(50)] + [0.8 - 0.5*i/75 for i in range(50)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
 
     for epoch in range(model_args.epochs):
@@ -269,7 +269,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
                     mse_loss = reconstruction_loss(x_hat, clip)
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
-                    loss = weights['mse'][epoch]*mse_loss#+ weights['kld'][epoch]*kld_loss
+                    loss = weights['mse'][epoch]*mse_loss + weights['kld'][epoch]*kld_loss
                     loss.backward()
                     # generate an error if loss is nan
                     if loss.isnan():
