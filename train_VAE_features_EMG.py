@@ -267,7 +267,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
                     mse_loss = reconstruction_loss(x_hat, clip)
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
-                    loss = weights[0][epoch]*mse_loss + weights[1][epoch]*kld_loss
+                    loss = weights['mse'][epoch]*mse_loss + weights['kld'][epoch]*kld_loss
                     loss.backward()
                     # generate an error if loss is nan
                     if loss.isnan():
