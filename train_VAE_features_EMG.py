@@ -47,6 +47,8 @@ def init_operations():
         run = wandb.init(project="FC-VAE(EMG)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.EMG.model}'
 
+
+
 def main():
     global training_iterations, modalities
     init_operations()
