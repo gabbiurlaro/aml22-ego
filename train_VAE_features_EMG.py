@@ -280,7 +280,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.step()
 
         if epoch % 10 == 0:
-            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss)})
+            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss), 'weight mse:' : weights['mse'][epoch], 'weight kld': weights['kld'][epoch]})
         print(f"[{epoch+1}/{model_args.epochs}] - Loss: {total_loss/(args.test.num_clips * len(train_dataloader))}")
         scheduler.step()
     return autoencoder
