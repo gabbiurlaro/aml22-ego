@@ -353,10 +353,7 @@ class ActionNetDataset(data.Dataset, ABC):
         
         if self.transform is not None and self.load_feat:
             logger.info(f'features: {len(self.model_features["features_EMG"])}')
-            t = np.array(self.model_features['features_EMG']).reshape(len(self.list_file),1024)
-            # x = [train['features'][i]['features_EMG'] for i in range(len(train['features']))]
-            # x = np.array(x).reshape(2630,1024)
-            # means = []
+            t = np.array(self.model_features['features_EMG']).reshape(len(self.list_file)*5,1024)
             means = np.mean(t, axis=0)
             stds = np.std(t, axis=0)
             self.model_features['features_EMG'] = t
