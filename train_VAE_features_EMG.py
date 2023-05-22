@@ -252,7 +252,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     weights = {'mse': list([1 for _ in range(25)] + [1 -0.8*i/75 for i in range(75)]),
                 'kld': list([0.8 for _ in range(50)] + [0.8 - 0.5*i/75 for i in range(50)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
-    noise = None
+    noise = True
     noise_level = 0.2
 
     for epoch in range(model_args.epochs):
