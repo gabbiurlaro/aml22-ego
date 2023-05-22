@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from  sklearn.manifold import TSNE
 import pickle
 import pandas as pd
-from np import random
+from numpy import random
 import matplotlib.pyplot as plt
 from datetime import datetime
 
