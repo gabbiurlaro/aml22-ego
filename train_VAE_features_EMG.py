@@ -271,10 +271,12 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     
                     logger.info(clip.shape)
                     
-                    if noise and random.random() < 0.5:
+                    yes = bool(random.random() < 0.5)
+                    if noise and yes:
                         noise = torch.randn(clip.size()).to(device)
                         clip = clip + noise_level * noise
-                        x_hat, _, mean, log_var = autoencoder[m](clip)
+                    
+                    x_hat, _, mean, log_var = autoencoder[m](clip)
 
                     mse_loss = reconstruction_loss(x_hat, clip)
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
