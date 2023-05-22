@@ -53,7 +53,7 @@ class EMG_classifier(nn.Module):
         feats = []
         for clip in range(self.num_clips):
             y = self.classifier(x[clip,:])
-            feats.append(y.squeeze_())
+            feats.append(y)
             #print(f'y shape: {y.shape}') 
             logits.append(self.fc(y))
 
