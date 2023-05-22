@@ -273,7 +273,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     
                     
                     if noise:
-                        if random.rand() < 0.5:
+                        if torch.rand() < 0.5:
                             noise = torch.randn(clip.size()).to(device)
                             clip = clip + noise_level * noise
                     
