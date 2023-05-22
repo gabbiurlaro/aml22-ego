@@ -12,6 +12,7 @@ import numpy as np
 import os
 import models as model_list
 import wandb
+import torchvision
 import matplotlib.pyplot as plt
 from  sklearn.manifold import TSNE
 import pickle
@@ -66,6 +67,8 @@ def main():
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
         models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024)
+
+    transform = torchvision.transforms.Normalize()
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
         # if args.resume_from is not None:
@@ -115,25 +118,25 @@ def main():
     elif args.action == "train_and_save":
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True),
+                                                                       transform=transform, load_feat=True),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True),
+                                                                       transform=transform, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       transform=transform, load_feat=True, additional_info=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       transform=transform, load_feat=True, additional_info=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         timestamp = datetime.now()
