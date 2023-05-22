@@ -351,7 +351,7 @@ class ActionNetDataset(data.Dataset, ABC):
                     self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
                 self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
         
-        if self.transform is not None & self.load_feat:
+        if self.transform is not None and self.load_feat:
             t = np.array(self.model_features['features_EMG']).reshape(len(self.list_file),1024)
             means = np.mean(t, axis=0)
             stds = np.std(t, axis=0)
