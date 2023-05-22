@@ -221,7 +221,6 @@ class EpicKitchensDataset(data.Dataset, ABC):
             p = int(frame_index)
             # here the frame is loaded in memory
             frame = self._load_data(modality, record, p)
-            images.extend(frame)
         # finally, all the transformations are applied
         process_data = self.transform[modality](images)
         return process_data, record.label
@@ -513,7 +512,11 @@ class ActionNetDataset(data.Dataset, ABC):
                     # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
                     result.append(torch.stack([channel[:, i] for i in indices]))
             result = torch.stack(result)
-            return result, record.label
+
+            if self.transform is None:
+                return result, record.label
+            process_data = self.transform[modality](result)
+            return process_data, record.label
 
         else:
             images = list()
