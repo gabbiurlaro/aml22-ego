@@ -181,7 +181,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
                 # logger.debug(f"Reconstruction loss: {reconstruction_loss(data[m], clips)}")
                 result['features'].append({'features_EMG': clips.numpy(), 'label': label.item(), 'uid': uid.item(), 'video_name': video_name})
     if save:    
-        with open(f"{filename}_D1_{split}.pkl", "wb") as file:
+        with open(f"{filename}_ACTIONNET_{split}.pkl", "wb") as file:
             pickle.dump(result, file)
     if debug:
         return result, {'total_loss': avg_video_level_loss, 'avg_loss': avg_video_level_loss/len(dataloader)}
