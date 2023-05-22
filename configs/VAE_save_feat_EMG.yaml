@@ -1,6 +1,6 @@
 action: save # train or test
 name: ???
-split: ???
+split: train
 resume_from: ???
 wandb_name: 'VAE_EMG'
 
