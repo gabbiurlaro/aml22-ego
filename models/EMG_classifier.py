@@ -57,5 +57,5 @@ class EMG_classifier(nn.Module):
             #print(f'y shape: {y.shape}') 
             logits.append(self.fc(y))
 
-        return torch.stack(logits, dim=0).mean(dim=0), {i: y for i, y in enumerate(y)}
+        return torch.stack(logits, dim=0).mean(dim=0), {i: y[i] for i in range(self.num_clips)}
 
