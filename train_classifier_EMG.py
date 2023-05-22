@@ -207,12 +207,12 @@ def save_feat(model, loader, device, it, num_classes, train=False):
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
-                features[m] = torch.zeros((args.save.num_clips, batch, 1024)).to(device)
+                features[m] = torch.zeros((args.save.num_clips, 1024)).to(device)
             
                 output, feat = model(data)
                 logits[m] = output[m]
                 logger.info(f'feat: {len(feat.keys())}, {feat[0][m].shape}, {args.save.num_clips}')
-                features[m] = torch.Tensor([ feat[i][m] for i in range(args.save.num_clips)]).unsqueeze(0)
+                features[m] = torch.Tensor([ feat[i][m] for i in range(args.save.num_clips)])
                 logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
            
                 sample={}
