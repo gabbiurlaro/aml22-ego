@@ -248,8 +248,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
     beta = [0 for _ in range(model_args.epochs)]
-    weights = {0: [[1]*model_args.epochs/3 , [0.8]* model_args.epochs/3, [0.6]*model_args.epochs/3],
-               1: [[0]*model_args.epochs/3, [0.5]* model_args.epochs/3, [1]*model_args.epochs/3],}
+    weights = {0: [[1]*50 , [0.6]*50], 1: [[0]*25,  [1]*75]}
 
     for epoch in range(model_args.epochs):
         total_loss = 0
