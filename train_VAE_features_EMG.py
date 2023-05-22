@@ -115,25 +115,25 @@ def main():
     elif args.action == "train_and_save":
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=False),
+                                                                       None, load_feat=True),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=False),
+                                                                       None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=False),
+                                                                       None, load_feat=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=False),
+                                                                       None, load_feat=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         timestamp = datetime.now()
