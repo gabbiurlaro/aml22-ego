@@ -219,11 +219,12 @@ def save_feat(model, loader, device, it, num_classes, train=False):
                 logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
            
                 sample={}
-                sample["features_" + m] = features[m].cpu().detach().numpy()
-                sample['label'] = label.item()
-                sample['uid'] = uid.item()
-                sample['untrimmed_video_name'] = video_name
-                results_dict["features"].append(sample)
+                for i in range(args.save.num_clips):
+                    sample["features_" + m] = features[m][i].cpu().detach().numpy()
+                    sample['label'] = label.item()
+                    sample['uid'] = uid.item()
+                    sample['untrimmed_video_name'] = video_name
+                    results_dict["features"].append(sample)
             num_samples += batch
 
             #model.compute_accuracy(logits, label)
