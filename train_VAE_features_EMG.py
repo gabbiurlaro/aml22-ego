@@ -249,8 +249,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
     beta = [0 for _ in range(model_args.epochs)]
-    weights = {'mse': list([1 for _ in range(25)] + [1 -0.8*i/75 for i in range(75)]),
-                'kld': list([0.8 for _ in range(50)] + [0.8 - 0.5*i/75 for i in range(50)])}
+    weights = {'mse': list([1 for _ in range(25)] + [1 -0.3*i/75 for i in range(75)]),
+                'kld': list([1 for _ in range(50)] + [1 - 0.2*i/75 for i in range(50)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
     noise = True
     noise_level = 0.2
@@ -271,7 +271,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     
                     logger.info(clip.shape)
                     
-                    yes = bool(random.random() < 0.5)
+                    yes = bool(random.random() < 0.2)
                     if noise and yes:
                         noise = torch.randn(clip.size()).to(device)
                         clip = clip + noise_level * noise
