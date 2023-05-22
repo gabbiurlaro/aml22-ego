@@ -351,12 +351,6 @@ class ActionNetDataset(data.Dataset, ABC):
                     self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
                 self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
         
-        if self.transform is not None and self.load_feat:
-            logger.info(f'features: {len(self.model_features["features_EMG"])}')
-            t = np.array(self.model_features['features_EMG']).reshape(len(self.list_file)*5,1024)
-            means = np.mean(t, axis=0)
-            stds = np.std(t, axis=0)
-            self.model_features['features_EMG'] = t
     
     def _get_train_indices(self, record, modality='RGB'):
         if self.dense_sampling[modality]:
