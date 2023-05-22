@@ -37,7 +37,7 @@ class ActionRecognition(tasks.Task, ABC):
         features = {}
         for i_m, m in enumerate(self.modalities):
             logits[m], feat = self.task_models[m](x=data[m], **kwargs)
-            logger.info(f'feat shape: {len(feat.keys())}, {feat.keys()}')
+            #logger.info(f'feat shape: {len(feat.keys())}, {feat.keys()}')
             if i_m == 0:
                 for k in feat.keys():
                     features[k] = {}
