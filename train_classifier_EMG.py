@@ -123,7 +123,7 @@ def main():
         
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        None, load_feat=False),
+                                                                        None, load_feat=False, additional_info=True),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
@@ -131,7 +131,7 @@ def main():
 
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        None, load_feat=False),
+                                                                        None, load_feat=False, additional_info=True),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
@@ -198,7 +198,7 @@ def save_feat(model, loader, device, it, num_classes, train=False):
     features = {}
     # Iterate over the models
     with torch.no_grad():
-        for i_val, (data, label) in enumerate(loader):
+        for i_val, (data, label, video_name, uid) in enumerate(loader):
             
             label = label.to(device)
 
@@ -221,6 +221,8 @@ def save_feat(model, loader, device, it, num_classes, train=False):
                 sample={}
                 sample["features_" + m] = features[m].cpu().detach().numpy()
                 sample['label'] = label.item()
+                sample['uid'] = uid.item()
+                sample['video_name'] = video_name
                 results_dict["features"].append(sample)
             num_samples += batch
 

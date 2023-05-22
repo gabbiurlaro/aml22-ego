@@ -490,6 +490,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 power=2.0,
                 normalized=True
             )
+            
             # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
             readings = {
                 'left': record.myo_left_readings,
