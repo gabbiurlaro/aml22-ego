@@ -352,7 +352,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
         
         if self.transform is not None and self.load_feat:
-            logger.info(f'features: {self.model_features["features_EMG"]}')
+            logger.info(f'features: {len(self.model_features["features_EMG"])}')
             t = np.array(self.model_features['features_EMG']).reshape(len(self.list_file),1024)
             # x = [train['features'][i]['features_EMG'] for i in range(len(train['features']))]
             # x = np.array(x).reshape(2630,1024)
