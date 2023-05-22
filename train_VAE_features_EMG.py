@@ -248,8 +248,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
     beta = [0 for _ in range(model_args.epochs)]
-    weights = {'mse': list([1 for _ in range(25)] + [1 - 0.4*i/75 for i in range(75)]),
-                'kld': list([0.3 for _ in range(25)] + [0.3 + 0.7*i/75 for i in range(75)])}
+    weights = {'mse': list([2 for _ in range(25)] + [2 - 1.5*i/75 for i in range(75)]),
+                'kld': list([0.5 for _ in range(50)] + [0.5 + 0.5*i/75 for i in range(50)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
 
     for epoch in range(model_args.epochs):
@@ -275,7 +275,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     if loss.isnan():
                         raise ValueError("Loss is NaN.")
                     clip_level_loss += loss
-                    wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
+                    wandb.log({"MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
             total_loss += clip_level_loss.item()
             opt.step()
 
