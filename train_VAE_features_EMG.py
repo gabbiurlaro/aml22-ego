@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from  sklearn.manifold import TSNE
 import pickle
 import pandas as pd
+import random
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -251,6 +252,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     weights = {'mse': list([1 for _ in range(25)] + [1 -0.8*i/75 for i in range(75)]),
                 'kld': list([0.8 for _ in range(50)] + [0.8 - 0.5*i/75 for i in range(50)])}
     print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
+    noise = None
+    noise_level = 0.2
 
     for epoch in range(model_args.epochs):
         total_loss = 0
@@ -263,9 +266,15 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                 clip_level_loss = 0
                 for m in modalities:
                     # extract the clip related to the modality
+                    
                     clip = data[m][i_c].to(device)
-
-                    x_hat, _, mean, log_var = autoencoder[m](clip)
+                    
+                    logger.info(clip.shape)
+                    
+                    if noise and random.rand() < 0.5:
+                        noise = torch.randn(clip.size()).to(device)
+                        clip = clip + noise_level * noise
+                        x_hat, _, mean, log_var = autoencoder[m](clip)
 
                     mse_loss = reconstruction_loss(x_hat, clip)
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
