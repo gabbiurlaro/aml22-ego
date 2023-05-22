@@ -115,13 +115,13 @@ def main():
     elif args.action == "train_and_save":
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       None, load_feat=True),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
@@ -245,7 +245,6 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.zero_grad()        
             for m in modalities:
                 print('data ', data[m].size())
-                exit(-1)
                 data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
