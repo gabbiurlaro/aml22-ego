@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 from  sklearn.manifold import TSNE
 import pickle
 import pandas as pd
-from numpy import random
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -273,7 +272,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     
                     
                     if noise:
-                        if torch.rand() < 0.5:
+                        if np.random.rand() < 0.5:
                             noise = torch.randn(clip.size()).to(device)
                             clip = clip + noise_level * noise
                     
