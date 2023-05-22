@@ -235,9 +235,8 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     autoencoder['EMG'].train(True)
 
-    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
+    beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
 
-    beta = 200*[1]
 
     for epoch in range(model_args.epochs):
         total_loss = 0
