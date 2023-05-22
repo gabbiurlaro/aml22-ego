@@ -250,6 +250,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     beta = [0 for _ in range(model_args.epochs)]
     weights = {'mse': [0.6 for _ in range(25)].extend([0.6 + 0.4*i/75 for i in range(75)]),
                 'kld': [0.8 for _ in range(25)].extend([0.8 - 0.8*i/75 for i in range(75)])}
+    print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
 
     for epoch in range(model_args.epochs):
         total_loss = 0
