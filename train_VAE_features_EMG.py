@@ -241,7 +241,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     for epoch in range(model_args.epochs):
         total_loss = 0
-        for i, (data, _, _, _) in enumerate(train_dataloader):
+        for i, (data, _) in enumerate(train_dataloader):
             opt.zero_grad()        
             for m in modalities:
                 print('data ', data[m].size())
