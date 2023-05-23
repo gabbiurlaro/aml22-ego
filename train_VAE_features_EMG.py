@@ -1,3 +1,4 @@
+from multiprocessing import reduction
 from wsgiref import validate
 from utils.logger import logger
 import torch.nn.parallel
@@ -242,7 +243,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
-    reconstruction_loss = nn.MSELoss(reduction='sum')
+    reconstruction_loss = nn.MSELoss(reduction='mean')
 
     autoencoder['EMG'].train(True)
 
