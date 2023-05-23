@@ -322,7 +322,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_frames_per_clip = num_frames_per_clip
         self.dense_sampling = dense_sampling
         self.num_clips = num_clips
-        self.stride = self.dataset_conf['stride']
+        self.stride = self.dataset_conf["stride"]
         self.additional_info = additional_info
 
         if self.mode == "train":
