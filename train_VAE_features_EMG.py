@@ -270,8 +270,6 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
                     
                     clip = data[m][i_c].to(device)
                     
-                    logger.info(clip.shape)
-                    
                     
                     if np.random.rand() < 0.3:
                             noise = torch.randn(clip.size()).to(device)
