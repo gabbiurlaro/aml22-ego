@@ -125,18 +125,33 @@ def main():
         logger.debug(f"Test Output {output}")
 
     elif args.action == "train_and_save":
-        train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True),
-                                                   batch_size=args.batch_size, shuffle=True,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        if args.augmentations > 0:
+            augmentations_features=['WD-MW']
+            for a in range(args.augmentations):
+                
+                train_loader_ = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            transform=transform, load_feat=True),
+                                                        batch_size=args.batch_size, shuffle=True,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True),
-                                                 batch_size=args.batch_size, shuffle=True,
-                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        
+                val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            transform=transform, load_feat=True),
+                                                        batch_size=args.batch_size, shuffle=True,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        else:
+            train_loader_ = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            transform=transform, load_feat=True),
+                                                        batch_size=args.batch_size, shuffle=True,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+
+            val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            transform=transform, load_feat=True),
+                                                        batch_size=args.batch_size, shuffle=True,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        transform=transform, load_feat=True, additional_info=True),
@@ -150,6 +165,8 @@ def main():
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         timestamp = datetime.now()
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
+        if args.augmentation:
+            ae = train(ae, )
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
