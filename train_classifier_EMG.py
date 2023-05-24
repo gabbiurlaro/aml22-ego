@@ -120,24 +120,57 @@ def main():
             logger.info(f"Loading model from {args.resume_from}")
             action_classifier.load_last_model(args.resume_from)
             logger.info(f'modalities: {modalities}')
-        
-            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        None, load_feat=False, additional_info=True),
-                                                batch_size=1, shuffle=False,
-                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
-            logger.info(f'Finished extracting train features, now exiting...')
+      
+            if args.augmentation:
+                train_loaders = {}
+                val_loaders = {}
+                _features= {'0': 'ACTIONNET_EMG/EMG_no-clip',
+                            'WD-MW': 'aug_orig/ActionNet_augmented_clips_WD-MW', 
+                            'MW': 'aug_orig/ActionNet_augmented_clips_MW',
+                            'WD': 'aug_orig/ActionNet_augmented_clips_WD', 
+                            'MW-WD': 'aug_orig/ActionNet_augmented_clips_MW-WD',
+                            }
+                
+                for a in _features.keys():
+                    args.dataset.EMG.features_name = _features[a]
+                    train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                                'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                                None, load_feat=True),
+                                                            batch_size=args.batch_size, shuffle=True,
+                                                            num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        None, load_feat=False, additional_info=True),
-                                                batch_size=1, shuffle=False,
-                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
-            logger.info(f'Finished extracting test features, now exiting...')
+                    val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                                'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                                None, load_feat=True),
+                                                            batch_size=args.batch_size, shuffle=True,
+                                                            num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                timestamp = datetime.now()
+                
+                for a in train_loaders.keys():
+                    save_feat(action_classifier, train_loader[a], device, action_classifier.current_iter, num_classes, train=True)
+                    save_feat(action_classifier, val_loader[a], device, action_classifier.current_iter, num_classes, train=False)
+                    logger.info(f'Finished extracting train features, now exiting...')
+
+            else:
+                ae = train(models, train_loader, val_loader, device, args.models.EMG)
+                loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                        'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            None, load_feat=False, additional_info=True),
+                                                    batch_size=1, shuffle=False,
+                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
+                logger.info(f'Finished extracting train features, now exiting...')
+
+                loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            None, load_feat=False, additional_info=True),
+                                                    batch_size=1, shuffle=False,
+                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+                logger.info(f'Finished extracting test features, now exiting...')
 
         else:
+            
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
