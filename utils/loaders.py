@@ -322,7 +322,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_frames_per_clip = num_frames_per_clip
         self.dense_sampling = dense_sampling
         self.num_clips = num_clips
-        self.stride = self.dataset_conf["stride"]
+        self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
 
         if self.mode == "train":
@@ -331,7 +331,7 @@ class ActionNetDataset(data.Dataset, ABC):
             pickle_name = split + "_test.pkl"
         
         try:
-            self.list_file = pd.read_pickle(os.path.join(dataset_conf['annotations_path'], pickle_name))
+            self.list_file = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
         except FileNotFoundError:
             return -1
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
