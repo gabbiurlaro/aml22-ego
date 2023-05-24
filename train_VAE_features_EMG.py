@@ -125,17 +125,25 @@ def main():
         logger.debug(f"Test Output {output}")
 
     elif args.action == "train_and_save":
-        if args.augmentations > 0:
-            augmentations_features=['WD-MW']
-            for a in range(args.augmentations):
-                
-                train_loader_ = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+        if args.augmentations:
+            train_loaders = {}
+            val_loaders = {}
+            _features= {'0': 'ACTIONNET_EMG/EMG_no-clip',
+                        'WD-MW': 'aug/ActionNet_augmented_clips_WD-MW', 
+                        'MW': 'aug/ActionNet_augmented_clips_MW',
+                        'WD': 'aug/ActionNet_augmented_clips_WD', 
+                        'MW-WD': 'aug/ActionNet_augmented_clips_MW-WD',
+                        }
+            
+            for a in range(_features.keys()):
+                args.dataset.EMG.features_name = _features[a]
+                train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                             transform=transform, load_feat=True),
                                                         batch_size=args.batch_size, shuffle=True,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-                val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                             transform=transform, load_feat=True),
                                                         batch_size=args.batch_size, shuffle=True,
@@ -152,6 +160,7 @@ def main():
                                                                             transform=transform, load_feat=True),
                                                         batch_size=args.batch_size, shuffle=True,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
+        args.dataset.EMG.features_name = 'ACTIONNET_EMG/EMG_no-clip'
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        transform=transform, load_feat=True, additional_info=True),
@@ -164,14 +173,16 @@ def main():
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         timestamp = datetime.now()
-        ae = train(models, train_loader, val_loader, device, args.models.EMG)
         if args.augmentation:
-            ae = train(ae, )
+            ae = models
+            for a in train_loader.keys():
+                ae = train(ae, train_loader[a], val_loader[a], device, args.models.EMG, ae['EMG'])
+        else:
+            ae = train(models, train_loader, val_loader, device, args.models.EMG)
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
-
-        filename = f"./saved_features/reconstructed/VAE_{args.models.EMG.lr}_{timestamp}"
+        filename = f"./saved_features/reconstructed/AUG_VAE_{args.models.EMG.lr}_{timestamp}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
