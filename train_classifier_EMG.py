@@ -119,8 +119,8 @@ def main():
         if args.resume_from is not None:
             logger.info(f"Loading model from {args.resume_from}")
             action_classifier.load_last_model(args.resume_from)
-            logger.info(f'modalities: {modalities}')
-      
+            logger.info(f'modalities: {modalities}, aug: {args.augmentation}')
+
             if args.augmentation:
                 train_loaders = {}
                 val_loaders = {}
@@ -145,7 +145,7 @@ def main():
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 timestamp = datetime.now()
-                
+                logger.info('here')
                 for a in train_loaders.keys():
                     save_feat(action_classifier, train_loader[a], device, action_classifier.current_iter, num_classes, train=True)
                     save_feat(action_classifier, val_loader[a], device, action_classifier.current_iter, num_classes, train=False)
