@@ -6,6 +6,7 @@ resume_from: ???
 num_clips: 5
 wandb_name: 'EMG_classification'
 augmentation: True
+
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
   shift: ActionNet-ActionNet
