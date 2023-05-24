@@ -125,7 +125,7 @@ def main():
         logger.debug(f"Test Output {output}")
 
     elif args.action == "train_and_save":
-        if args.augmentations:
+        if args.augmentation:
             train_loaders = {}
             val_loaders = {}
             _features= {'0': 'ACTIONNET_EMG/EMG_no-clip',
