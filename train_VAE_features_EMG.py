@@ -135,7 +135,7 @@ def main():
                         'MW-WD': 'aug/ActionNet_augmented_clips_MW-WD',
                         }
             
-            for a in range(_features.keys()):
+            for a in _features.keys():
                 args.dataset.EMG.features_name = _features[a]
                 train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
