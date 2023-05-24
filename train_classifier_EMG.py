@@ -119,7 +119,8 @@ def main():
         if args.resume_from is not None:
             logger.info(f"Loading model from {args.resume_from}")
             action_classifier.load_last_model(args.resume_from)
-            logger.info(f'modalities: {modalities}, aug: {args.augmentation}')
+            logger.info(f'modalities: {modalities}')
+            logger.info(f' aug: {args.augmentation}')
 
             if args.augmentation:
                 train_loaders = {}
