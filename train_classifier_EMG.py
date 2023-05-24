@@ -40,8 +40,8 @@ def init_operations():
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
-        run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
-        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+        run = wandb.init(project="EMG-fe", entity="egovision-aml22")
+        wandb.run.name = f'{args.name}_{args.models.EMG.model}'
 
 
 def main():
