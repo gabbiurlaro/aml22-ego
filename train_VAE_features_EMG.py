@@ -271,7 +271,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
-    reconstruction_loss = nn.MSELoss()
+    reconstruction_loss = nn.MSELoss(reduction='sum')
 
     autoencoder['EMG'].train(True)
 
