@@ -331,27 +331,26 @@ class ActionNetDataset(data.Dataset, ABC):
             pickle_name = split + "_test.pkl"
         
         
-        return dataset_conf
-        self.list_file = pd.read_pickle(os.path.join(dataset_conf['annotations_path'], pickle_name))
-        #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
-        logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
-        self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
-        self.transform = transform  # pipeline of transforms
-        self.load_feat = load_feat
-        
-        
-
-        if self.load_feat:
-            self.model_features = None
-            for m in self.modalities:
-                # load features for each modality
-                logger.info(f'jeez : saved_features/{self.dataset_conf[m].features_name}_{pickle_name}')
-                model_features = pd.DataFrame(pd.read_pickle(os.path.join("saved_features", self.dataset_conf[m].features_name + "_" + pickle_name))['features'])[["uid", "features_" + m]]
-                if self.model_features is None:
-                    self.model_features = model_features
-                else:
-                    self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
-                self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
+     #   self.list_file = pd.read_pickle(os.path.join(dataset_conf['annotations_path'], pickle_name))
+     #   #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
+     #   logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
+     #   self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
+     #   self.transform = transform  # pipeline of transforms
+     #   self.load_feat = load_feat
+     #   
+     #   
+#
+     #   if self.load_feat:
+     #       self.model_features = None
+     #       for m in self.modalities:
+     #           # load features for each modality
+     #           logger.info(f'jeez : saved_features/{self.dataset_conf[m].features_name}_{pickle_name}')
+     #           model_features = pd.DataFrame(pd.read_pickle(os.path.join("saved_features", self.dataset_conf[m].features_name + "_" + pickle_name))['features'])[["uid", "features_" + m]]
+     #           if self.model_features is None:
+     #               self.model_features = model_features
+     #           else:
+     #               self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
+     #           self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
         
     
     def _get_train_indices(self, record, modality='RGB'):
