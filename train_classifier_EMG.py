@@ -1,6 +1,4 @@
 from datetime import datetime
-from statistics import mean
-from tkinter import ttk
 from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
@@ -37,11 +35,13 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
-        wandb.init()
-        wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        wandb.run.name = f'{args.name}_{args.models.EMG.model}'
-
+        WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
+        if os.environ['WANDB_KEY'] is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY)
+        run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
+        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
 
 def main():
@@ -122,7 +122,7 @@ def main():
             logger.info(f'modalities: {modalities}')
         
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                    'train',args.dataset, {'EMG': 32}, args.save.num_clips, {'EMG': False},
                                                                         None, load_feat=False, additional_info=True),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -130,7 +130,7 @@ def main():
             logger.info(f'Finished extracting train features, now exiting...')
 
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                    'test', args.dataset, {'EMG': 32}, args.save.num_clips, {'EMG': False},
                                                                         None, load_feat=False, additional_info=True),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -141,13 +141,13 @@ def main():
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                        'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
                                                                         None, load_feat=False),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                        'test', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
+                                                                        'test', args.dataset,  {'EMG': 32}, args.train.num_clips, {'EMG': False},
                                                                         None, load_feat=False),
                                                     batch_size=args.batch_size, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -162,15 +162,15 @@ def main():
                                              num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                                              
             logger.info(f'Starting training...')
-            train(action_classifier, train_loader, val_loader, device, num_classes)
+            train(action_classifier, train_loader, val_loader, device, num_classes, args.train.num_clips)
             logger.info(f'Finished training, now validating...')
-            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
+            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes, args.train.num_clips)
             logger.info(f'Finished validating, now saving model...')
             timestamp = datetime.now()
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips = args.train.num_clips)
             logger.info(f'Finished extracting {args.split} features, now exiting...')
 
     else:
@@ -179,7 +179,7 @@ def main():
 
 
 
-def save_feat(model, loader, device, it, num_classes, train=False):
+def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -248,7 +248,7 @@ def save_feat(model, loader, device, it, num_classes, train=False):
 
     return 0
 
-def train(action_classifier, train_loader, val_loader, device, num_classes):
+def train(action_classifier, train_loader, val_loader, device, num_classes, num_clips):
     """
     function to train the model on the test set
     action_classifier: Task containing the model to be trained
@@ -308,7 +308,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         for m in modalities:
             #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-            data[m] = data[m].reshape(-1,16,5,32,32)
+            data[m] = data[m].reshape(-1,16, num_clips,32,32)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
@@ -348,7 +348,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
-def validate(model, val_loader, device, it, num_classes):
+def validate(model, val_loader, device, it, num_classes, num_clips):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -370,7 +370,7 @@ def validate(model, val_loader, device, it, num_classes):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].reshape(-1,16, num_clips, 5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
