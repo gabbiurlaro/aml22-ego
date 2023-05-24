@@ -133,7 +133,7 @@ def main():
                             }
                 
                 for a in _features.keys():
-                    args.dataset.features_name = _features[a]
+                    args.dataset.EMG.features_name = _features[a]
                     train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                                 'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                                 None, load_feat=True),
@@ -148,8 +148,8 @@ def main():
                 timestamp = datetime.now()
                 logger.info('here')
                 for a in train_loaders.keys():
-                    save_feat(action_classifier, train_loader[a], device, action_classifier.current_iter, num_classes, train=True)
-                    save_feat(action_classifier, val_loader[a], device, action_classifier.current_iter, num_classes, train=False)
+                    save_feat(action_classifier, train_loaders[a], device, action_classifier.current_iter, num_classes, train=True)
+                    save_feat(action_classifier, val_loaders[a], device, action_classifier.current_iter, num_classes, train=False)
                     logger.info(f'Finished extracting train features, now exiting...')
 
             else:
