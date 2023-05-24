@@ -3,6 +3,7 @@ name: ???
 split: train
 resume_from: ???
 wandb_name: 'VAE_EMG'
+augmentation: True
 
 save:
   num_clips: 5
