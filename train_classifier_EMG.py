@@ -153,7 +153,7 @@ def main():
                     logger.info(f'Finished extracting train features, now exiting...')
 
             else:
-                ae = train(models, train_loader, val_loader, device, args.models.EMG)
+                #ae = train(models, train_loader, val_loader, device, args.models.EMG)
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                         'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                             None, load_feat=False, additional_info=True),
