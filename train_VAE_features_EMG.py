@@ -177,7 +177,7 @@ def main():
         if args.augmentation:
             ae = models
             for a in train_loaders.keys():
-                ae = train_aug(ae, train_loaders[a], train_loaders[0], val_loader, device, args.models.EMG)
+                ae = train_aug(ae, train_loaders[a], train_loaders['0'], val_loader, device, args.models.EMG)
         else:
             ae = train(models, train_loader, val_loader, device, args.models.EMG)
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
