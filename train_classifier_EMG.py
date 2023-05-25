@@ -126,10 +126,10 @@ def main():
                 train_loaders = {}
                 val_loaders = {}
                 _features= {'0': 'ACTIONNET_EMG/EMG_no-clip',
-                            'WD-MW': 'aug_orig/ActionNet_augmented_clips_WD-MW', 
-                            'MW': 'aug_orig/ActionNet_augmented_clips_MW',
-                            'WD': 'aug_orig/ActionNet_augmented_clips_WD', 
-                            'MW-WD': 'aug_orig/ActionNet_augmented_clips_MW-WD',
+                            'WD-MW': 'aug_D/ActionNet_augmented_clips_WD-MW', 
+                            'MW': 'aug_D/ActionNet_augmented_clips_MW',
+                            'WD': 'aug_D/ActionNet_augmented_clips_WD', 
+                            'MW-WD': 'aug_D/ActionNet_augmented_clips_MW-WD',
                             }
                 
                 for a in _features.keys():
