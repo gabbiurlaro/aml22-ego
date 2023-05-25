@@ -45,8 +45,7 @@ def init_operations():
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
-        run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22")
-        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+        run = wandb.init(project="RGB-sEMG", entity="egovision-aml22", group="FC-VAE(rgb)", job_type=args.action, name=f"{args.models.RGB.model}_lr{args.models.RGB.lr}")
 
 def main():
     global training_iterations, modalities
@@ -144,7 +143,7 @@ def main():
         logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
 
-        filename = f"./saved_features/reconstructed/VAE_{args.models.RGB.lr}_{timestamp}"
+        filename = f"./saved_features/reconstructed/VAE_RGB_{args.models.RGB.lr}_{timestamp}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
