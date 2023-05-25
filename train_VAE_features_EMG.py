@@ -289,7 +289,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         for i, (data, _) in enumerate(train_dataloader):
             opt.zero_grad()        
             for m in modalities:
-                torch.stack(data[m])
+                data[m] = torch.stack(data[m])
                 data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
             for i_c in range(args.test.num_clips):
