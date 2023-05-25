@@ -128,7 +128,7 @@ def main():
         if args.augmentation:
             train_loaders = {}
             val_loaders = {}
-            _features= {'0': 'ACTIONNET_EMG/EMG_no-clip',
+            _features= {
                         'WD-MW': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW-WD', 
                         'MW': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW',
                         'WD': 'EXTRACTED_FEATURES_AUG/Augmented_features_WD', 
@@ -287,6 +287,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     for epoch in range(model_args.epochs):
         total_loss = 0
         for i, (data, _) in enumerate(train_dataloader):
+            print('yoyo', data['EMG'].size(), data['EMG'][0].shape)
             opt.zero_grad()        
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
