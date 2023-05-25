@@ -136,13 +136,13 @@ def main():
                     args.dataset.EMG.features_name = _features[a]
                     train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                                 'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                                None, load_feat=True),
+                                                                                None, load_feat=True, additional_info=True),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
                     val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                                 'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                                None, load_feat=True),
+                                                                                None, load_feat=True, additional_info=True),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 timestamp = datetime.now()
