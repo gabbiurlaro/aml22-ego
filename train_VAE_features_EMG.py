@@ -287,7 +287,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     for epoch in range(model_args.epochs):
         total_loss = 0
         for i, (data, _) in enumerate(train_dataloader):
-            logger.info(f"yoyo {len(data[m])} {data['EMG'].shape}")
+            logger.info(f"ueue {len(data[m])} {data['EMG'].shape}")
 
             opt.zero_grad()        
             for m in modalities:
