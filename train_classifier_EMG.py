@@ -245,10 +245,11 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
             
                 output, feat = model(data)
                 logits[m] = output[m]
-               
+                swap = [feat[i][m] for i in range(args.save.num_clips)]
+
                 #logger.info(f'swap: {len(swap)}, {swap[0].shape}')
                 #logger.info(f'features: {features[m].shape}')
-                features[m] += torch.stack(feat)
+                features[m] += torch.stack(swap)
                 logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
            
                 sample={}
