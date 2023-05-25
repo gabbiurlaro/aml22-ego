@@ -235,7 +235,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
         for i_val, (data, label, video_name, uid) in enumerate(loader):
             
             label = label.to(device)
-
+            logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
