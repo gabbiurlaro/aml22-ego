@@ -287,7 +287,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     for epoch in range(model_args.epochs):
         total_loss = 0
         for i, (data, _) in enumerate(train_dataloader):
-            print('yoyo', data['EMG'].size(), data['EMG'][0].shape)
+            logger.info(f'yoyo {data['EMG'].size()} {data['EMG'][0].shape}')
             opt.zero_grad()        
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
