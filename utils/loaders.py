@@ -330,10 +330,8 @@ class ActionNetDataset(data.Dataset, ABC):
         else:
             pickle_name = "_test.pkl" #split + "_test.pkl"
         
-        try:
-            self.list_file = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
-        except FileNotFoundError:
-            return -1
+        
+        self.list_file = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
