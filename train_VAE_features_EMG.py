@@ -312,6 +312,12 @@ def train_aug(autoencoder, train_a_dataloader, train_o_dataloader, val_dataloade
                     kld_loss = -0.5 * torch.sum(1 + log_var_a - mean_a.pow(2) - log_var_a.exp())
                     loss = weights['mse'][epoch]*mse_loss + weights['kld'][epoch]*kld_loss
                     loss.backward()
+
+                    x_hat_o, _, mean_o, log_var_o = autoencoder[m](clip_o)
+                    mse_loss = reconstruction_loss(x_hat_o, clip_o)
+                    kld_loss = -0.5 * torch.sum(1 + log_var_o - mean_o.pow(2) - log_var_o.exp())
+                    loss = weights['mse'][epoch]*mse_loss + weights['kld'][epoch]*kld_loss
+                    loss.backward()
                     # generate an error if loss is nan
                     if loss.isnan():
                         raise ValueError("Loss is NaN.")
