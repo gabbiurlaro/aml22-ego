@@ -128,7 +128,7 @@ def main():
         if args.augmentation:
             train_loaders = {}
             val_loaders = {}
-            _features= {
+            _features= { '0': 'ACTIONNET_EMG/job_feature_extraction',
                         'WD-MW': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW-WD', 
                         'MW': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW',
                         'WD': 'EXTRACTED_FEATURES_AUG/Augmented_features_WD', 
@@ -160,7 +160,7 @@ def main():
                                                                             transform=transform, load_feat=True),
                                                         batch_size=args.batch_size, shuffle=True,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
-        args.dataset.EMG.features_name = 'ACTIONNET_EMG/EMG_no-clip'
+        args.dataset.EMG.features_name = 'ACTIONNET_EMG/job_feature_extraction'
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        transform=transform, load_feat=True, additional_info=True),
