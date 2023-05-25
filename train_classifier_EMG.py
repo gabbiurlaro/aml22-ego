@@ -125,7 +125,7 @@ def main():
             if args.augmentation:
                 train_loaders = {}
                 val_loaders = {}
-                _features= {'0': 'ACTIONNET_EMG/EMG_no-clip',
+                _features= {'0': 'ACTIONNET_EMG/EMG_no-clip_ActionNet',
                             'WD-MW': 'aug_D/ActionNet_augmented_clips_WD-MW', 
                             'MW': 'aug_D/ActionNet_augmented_clips_MW',
                             'WD': 'aug_D/ActionNet_augmented_clips_WD', 

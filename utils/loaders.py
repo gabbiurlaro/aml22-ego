@@ -326,9 +326,9 @@ class ActionNetDataset(data.Dataset, ABC):
         self.additional_info = additional_info
 
         if self.mode == "train":
-            pickle_name = split + "_train.pkl"
+            pickle_name = "_train.pkl" #split + "_train.pkl"
         else:
-            pickle_name = split + "_test.pkl"
+            pickle_name = "_test.pkl" #split + "_test.pkl"
         
         try:
             self.list_file = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
