@@ -148,8 +148,8 @@ def main():
                 timestamp = datetime.now()
                 logger.info('here')
                 for a in train_loaders.keys():
-                    save_feat(action_classifier, train_loaders[a], device, action_classifier.current_iter, num_classes, train=True)
-                    save_feat(action_classifier, val_loaders[a], device, action_classifier.current_iter, num_classes, train=False)
+                    save_feat(action_classifier, train_loaders[a], device, action_classifier.current_iter, num_classes, train=True, aug=_features[a])
+                    save_feat(action_classifier, val_loaders[a], device, action_classifier.current_iter, num_classes, train=False,  aug=_features[a])
                     logger.info(f'Finished extracting train features, now exiting...')
 
             else:
@@ -213,7 +213,7 @@ def main():
 
 
 
-def save_feat(model, loader, device, it, num_classes, train=False):
+def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -268,9 +268,13 @@ def save_feat(model, loader, device, it, num_classes, train=False):
             #                                                              model.accuracy.avg[1], model.accuracy.avg[5]))
 
         os.makedirs("saved_features", exist_ok=True)
-        pickle.dump(results_dict, open(os.path.join("./saved_features/ACTIONNET_EMG_AUG/", args.name + "_" +
-                                                    ('train' if train else 'test') + "_" +
-                                                    args.split + ".pkl"), 'wb'))
+        if aug:
+            filename = str('./saved_features/EXTRACTED_FEATURES_AUG/' + aug.split("/")[-1] +  "_" + ('train' if train else 'test') + "_" + args.split + ".pkl")
+            pickle.dump(results_dict, open(filename, 'wb'))
+        else:
+            pickle.dump(results_dict, open(os.path.join("./saved_features/EXTRACTED_FEATURES/", args.name + "_" +
+                                                        ('train' if train else 'test') + "_" +
+                                                        args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
     #            .format(np.array(class_accuracies.values()).mean()))
     #test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
