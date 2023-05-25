@@ -149,7 +149,7 @@ def main():
                                                         batch_size=args.batch_size, shuffle=True,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         else:
-            train_loader_ = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+            train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                             transform=transform, load_feat=True),
                                                         batch_size=args.batch_size, shuffle=True,
