@@ -292,7 +292,7 @@ def train_aug(autoencoder, train_a_dataloader, train_o_dataloader, val_dataloade
                # data[m] = torch.stack(data[m])
                 logger.info(f"Data size: {data_a[m].shape}")
                 
-                data_a[m] = data_a[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
+                data_a[m] = data_a[m].squeeze().permute(1, 0, 2) # Data is now in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
                 #logger.info(f"Data size: {data_o[m].shape}")
                 data_o[m] = data_o[m].permute(1, 0, 2)
