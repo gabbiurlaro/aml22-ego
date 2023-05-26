@@ -128,11 +128,11 @@ def main():
         if args.augmentation:
             train_loaders = {}
             val_loaders = {}
-            _features= { '0': 'ACTIONNET_EMG/job_feature_extraction',
-                        'WD-MW': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW-WD', 
-                        'MW': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW',
-                        'WD': 'EXTRACTED_FEATURES_AUG/Augmented_features_WD', 
-                        'MW-WD': 'EXTRACTED_FEATURES_AUG/Augmented_features_MW-WD',
+            _features= { '0': '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction',
+                        'WD-MW': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW-WD', 
+                        'MW': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW',
+                        'WD': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_WD', 
+                        'MW-WD': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW-WD',
                         }
             
             for a in _features.keys():
@@ -146,19 +146,19 @@ def main():
         else:
                 train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                                 'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                                transform=transform, load_feat=True),
+                                                                                transform=transform, load_feat=True, kwargs={'aug': True}),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
                 val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                                 'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                                transform=transform, load_feat=True),
+                                                                                transform=transform, load_feat=True, kwargs={'aug': True}),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
         args.dataset.EMG.features_name = 'ACTIONNET_EMG/job_feature_extraction'
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True),
+                                                                       transform=transform, load_feat=True, ),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
@@ -183,7 +183,7 @@ def main():
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
-        filename = f"./saved_features/reconstructed/AUG_VAE_{args.models.EMG.lr}_{timestamp}"
+        filename = f"./saved_features/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}_{timestamp}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
