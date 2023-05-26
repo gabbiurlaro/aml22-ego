@@ -126,10 +126,10 @@ def main():
                 train_loaders = {}
                 val_loaders = {}
                 _features= { 
-                            'WD-MW': 'aug-D/Augmented_dataset_clipWD-MW', 
-                            'MW': 'aug-D/Augmented_dataset_clipMW',
-                            'WD': 'aug-D/Augmented_dataset_clipWD', 
-                            'MW-WD': 'aug-D/Augmented_dataset_clipMW-WD',
+                            'WD-MW': 'aug-D/Augmented_dataset_clip_WD-MW', 
+                            'MW': 'aug-D/Augmented_dataset_clip_MW',
+                            'WD': 'aug-D/Augmented_dataset_clip_WD', 
+                            'MW-WD': 'aug-D/Augmented_dataset_clip_MW-WD',
                             }
                 
                 for a in _features.keys():
@@ -235,7 +235,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
         for i_val, (data, label, video_name, uid) in enumerate(loader):
             
             label = label.to(device)
-            logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
+            #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
                 data[m] = data[m].reshape(-1,16,5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
@@ -269,7 +269,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
 
         os.makedirs("saved_features", exist_ok=True)
         if aug:
-            filename = str('./saved_features/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' +aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
+            filename = str('./saved_features/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
             pickle.dump(results_dict, open(filename, 'wb'))
         else:
             pickle.dump(results_dict, open(os.path.join("./saved_features/ACTIONNET_EMG/", args.name + "_" +
