@@ -107,14 +107,15 @@ def main():
         args.dataset.EMG.features_name = '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction'
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                    batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                    batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
         load_model(models['EMG'], last_model)
