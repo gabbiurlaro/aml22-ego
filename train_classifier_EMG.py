@@ -126,10 +126,10 @@ def main():
                 train_loaders = {}
                 val_loaders = {}
                 _features= { 
-                            'WD-MW': '/content/drive/MyDrive/actionnet_aug/Augmented_dataset_clip_WD-MW', 
-                            'MW': '/content/drive/MyDrive/actionnet_aug/Augmented_dataset_clip_MW',
-                            'WD': '/content/drive/MyDrive/actionnet_aug/Augmented_dataset_clip_WD', 
-                            'MW-WD': '/content/drive/MyDrive/actionnet_aug/Augmented_dataset_clip_MW-WD',
+                            'WD-MW': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_WD-MW', 
+                            'MW': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_MW',
+                            'WD': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_WD', 
+                            'MW-WD': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_MW-WD',
                             }
                 
                 for a in _features.keys():
