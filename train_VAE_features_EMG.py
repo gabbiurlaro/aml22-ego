@@ -104,6 +104,7 @@ def main():
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{datetime.now()}.pth")
 
     elif args.action == "save":
+        args.dataset.EMG.features_name = '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction'
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=True, additional_info=True),
@@ -118,7 +119,8 @@ def main():
         logger.info(f"Loading last model from {last_model}")
         load_model(models['EMG'], last_model)
         logger.info(f"Reconstructing features...")
-        filename = f"./saved_features/reconstructed/VAE_{args.models.EMG.lr}_{datetime.now()}"
+
+        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}_{timestamp}"
         reconstructed_features, output = reconstruct(models, loader, device, "train", save = True, filename=filename, debug=True)
         logger.debug(f"Train Output {output}")
         reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
@@ -199,7 +201,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
             for m in modalities:
                 autoencoder[m].train(False)
                 # logger.debug(f"Data shape(before squeeze): {data[m].shape}")
-                data[m] = data[m].squeeze().permute(1, 0, 2)     #  clip level
+                data[m] = data[m].squeeze(1).permute(1, 0, 2)     #  clip level
                 # logger.debug(f"Data shape(after squeeze): {data[m].shape}")
                 clips = []
                 clip_loss = 0
