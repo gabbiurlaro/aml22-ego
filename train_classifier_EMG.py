@@ -414,7 +414,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         action_classifier.compute_accuracy(logits, source_label)
 
         action_classifier.wandb_log()
-
+    
         # update weights and zero gradients if total_batch samples are passed
         if gradient_accumulation_step:
             logger.info("[%d/%d]\tlast Verb loss: %.4f\tMean verb loss: %.4f\tAcc@1: %.2f%%\tAccMean@1: %.2f%%" %
