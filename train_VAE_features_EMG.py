@@ -199,7 +199,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
             for m in modalities:
                 autoencoder[m].train(False)
                 # logger.debug(f"Data shape(before squeeze): {data[m].shape}")
-                data[m] = data[m].permute(1, 0, 2)     #  clip level
+                data[m] = data[m].squeeze().permute(1, 0, 2)     #  clip level
                 # logger.debug(f"Data shape(after squeeze): {data[m].shape}")
                 clips = []
                 clip_loss = 0
@@ -248,7 +248,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
+            data[m] = data[m].squeeze().permute(1, 0, 2)
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
             for m in modalities:
