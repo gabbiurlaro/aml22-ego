@@ -202,15 +202,16 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             label = label.to(device)
 
             for m in modalities:
-                data[m] = data[m].reshape(-1, 16, num_clips, 32,32)
-                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                data[m] = data[m].reshape(-1, 16, num_clips, 32, 32)
+                data[m] = data[m].permute(2, 0, 1, 3, 4)
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
                 features[m] = torch.zeros((args.save.num_clips, 1024)).to(device)
             
                 output, feat = model(data)
                 logits[m] = output[m]
-                #logger.info(f'feat: {len(feat.keys())}, {feat[0][m].shape}, {args.save.num_clips}')
+                logger.info(f'features: {len(feat.keys())}, {feat[0][m].shape}, {args.save.num_clips}')
+                exit(-1)
                 swap = [feat[i][m] for i in range(args.save.num_clips)]
                 #logger.info(f'swap: {len(swap)}, {swap[0].shape}')
                 #logger.info(f'features: {features[m].shape}')
