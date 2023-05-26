@@ -34,7 +34,7 @@ NOTE: you need to stay connected to the Google Colab interface at all times for 
 ### 3. Recreate our experiments
 
 #### 3.2 Use reconstructed feature to train a classifier
-First, we need to train the vae and save the model.
+First, we need to train the vae and save the model
 
 ```bash
 python /home/gabb/egovision_project/aml22-ego/train_VAE_features_clip.py action="train"  name="VAE_FT_D_16f" \
@@ -46,11 +46,33 @@ python /home/gabb/egovision_project/aml22-ego/train_VAE_features_clip.py action=
 python train_VAE_features_clip.py action="save" name="VAE_FT_D_16f"   config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE' resume_from='saved_models/VAE_RGB/VAE_FT_D_16f_lr0.0001_1.pth'
 ```
 
-Feature in `./saved_features/reconstructed/VAE_FT_D_16f_0.01.pkl`. We can use the feature generated to train a classifier:
+Or, using the same command:
 
 ```bash
-python train_classifier_LSTM.py action=train config=configs/train_classifier.yaml \
-            dataset.shift=D1-D1 models.RGB.model=ActionLSTM num_clips=5 \
-            name='test_reconstructed_feature' dataset.RGB.data_path="../ek_data/frames/" \
-            wandb_name=LSTM wandb_group=LSTM wandb_dir=LSTM_dir dataset.RGB.features_name=reconstructed/VAE_FT_D_16f_0.01
+python train_VAE_features_clip.py action="train_and_save" name="VAE_RGB" config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae-rgb'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE'
 ```
+
+The second option is preferable, because we don't need to provide the path of the model to resume from.
+
+
+```bash
+
+Once we have the reconstructed features, we can train the classifier using them as input.
+
+```bash
+
+python train_classifier_TRN.py action=train config=configs/train_classifier.yaml \
+            dataset.shift=D1-D1 models.RGB.model=action_TRN num_clips=5 \
+            name='test_reconstructed_feature' dataset.RGB.data_path="../ek_data/frames/" \
+            wandb_name=TRN_reconstructed dataset.RGB.features_name='reconstructed/VAE_0.001_2023-05-26 10:41:49.665145'
+```
+
+The performace of the model are comparable with the one that use the original features.
+
+ALERT: Per qualche strano motivo, funziona solo lr = 0.001, non so perché, nonostante i loss siano abbastanza simili.
+
+lr = 10^-4: brutti risultati
+lr = 10^-3: buoni risultati
+lr = 10^-2: bruttissimi risultati
+
+Bisogna capire il perchè solo con lr = 10^-3 funziona. Reduction = sum, non funziona con reduction = mean.
