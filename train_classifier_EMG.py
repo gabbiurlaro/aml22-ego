@@ -80,7 +80,7 @@ def main():
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
-                                                   batch_size=args.batch_size, shuffle=True,
+                                                   batch_size=args.batch_size, suffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
@@ -177,7 +177,7 @@ def main():
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                         'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                         None, load_feat=False),
-                                                    batch_size=args.batch_size, shuffle=True,
+                                                    batch_size=args.batch_size, suffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
