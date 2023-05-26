@@ -183,7 +183,7 @@ def main():
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
-        filename = f"./saved_features/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}_{timestamp}"
+        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}_{timestamp}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
