@@ -313,7 +313,7 @@ def train_aug(autoencoder, train_a_dataloader, train_o_dataloader, val_dataloade
 
                     kld_loss = -0.5 * torch.sum(1 + log_var_a - mean_a.pow(2) - log_var_a.exp())
 
-                    loss = weights['mse'][epoch]*mse_loss + weights['kld'][epoch]*kld_loss
+                    loss = mse_loss + (0.01*1/1024 )*kld_loss
                     
                     loss.backward()
 
