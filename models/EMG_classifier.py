@@ -1,7 +1,7 @@
 
 from torch import nn
 import torch
-import logger
+from utils.logger import logger
 
 class EMG_classifier(nn.Module):
     def __init__(self, num_input, num_classes, num_clips) -> None:
