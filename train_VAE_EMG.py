@@ -304,7 +304,7 @@ def train(autoencoder, train_dataloader, train_original_dataloader, val_dataload
                     x_hat_o, _, log_var_o, log_var_o = autoencoder[m](clip_o)
                     mse_loss = reconstruction_loss(x_hat_a, clip_o)
 
-                    kld_loss =  0.5 * torch.sum(torch.exp(log_var_o - log_var_a) + (mean_a - log_var_o)**2 / torch.exp(log_var_a) - log_var_o + log_var_a - 1)
+                    kld_loss = -0.5 * torch.sum(1 + log_var_a - mean_a.pow(2) - log_var_a.exp())
                     loss = mse_loss +(0.01*1/1024 )*kld_loss
                     
                     loss.backward()
