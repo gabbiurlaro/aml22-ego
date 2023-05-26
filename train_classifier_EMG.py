@@ -194,7 +194,6 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
     results_dict = {"features": []}
     num_samples = 0
     logits = {}
-    features = {}
     # Iterate over the models
     with torch.no_grad():
         for i_val, (data, label, video_name, uid) in enumerate(loader):
@@ -211,18 +210,20 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
                 output, feat = model(data)
                 logits[m] = output[m]
                 swap = [feat[i][m] for i in range(args.save.num_clips)]
-                features[m] += torch.stack(swap)
-                logger.info(f'features: {features[m].shape}')
-                exit(-1)
+
+                final_features = torch.stack(swap)
+
                 logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
            
-                sample={}
-                for i in range(args.save.num_clips):
-                    sample["features_" + m] = features[m][i].cpu().detach().numpy()
-                    sample['label'] = label.item()
-                    sample['uid'] = uid.item()
-                    sample['untrimmed_video_name'] = video_name
-                    results_dict["features"].append(sample)
+                sample = {}
+                
+                sample['label'] = label.item()
+                sample['uid'] = uid.item()
+                sample['untrimmed_video_name'] = video_name
+                sample[f'features_{m}'] = final_features.cpu().numpy()    
+
+                results_dict.append(sample)
+
             num_samples += batch
 
             #model.compute_accuracy(logits, label)
