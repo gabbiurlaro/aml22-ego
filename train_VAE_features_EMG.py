@@ -121,7 +121,7 @@ def main():
         load_model(models['EMG'], last_model)
         logger.info(f"Reconstructing features...")
 
-        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}_{timestamp}"
+        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}"
         reconstructed_features, output = reconstruct(models, loader, device, "train", save = True, filename=filename, debug=True)
         logger.debug(f"Train Output {output}")
         reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
