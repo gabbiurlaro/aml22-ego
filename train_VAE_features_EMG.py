@@ -139,7 +139,7 @@ def main():
                 args.dataset.EMG.features_name = _features[a]
                 train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                            transform=transform, load_feat=True),
+                                                                            transform=transform, load_feat=True, kwargs={'aug': True}),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
