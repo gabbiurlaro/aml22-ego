@@ -43,7 +43,7 @@ class ActionRecognition(tasks.Task, ABC):
                     features[k] = {}
             for k in feat.keys():
                 features[k][m] = feat[k]
-        logger.info(f'features shape: {len(features.keys())}, {features.keys()}, {features[0]["EMG"].shape}\n {features[0]["EMG"]}')
+        logger.info(f'action_rec: features shape: {len(features.keys())}, {features.keys()}, {features[0]["EMG"].shape}\n {features[0]["EMG"]}')
         return logits, features
 
     def compute_loss(self, logits, label, loss_weight=1.0):
