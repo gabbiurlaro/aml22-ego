@@ -155,7 +155,7 @@ def main():
                                                                                 transform=transform, load_feat=True, kwargs={'aug': True}),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
-        args.dataset.EMG.features_name = 'ACTIONNET_EMG/job_feature_extraction'
+        args.dataset.EMG.features_name = '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction'
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        transform=transform, load_feat=True,kwargs={'aug': True} ),
