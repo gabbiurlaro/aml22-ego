@@ -59,6 +59,7 @@ COLORS = {'EK': {
 }}
 
 
+
 def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = "Features"):
     """
     Plot the features of the dataset using the specified method.
@@ -75,17 +76,15 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     if dataset != "EK" and dataset != "AN":
         raise ValueError("dataset must be EK or AN")
     
-    label_name = "label" if dataset == "AN" else "verb_class"
+    label_name = "label" if annotation == None else "verb_class"
     
     # Load the features
     data = pd.DataFrame(pd.read_pickle(feature_name)['features'])
     # data_raw is always a dictionary with only one entry (features)
-    if annotation is not None or dataset == "EK":
+    if annotation is not None:
         # in this case we have to load the annotations and merge them with the features
         annotations = pd.read_pickle(annotation)
         data= pd.merge(data, annotations, how="inner", on="uid")
-
-        pass
 
     # extract from each video the corrisponding feature(in this case, the middle clip)
     
@@ -104,8 +103,7 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     plt.title(title)
     plt.show()
 
-
-def plot_reconstructed(reconstructed_features, original_features, reduction = "tsne", model = "AE"):
+def plot_reconstructed_sep(reconstructed_features, original_features, reduction = "tsne", model = "AE", num_clips = 5):
     """
     Function to plot the reconstructed features and the original ones, using PCA or TSNE.
     - reconstructed_features: path to the reconstructed features
@@ -157,6 +155,62 @@ def plot_reconstructed(reconstructed_features, original_features, reduction = "t
 
     data_reconstructed['x'] = reduced[:, 0]
     data_reconstructed['y'] = reduced[:, 1]
+    for i in range(8): # ek has 8 classes
+        filtered = data_reconstructed[data_reconstructed["label"] == i]
+        ax[1].scatter(filtered['x'], filtered['y'], c=COLORS['EK'][i], label=LABELS['EK'][i])
+    ax[1].title.set_text('Reconstructed features')
+    fig.suptitle(f"Feature reconstructed with {model}")
+    fig.show()
+
+def plot_reconstructed(reconstructed_features, original_features, reduction = "tsne", model = "AE", num_clips = 5):
+    """
+    Function to plot the reconstructed features and the original ones, using PCA or TSNE.
+    - reconstructed_features: path to the reconstructed features
+    - original_features: path to the original features
+    - reduction: ["tsne", "pca"], reduction method to use
+    - model: ["AE", "VAE"], model used to reconstruct the features
+    """
+    fig, ax = plt.subplots(2, figsize=(10, 10))
+
+    data_original = pd.DataFrame(pd.read_pickle(original_features)['features'])
+    annotations = pd.read_pickle("train_val/D1_train.pkl")
+    data_original = pd.merge(data_original, annotations, how="inner", on="uid")
+    features_original = data_original['features_RGB']    
+    nof = len(features_original)
+
+    features_original = [f[num_clips//2] for f in features_original]
+    for i in range(len(features_original)):
+        if len(features_original[i]) != 1024:
+            print(f"OPS, PROBLEMA: {len(features_original[i])}")
+
+    data_reconstructed = pd.DataFrame(pd.read_pickle(reconstructed_features)['features'])
+
+    features_reconstructed = data_reconstructed['features_RGB']
+    features_reconstructed = [f[num_clips//2] for f in features_reconstructed]
+    print(f"Features size: {len(features_reconstructed)}")
+    for i in range(len(features_reconstructed)):
+        if len(features_reconstructed[i]) != 1024:
+            print(f"OPS, PROBLEMA: {len(features_reconstructed[i])}")
+
+    features = features_original + features_reconstructed
+
+    reduced = None
+    pca = None
+    if reduction == "tsne":
+        reduced = TSNE(n_components=2, random_state=42).fit_transform(features)
+    else:
+        pca = PCA().fit(features)
+        reduced = pca.transform(features)
+    data_original['x'] = reduced[:nof, 0]
+    data_original['y'] = reduced[:nof, 1]    
+    data_reconstructed['x'] = reduced[nof:, 0]
+    data_reconstructed['y'] = reduced[nof:, 1]
+    
+    for i in range(8): # ek has 8 classes
+        filtered = data_original[data_original["verb_class"] == i]
+        ax[0].scatter(filtered['x'], filtered['y'], c=COLORS['EK'][i], label=LABELS['EK'][i])
+    ax[0].title.set_text('Original features')
+
     for i in range(8): # ek has 8 classes
         filtered = data_reconstructed[data_reconstructed["label"] == i]
         ax[1].scatter(filtered['x'], filtered['y'], c=COLORS['EK'][i], label=LABELS['EK'][i])
