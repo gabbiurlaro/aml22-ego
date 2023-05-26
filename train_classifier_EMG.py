@@ -36,12 +36,11 @@ def init_operations():
     
     if args.wandb_name is not None:
         WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
-        if os.environ['WANDB_KEY'] is not None:
+        if os.getenv('WANDB_KEY') is not None:
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
-        run = wandb.init(project="EMG-fe", entity="egovision-aml22")
-        wandb.run.name = f'{args.name}_{args.models.EMG.model}'
+        run = wandb.init(project="EMG-fe", entity="egovision-aml22", name=F"{args.models.EMG.model}_{args.models.EMG.lr}_fe")
 
 
 def main():
@@ -126,7 +125,7 @@ def main():
                                                                         None, load_feat=False, additional_info=True),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting train features, now exiting...')
 
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
@@ -134,7 +133,7 @@ def main():
                                                                         None, load_feat=False, additional_info=True),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting test features, now exiting...')
 
         else:
@@ -203,7 +202,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             label = label.to(device)
 
             for m in modalities:
-                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].reshape(-1, 16, num_clips, 32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)

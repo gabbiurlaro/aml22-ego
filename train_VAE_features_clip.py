@@ -233,9 +233,9 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         autoencoder[m].train(True)
     """
     We can use a beta scheduler to increase the weight of the KLD loss, as described in the paper 
-    "Understanding disentangling in β-VAE" by Burgess et al.
+    - "Understanding disentangling in β-VAE" by Burgess et al.
     """
-    #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
+    # beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
     beta = costant_scheduler(1.0/(100*1024), model_args.epochs)
     for epoch in range(model_args.epochs):
         # train_loop
@@ -286,7 +286,6 @@ def save_model(model, filename):
 
 def load_model(ae, path):
     state_dict = torch.load(path)["model_state_dict"]
-    #print([x for x in state_dict.keys()])
     ae.load_state_dict(state_dict, strict=False)
 
 def build_optimizer(network, optimizer, learning_rate):

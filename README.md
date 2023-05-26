@@ -76,3 +76,8 @@ lr = 10^-3: buoni risultati
 lr = 10^-2: bruttissimi risultati
 
 Bisogna capire il perchè solo con lr = 10^-3 funziona. Reduction = sum, non funziona con reduction = mean.
+
+
+#### 3.3 Reconstructe EMG features
+
+```bash
