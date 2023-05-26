@@ -325,10 +325,10 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
 
         os.makedirs("saved_features", exist_ok=True)
         if aug:
-            filename = str('./saved_features/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
+            filename = str('../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
             pickle.dump(results_dict, open(filename, 'wb'))
         else:
-            pickle.dump(results_dict, open(os.path.join("./saved_features/ACTIONNET_EMG/", args.name + "_" +
+            pickle.dump(results_dict, open(os.path.join("../drive/MyDrive/ACTIONNET_EMG/", args.name + "_" +
                                                         ('train' if train else 'test') + "_" +
                                                         args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
