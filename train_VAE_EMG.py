@@ -115,6 +115,32 @@ def main():
         logger.debug(f"Test Output {output}")
 
     elif args.action == "train_and_save":
+        if args.augmentation:
+            T_train_loaders = {}
+            T_val_loaders = {}
+            train_loaders = {}
+            val_loaders = {}
+            _features= {
+                        'WD-MW': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_WD-MW', 
+                        'MW': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_MW',
+                        'WD': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_WD', 
+                        'MW-WD': '../drive/MyDrive/actionnet_aug/Augmented_dataset_clip_MW-WD',
+                        }
+            
+            for a in _features.keys():
+                args.dataset.EMG.features_name = _features[a]
+                T_train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            None, load_feat=True, additional_info=False, kwargs={'aug': True}),
+                                                        batch_size=args.batch_size, shuffle=False,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                T_val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            None, load_feat=True, additional_info=False, kwargs={'aug': True}),
+                                                        batch_size=args.batch_size, shuffle=False,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                
+        
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
                                                                        None, load_feat=False),
@@ -138,19 +164,23 @@ def main():
                                                                        None, load_feat=False),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-        timestamp = datetime.now()
+        
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
+        logger.info(f'Finished training original , now augmentated...')
+        for a in train_loaders.keys():
+            ae = train(ae, T_train_loaders[a], T_val_loaders[a], device, num_classes)
+            logger.info(f'Finished training {a}')
+        timestamp = datetime.now()
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EGM.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
 
-        filename = f"./saved_features/reconstructed/VAE_{args.models.EMG.lr}_{timestamp}"
-        reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
+        filename = f"../drive/MyDrive/reconstructed/VAE_{args.models.EMG.lr}_{timestamp}"
+        reconstructed_features, results = reconstruct(ae, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
-    
-
-def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None, debug = False):
+       
+def reconstruct(autoencoder, dataloader, device, split=None, save = False, filename = None, debug = False, aug = None):
     result = {'features': []}
     # for debugging purpose, I introduce also a loss in reconstruction
     reconstruction_loss = nn.MSELoss()
@@ -184,9 +214,17 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
                 clips = clips.squeeze(0)
                 # logger.debug(f"Reconstruction loss: {reconstruction_loss(data[m], clips)}")
                 result['features'].append({'features_EMG': clips.numpy(), 'label': label.item(), 'uid': uid.item(), 'video_name': video_name})
+    
+     
+        
     if save:    
-        with open(f"{filename}_D1_{split}.pkl", "wb") as file:
-            pickle.dump(result, file)
+        if aug:
+            filename = str('../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
+            pickle.dump(result, open(filename, 'wb'))
+        else:
+            pickle.dump(result, open(os.path.join("../drive/MyDrive/ACTIONNET_EMG/", args.name + "_" +
+                                                        ('train' if train else 'test') + "_" +
+                                                        args.split + ".pkl"), 'wb'))
     if debug:
         return result, {'total_loss': avg_video_level_loss, 'avg_loss': avg_video_level_loss/len(dataloader)}
     else:
