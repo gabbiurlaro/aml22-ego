@@ -248,7 +248,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
-            logger.info(f"Data size: {data[m].shape}")
+            logger.info(f"Data size: {data[m].squeeze(1).shape}")
             data[m] = data[m].squeeze().permute(1, 0, 2)
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
