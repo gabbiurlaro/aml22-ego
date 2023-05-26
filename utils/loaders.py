@@ -443,10 +443,7 @@ class ActionNetDataset(data.Dataset, ABC):
         # notice that it is already converted into a EpicVideoRecord object so that here you can access
         # all the properties of the sample easily
         record = self.video_list[index]
-        #logger.info(f'yo :{self.model_features[self.model_features["uid"] == int(record.uid)]}')
-        
-        #logger.info(f"yoyo {len(sample_row)} {sample_row['features_EMG'].shape}")
-
+       
         if self.load_feat:
             sample = {}
             sample_row = self.model_features[self.model_features["uid"] == int(record.uid)]
