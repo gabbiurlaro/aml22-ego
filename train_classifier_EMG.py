@@ -126,10 +126,10 @@ def main():
                 train_loaders = {}
                 val_loaders = {}
                 _features= { 
-                            'WD-MW': 'aug_D/Augmented_dataset_clipWD-MW', 
-                            'MW': 'aug_D/Augmented_dataset_clipMW',
-                            'WD': 'aug_D/Augmented_dataset_clipWD', 
-                            'MW-WD': 'aug_D/Augmented_dataset_clipMW-WD',
+                            'WD-MW': 'aug-D/Augmented_dataset_clipWD-MW', 
+                            'MW': 'aug-D/Augmented_dataset_clipMW',
+                            'WD': 'aug-D/Augmented_dataset_clipWD', 
+                            'MW-WD': 'aug-D/Augmented_dataset_clipMW-WD',
                             }
                 
                 for a in _features.keys():
