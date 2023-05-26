@@ -129,13 +129,12 @@ def main():
                                                                        None, load_feat=True, additional_info=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-        timestamp = datetime.now()
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
-        save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
-        logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}_{timestamp}.pth")
+        save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}")
+        logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
 
-        filename = f"./saved_features/reconstructed/VAE_{args.models.RGB.lr}_{timestamp}"
+        filename = f"{args.models.RGB.model}_{args.models.RGB.lr}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
@@ -173,8 +172,13 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
                 clips = clips.squeeze(0)
                 # logger.debug(f"Reconstruction loss: {reconstruction_loss(data[m], clips)}")
                 result['features'].append({'features_RGB': clips.numpy(), 'label': label.item(), 'uid': uid.item(), 'video_name': video_name})
-    if save:    
-        with open(f"{filename}_D1_{split}.pkl", "wb") as file:
+    if save:
+        ts = datetime.now()
+        date = str(ts.date())
+        if not os.path.isdir(os.path.join('./saved_features/reconstructed_RGB', date)):
+            os.mkdir(os.path.join('./saved_features/reconstructed_RGB', date))
+        filename = os.path.join('./saved_features/reconstructed_RGB', date, f"{filename}_{ts}_D1_{split}.pkl")
+        with open(filename, "wb") as file:
             pickle.dump(result, file)
     if debug:
         return result, {'total_loss': avg_video_level_loss, 'avg_loss': avg_video_level_loss/len(dataloader)}
@@ -274,7 +278,7 @@ def save_model(model, filename):
                 os.mkdir(os.path.join('./saved_models/VAE_RGB', date))
 
             filename = os.path.join('./saved_models/VAE_RGB', date, f"{filename}_{ts}.pth")
-            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_RGB', date, filename))
+            torch.save({'model_state_dict': model.state_dict()}, filename)
             logger.info(f"Model saved in {filename}")
         except Exception as e:
             logger.info("An error occurred while saving the checkpoint:")
