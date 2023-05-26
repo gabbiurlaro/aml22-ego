@@ -210,7 +210,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             
                 output, feat = model(data)
                 logits[m] = output[m]
-                logger.info(f'features: {type(feat)}, {feat.keys()}, {feat[0].shape}')
+                logger.info(f'features: {type(feat)}, {feat.keys()}, {type(feat[0])}')
                 exit(-1)
                 swap = [feat[i][m] for i in range(args.save.num_clips)]
                 #logger.info(f'swap: {len(swap)}, {swap[0].shape}')
