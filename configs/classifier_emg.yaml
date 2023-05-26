@@ -5,7 +5,7 @@ split: train
 resume_from: ???
 num_clips: 5
 wandb_name: 'EMG_classification'
-augmentation: True
+augmentation: False
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
