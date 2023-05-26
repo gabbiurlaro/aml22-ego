@@ -125,11 +125,11 @@ def main():
             if args.augmentation:
                 train_loaders = {}
                 val_loaders = {}
-                _features= {
-                            'WD-MW': 'aug_D/ActionNet_augmented_clips_WD-MW', 
-                            'MW': 'aug_D/ActionNet_augmented_clips_MW',
-                            'WD': 'aug_D/ActionNet_augmented_clips_WD', 
-                            'MW-WD': 'aug_D/ActionNet_augmented_clips_MW-WD',
+                _features= { 
+                            'WD-MW': 'aug_D/Augmented_dataset_clipWD-MW', 
+                            'MW': 'aug_D/Augmented_dataset_clipMW',
+                            'WD': 'aug_D/Augmented_dataset_clipWD', 
+                            'MW-WD': 'aug_D/Augmented_dataset_clipMW-WD',
                             }
                 
                 for a in _features.keys():
@@ -269,7 +269,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
 
         os.makedirs("saved_features", exist_ok=True)
         if aug:
-            filename = str('./saved_features/EXTRACTED_FEATURES_AUG/' + 'Augmented_features_' +aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
+            filename = str('./saved_features/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' +aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
             pickle.dump(results_dict, open(filename, 'wb'))
         else:
             pickle.dump(results_dict, open(os.path.join("./saved_features/ACTIONNET_EMG/", args.name + "_" +
