@@ -349,7 +349,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     - "Understanding disentangling in β-VAE" by Burgess et al.
     """
     # beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
-    beta = costant_scheduler(1.0/(100*1024), model_args.epochs)
+    beta = costant_scheduler(100, model_args.epochs)
     for epoch in range(model_args.epochs):
         # train_loop
         total_loss = 0 # total loss for the epoch

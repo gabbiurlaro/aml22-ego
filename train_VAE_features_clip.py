@@ -129,12 +129,13 @@ def main():
                                                                        None, load_feat=True, additional_info=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         save_model(ae['RGB'], f"{args.name}_lr{args.models.RGB.lr}")
         logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
 
-        filename = f"{args.models.RGB.model}_{args.models.RGB.lr}"
+        filename = f"{args.models.RGB.model}_{args.models.RGB.lr}_{args.name}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
@@ -202,6 +203,22 @@ def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
 def costant_scheduler(value = 1, n_epoch = 200):
     return np.ones(n_epoch) * value
 
+def frange_cycle_sigmoid(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # step is in [0,1]
+    
+    # transform into [-6, 6] for plots: v*12.-6.
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop:
+            L[int(i+c*period)] = 1.0/(1.0+ np.exp(- (v*12.-6.)))
+            v += step
+            i += 1
+    return L    
+
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
     autoencoder.train(False)
@@ -235,8 +252,10 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     We can use a beta scheduler to increase the weight of the KLD loss, as described in the paper 
     - "Understanding disentangling in β-VAE" by Burgess et al.
     """
-    # beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
-    beta = costant_scheduler(1.0/(100*1024), model_args.epochs)
+    # beta = np.concatenate((costant_scheduler(1/(100*1024), model_args.epochs//2), frange_cycle_sigmoid(0, 1.0, model_args.epochs//2, n_cycle=1)))
+    # beta = np.ones(model_args.epochs) - frange_cycle_sigmoid(1/(100*1024), 1, model_args.epochs, n_cycle=10, ratio=.001)
+    # beta = costant_scheduler(1/(100*1024), model_args.epochs)
+    beta = np.concatenate((costant_scheduler(1/(100 * 1024), (model_args.epochs//5)*4), frange_cycle_linear(1/(100 * 1024), .5, (model_args.epochs//5)*1, n_cycle=1, ratio=.001)))
     for epoch in range(model_args.epochs):
         # train_loop
         total_loss = 0 # total loss for the epoch
@@ -255,15 +274,15 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
                     mse_loss = reconstruction_loss(x_hat, clip)                             #  compute the reconstruction loss
                     kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())  #  compute the KLD loss
-                    loss = mse_loss + beta[epoch]*kld_loss
+                    loss = mse_loss + beta[epoch] * kld_loss
                     # generate an error if loss is nan
                     if loss.isnan():
                         raise ValueError("Loss is NaN.")
                     clip_level_loss += loss
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
                 clip_level_loss.backward()
+                opt.step()
             total_loss += clip_level_loss.item()
-            opt.step()
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})
         print(f"[{epoch+1}/{model_args.epochs}] - Total loss: {total_loss}")
