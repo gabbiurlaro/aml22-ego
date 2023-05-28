@@ -104,57 +104,89 @@ def main():
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{datetime.now()}.pth")
 
     elif args.action == "save":
+        args.dataset.EMG.features_name = '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction'
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                    batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       None, load_feat=True, additional_info=True),
+                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                    batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         last_model = args.resume_from
         logger.info(f"Loading last model from {last_model}")
         load_model(models['EMG'], last_model)
         logger.info(f"Reconstructing features...")
-        filename = f"./saved_features/reconstructed/VAE_{args.models.EMG.lr}_{datetime.now()}"
+
+        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}"
         reconstructed_features, output = reconstruct(models, loader, device, "train", save = True, filename=filename, debug=True)
         logger.debug(f"Train Output {output}")
         reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
         logger.debug(f"Test Output {output}")
 
     elif args.action == "train_and_save":
-        train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True),
-                                                   batch_size=args.batch_size, shuffle=True,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+        if args.augmentation:
+            train_loaders = {}
+            val_loaders = {}
+            _features= { '0': '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction',
+                        'WD-MW': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW-WD', 
+                        'MW': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW',
+                        'WD': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_WD', 
+                        'MW-WD': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW-WD',
+                        }
+            
+            for a in _features.keys():
+                args.dataset.EMG.features_name = _features[a]
+                train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                            'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                            transform=transform, load_feat=True, kwargs={'aug': True}),
+                                                        batch_size=args.batch_size, shuffle=False,
+                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
+        else:
+                train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                                'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                                transform=transform, load_feat=True, kwargs={'aug': True}),
+                                                            batch_size=args.batch_size, shuffle=True,
+                                                            num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+
+                val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                                'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                                transform=transform, load_feat=True, kwargs={'aug': True}),
+                                                            batch_size=args.batch_size, shuffle=True,
+                                                            num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
+        args.dataset.EMG.features_name = '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction'
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True),
-                                                 batch_size=args.batch_size, shuffle=True,
-                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                                                                       transform=transform, load_feat=True,kwargs={'aug': True} ),
+                                                   batch_size=1, shuffle=False,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True, additional_info=True),
+                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                    batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True, additional_info=True),
+                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                    batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         timestamp = datetime.now()
-        ae = train(models, train_loader, val_loader, device, args.models.EMG)
+        if args.augmentation:
+            ae = models
+            for a in train_loaders.keys():
+                ae = train_aug(ae, train_loaders[a], train_loaders['0'], val_loader, device, args.models.EMG)
+        else:
+            ae = train(models, train_loader, val_loader, device, args.models.EMG)
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
-
-        filename = f"./saved_features/reconstructed/VAE_{args.models.EMG.lr}_{timestamp}"
+        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}_{timestamp}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
@@ -170,7 +202,7 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
             for m in modalities:
                 autoencoder[m].train(False)
                 # logger.debug(f"Data shape(before squeeze): {data[m].shape}")
-                data[m] = data[m].permute(1, 0, 2)     #  clip level
+                data[m] = data[m].squeeze(1).permute(1, 0, 2)     #  clip level
                 # logger.debug(f"Data shape(after squeeze): {data[m].shape}")
                 clips = []
                 clip_loss = 0
@@ -219,7 +251,8 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     autoencoder.train(False)
     for i, (data, labels) in enumerate(val_dataloader):
         for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
+            logger.info(f"Data size: {data[m].squeeze(1).shape}")
+            data[m] = data[m].squeeze(1).permute(1, 0, 2)
             # print(f"Data after permutation: {data[m].size()}")
         for i_c in range(args.test.num_clips):
             for m in modalities:
@@ -233,7 +266,7 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
             
     return total_loss/len(val_dataloader)
 
-def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
+def train_aug(autoencoder, train_a_dataloader, train_o_dataloader, val_dataloader, device, model_args):
     logger.info(f"Start VAE training.")
 
     for m in modalities:
@@ -243,7 +276,78 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
-    reconstruction_loss = nn.MSELoss(reduction='mean')
+    reconstruction_loss = nn.MSELoss()
+
+    autoencoder['EMG'].train(True)
+
+   #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
+    beta = [0 for _ in range(model_args.epochs)]
+    weights = {'mse': [1]*model_args.epochs ,#frange_cycle_linear(0.5, 1.0, model_args.epochs, n_cycle=2), #list([1 for _ in range(25)] + [1 -0.3*i/75 for i in range(75)]),
+                'kld': [1]*model_args.epochs } 
+    #list([1 for _ in range(50)] + [1 - 0.2*i/75 for i in range(50)])}
+    print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
+    
+    for epoch in range(model_args.epochs):
+        total_loss = 0
+        for i, ((data_a, _), (data_o, _)) in enumerate(zip(train_a_dataloader, train_o_dataloader)):
+            opt.zero_grad()
+
+            for m in modalities:
+               # data[m] = torch.stack(data[m])
+                logger.info(f"Data size: {data_a[m].shape}")
+                
+                data_a[m] = data_a[m].squeeze().permute(1, 0, 2) # Data is now in the form (clip, batch, features)
+                # print(f"Data after permutation: {data[m].size()}")
+                #logger.info(f"Data size: {data_o[m].shape}")
+                data_o[m] = data_o[m].squeeze().permute(1, 0, 2)
+            for i_c in range(args.test.num_clips):
+                clip_level_loss = 0
+                for m in modalities:
+                    # extract the clip related to the modality
+                    
+                    clip_a = data_a[m][i_c].to(device)
+                    clip_o = data_o[m][i_c].to(device)
+                    
+                    
+                    # if np.random.rand() < 0.3:
+                    #         noise = torch.randn(clip.size()).to(device)
+                    #         clip = clip + noise_level * noise
+                    
+                    x_hat_a, _, mean_a, log_var_a = autoencoder[m](clip_a)
+
+                    mse_loss = reconstruction_loss(x_hat_a, clip_o)
+
+                    kld_loss = -0.5 * torch.sum(1 + log_var_a - mean_a.pow(2) - log_var_a.exp())
+
+                    loss = mse_loss + (0.01*1/1024 )*kld_loss
+                    
+                    loss.backward()
+
+                    # generate an error if loss is nan
+                    if loss.isnan():
+                        raise ValueError("Loss is NaN.")
+                    clip_level_loss += loss
+                    wandb.log({"MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
+            total_loss += clip_level_loss.item()
+            opt.step()
+
+        if epoch % 10 == 0:
+            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss), 'weight mse:' : weights['mse'][epoch], 'weight kld': weights['kld'][epoch]})
+        print(f"[{epoch+1}/{model_args.epochs}] - Loss: {total_loss/(args.test.num_clips * len(train_a_dataloader))}")
+        scheduler.step()
+    return autoencoder
+
+def train(autoencoder,train_dataloader, val_dataloader, device, model_args):
+    logger.info(f"Start VAE training.")
+
+    for m in modalities:
+        autoencoder[m].load_on(device)
+
+    opt = build_optimizer(autoencoder['EMG'], "adam", model_args.lr)
+
+    scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
+
+    reconstruction_loss = nn.MSELoss()
 
     autoencoder['EMG'].train(True)
 
@@ -258,11 +362,14 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     for epoch in range(model_args.epochs):
         total_loss = 0
-        for i, (data, _) in enumerate(train_dataloader):
+        for i, ((data_a, _), (data_o, _)) in enumerate(zip(train_a_dataloader, train_o_dataloader)):
             opt.zero_grad()        
             for m in modalities:
+               # data[m] = torch.stack(data[m])
+                logger.info(f"Data size: {data[m].shape}")
                 data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
                 # print(f"Data after permutation: {data[m].size()}")
+                
             for i_c in range(args.test.num_clips):
                 clip_level_loss = 0
                 for m in modalities:
@@ -290,7 +397,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.step()
 
         if epoch % 10 == 0:
-            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss), 'weight mse:' : weights['mse'][epoch], 'weight kld': weights['kld'][epoch]})
+            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_o_dataloader, device, reconstruction_loss), 'weight mse:' : weights['mse'][epoch], 'weight kld': weights['kld'][epoch]})
         print(f"[{epoch+1}/{model_args.epochs}] - Loss: {total_loss/(args.test.num_clips * len(train_dataloader))}")
         scheduler.step()
     return autoencoder

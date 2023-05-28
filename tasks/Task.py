@@ -115,7 +115,8 @@ class Task(torch.nn.Module, metaclass=ABCMeta):
                                 self.name == x.name.split('.')[0].split('_')[-3], saved_models))[0].name
             model_path = os.path.join(last_models_dir, model)
             logger.info('Restoring {} for modality {} from {}'.format(self.name, m, model_path))
-            checkpoint = torch.load(model_path)
+            checkpoint = torch.load(model_path) if torch.cuda.is_available() else torch.load(model_path,
+                                                                                             map_location='cpu')
 
             self.current_iter = checkpoint['iteration']
             self.best_iter = checkpoint['best_iter']
