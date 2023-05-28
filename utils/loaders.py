@@ -324,7 +324,8 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
-
+        self.require_spectrogram = kwargs['require_spectrogram']
+        
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
         else:
@@ -481,47 +482,48 @@ class ActionNetDataset(data.Dataset, ABC):
 
     def get(self, modality, record, indices):
         if modality == 'EMG':
-            # n_fft control the number of frequency bin bin=n_fft // 2+1
-            n_fft = 2*(self.num_frames_per_clip[modality] - 1)
-            win_length = None
-            hop_length = 1
-            # print(f'nfft +{n_fft}')
-            spectrogram = T.Spectrogram(
-                n_fft=n_fft,
-                win_length=win_length,
-                hop_length=hop_length,
-                center=False,
-                pad_mode="reflect",
-                power=2.0,
-                normalized=True
-            )
-            
-            # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
             readings = {
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-
-            # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
-            freq = {}
-            result = []
-            if indices[-1] > len(readings['left']):
-                print("NON SI PUòòòò")
-                exit(9)
-            for arm in ['left', 'right']:
-                signal = torch.from_numpy(readings[arm]).float()
-                #print(signal)
-                freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
-                for channel in freq[arm]:
-                    # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
-                    # print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    result.append(torch.stack([channel[:, i] for i in indices]))
-            result = torch.stack(result)
+            if self.require_spectrogram:
+            
+                # n_fft control the number of frequency bin bin=n_fft // 2+1
+                n_fft = 2*(self.num_frames_per_clip[modality] - 1)
+                win_length = None
+                hop_length = 1
+                # print(f'nfft +{n_fft}')
+                spectrogram = T.Spectrogram(
+                    n_fft=n_fft,
+                    win_length=win_length,
+                    hop_length=hop_length,
+                    center=False,
+                    pad_mode="reflect",
+                    power=2.0,
+                    normalized=True
+                )
+                # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
+                # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
+                freq = {}
+                result = []
+                if indices[-1] > len(readings['left']):
+                    print("NON SI PUòòòò")
+                    exit(9)
+                for arm in ['left', 'right']:
+                    signal = torch.from_numpy(readings[arm]).float()
+                    #print(signal)
+                    freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
+                    for channel in freq[arm]:
+                        # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
+                        # print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
+                        # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
+                        result.append(torch.stack([channel[:, i] for i in indices]))
+                spectrograms = torch.stack(result)
+            process_data = torch.Tensor([readings["left"], readings["right"]])
 
             if self.transform is None:
-                return result, record.label
-            process_data = self.transform[modality](result)
+                return process_data, record.label
+            process_data = self.transform[modality](process_data)
             return process_data, record.label
 
         else:
