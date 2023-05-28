@@ -1,5 +1,6 @@
 import glob
 import math
+from multiprocessing import process
 import torch
 import torchaudio
 import torchaudio.transforms as T
@@ -324,7 +325,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
-        self.require_spectrogram = kwargs['require_spectrogram']
+        self.require_spectrogram = kwargs
         
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
@@ -486,6 +487,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
+
             if self.require_spectrogram:
             
                 # n_fft control the number of frequency bin bin=n_fft // 2+1
@@ -519,6 +521,7 @@ class ActionNetDataset(data.Dataset, ABC):
                         # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
                         result.append(torch.stack([channel[:, i] for i in indices]))
                 spectrograms = torch.stack(result)
+                process_data = spectrograms
             process_data = torch.Tensor([readings["left"], readings["right"]])
 
             if self.transform is None:
