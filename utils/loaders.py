@@ -578,7 +578,7 @@ class Basic_Transform:
         logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
 
         # Rectify the signal on each channel
-        rectified_signal = torch.Tensor.int(torch.abs(emg_signal))   
+        rectified_signal = torch.abs(emg_signal)
         logger.info(f'yo4!: {len(rectified_signal)}, {rectified_signal[0]} {rectified_signal}')
          
           # Design a low-pass filter using a cutoff frequency of 5Hz
@@ -589,7 +589,7 @@ class Basic_Transform:
         filtered_signal = torch.zeros_like(rectified_signal)
         for channel_idx in range(filtered_signal.shape[1]):
             print(f'yo5!: {channel_idx}, {rectified_signal[channel_idx][0]}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
-            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], cutoff_freq=normalized_cutoff, sample_rate=10, Q=0.707)         
+            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx].float(), cutoff_freq=normalized_cutoff, sample_rate=10, Q=0.707)         
           # Jointly normalize the signal across all channels using the minimum and maximum values
         min_value = filtered_signal.min()
         max_value = filtered_signal.max()
