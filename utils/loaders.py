@@ -487,9 +487,9 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-            process_data = torch.Tensor([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))])
+            process_data = torch.Tensor(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
             if self.transform is not None:
-                process_data = self.transform[modality](process_data)
+                process_data = self.transform(process_data)
 
             if self.require_spectrogram:
             
