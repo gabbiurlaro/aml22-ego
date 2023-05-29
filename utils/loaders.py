@@ -489,7 +489,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-            print(type(self.transform))
+            print(self.transform)
             process_data = torch.Tensor(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
             
             if self.transform is not None:
