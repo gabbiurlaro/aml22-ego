@@ -514,9 +514,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 )
                 # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
                 # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
-                if indices[-1] > len(readings['left']):
-                    print('no')
-                    exit(-1)
+                
                 freq = {}
                 result = []
                 for i in range(16):
