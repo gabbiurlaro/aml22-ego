@@ -586,6 +586,7 @@ class Basic_Transform:
         # Apply the low-pass filter to each channel
         filtered_signal = torch.zeros_like(rectified_signal)
         for channel_idx in range(filtered_signal.shape[0]):
+            print(f'yo4!: {channel_idx}')
             filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], normalized_cutoff, filter_order)         
           # Jointly normalize the signal across all channels using the minimum and maximum values
         min_value = filtered_signal.min()
