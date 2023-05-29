@@ -518,6 +518,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 freq = {}
                 result = []
                 for i in range(16):
+                    print(f'process_data_i!: {process_data[i].shape}')
                     signal = spectrogram(process_data[i])
                     result.append(torch.stack([signal[j] for j in indices]))
                 spectrograms = torch.stack(result)
