@@ -2,7 +2,6 @@ import glob
 import math
 from multiprocessing import process
 import torch
-import torchvision.transforms.v2 as transforms
 import torchaudio
 import torchaudio.transforms as T
 import torchaudio.functional as F
@@ -493,7 +492,8 @@ class ActionNetDataset(data.Dataset, ABC):
             process_data = torch.from_numpy(np.array([np.array(readings[arm][i]) for arm in readings.keys() for i in range(len(readings[arm]))]))
             
             if self.transform is not None:
-                process_data = self.transform(process_data)
+                #process_data = self.transform(process_data)
+                pass
 
             if self.require_spectrogram:
             
