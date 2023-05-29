@@ -514,15 +514,14 @@ class ActionNetDataset(data.Dataset, ABC):
                 )
                 # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
                 # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
+                if indices[-1] > len(readings['left']):
+                    print('no')
+                    exit(-1)
                 freq = {}
                 result = []
                 for i in range(16):
                     signal = spectrogram(process_data[i])
-                    for channel in freq[arm]:
-                        # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
-                        # print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                        # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                        result.append(torch.stack([channel[:, i] for i in indices]))
+                    result.append(signal )
                 spectrograms = torch.stack(result)
                 process_data = {'features' : spectrograms, 'readings' : process_data}
             
