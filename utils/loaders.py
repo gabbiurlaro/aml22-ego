@@ -573,13 +573,13 @@ class Basic_Transform:
     def __call__(self, sample):
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
-        logger.info(f'yo2!: {sample.shape}')
+        #logger.info(f'yo2!: {sample.shape}')
         emg_signal = sample.reshape(16, -1)  # Reshape to (16, 1024)
-        logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
+        #logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
 
         # Rectify the signal on each channel
         rectified_signal = torch.abs(emg_signal)
-        logger.info(f'yo4!: {len(rectified_signal)}, {rectified_signal[0]} {rectified_signal}')
+        #logger.info(f'yo4!: {len(rectified_signal)}, {rectified_signal[0]} {rectified_signal}')
          
           # Design a low-pass filter using a cutoff frequency of 5Hz
         cutoff_freq = 5.0
@@ -587,8 +587,8 @@ class Basic_Transform:
         normalized_cutoff = int(cutoff_freq / nyquist_freq)          
         # Apply the low-pass filter to each channel
         filtered_signal = torch.zeros_like(rectified_signal)
-        for channel_idx in range(filtered_signal.shape[1]):
-            print(f'yo5!: {channel_idx}, {rectified_signal[channel_idx][0]}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
+        for channel_idx in range(filtered_signal.shape[0]):
+            #print(f'yo5!: {channel_idx}, {rectified_signal[channel_idx][0]}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
             filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx].float(), cutoff_freq=normalized_cutoff, sample_rate=10, Q=0.707)         
           # Jointly normalize the signal across all channels using the minimum and maximum values
         min_value = filtered_signal.min()
