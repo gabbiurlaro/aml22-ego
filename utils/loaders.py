@@ -586,7 +586,7 @@ class Basic_Transform:
         filtered_signal = torch.zeros_like(rectified_signal)
         for channel_idx in range(filtered_signal.shape[0]):
             print(f'yo4!: {channel_idx}')
-            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], cutoff_freq=normalized_cutoff, sample_freq=10.0, Q=0.707)         
+            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], cutoff_freq=normalized_cutoff, sample_rate=10.0, Q=0.707)         
           # Jointly normalize the signal across all channels using the minimum and maximum values
         min_value = filtered_signal.min()
         max_value = filtered_signal.max()
