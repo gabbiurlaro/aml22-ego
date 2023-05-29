@@ -444,7 +444,7 @@ class ActionNetDataset(data.Dataset, ABC):
             return frame_idx
 
     def __getitem__(self, index):
-        print(type(self.transform))
+        
         frames = {}
         label = None
         # record is a row of the pkl file containing one sample/action
@@ -489,7 +489,9 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
+            print(type(self.transform))
             process_data = torch.Tensor(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
+            
             if self.transform is not None:
                 process_data = self.transform(process_data)
 
