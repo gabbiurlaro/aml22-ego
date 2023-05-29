@@ -337,8 +337,7 @@ class ActionNetDataset(data.Dataset, ABC):
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
-        logger.info(f"{transform}")
-
+        
         self.transform = transform
         self.load_feat = load_feat
     
