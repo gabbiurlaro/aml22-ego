@@ -521,7 +521,7 @@ class ActionNetDataset(data.Dataset, ABC):
                     signal = spectrogram(process_data[i])
                     result.append(signal )
                 spectrograms = torch.stack(result)
-                process_data = {'features' : spectrograms, 'readings' : process_data}
+                process_data = spectrograms
             
             
             return process_data, record.label
