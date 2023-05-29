@@ -491,8 +491,6 @@ class ActionNetDataset(data.Dataset, ABC):
             }
             process_data = torch.from_numpy(np.array([readings[arm][:][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
             logger.info(f'yo!: {process_data.shape}')
-            print(readings['left'].shape)
-            process_data = torch.from_numpy(np.array([np.array(readings[arm][i]) for arm in readings.keys() for i in range(len(readings[arm]))]))
             
             if self.transform is not None:
                 process_data = self.transform(process_data)
