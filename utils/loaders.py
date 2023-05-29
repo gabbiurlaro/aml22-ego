@@ -490,7 +490,6 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-            print(readings['left'].shape)
             process_data = torch.from_numpy(np.array([np.array(readings[arm][i]) for arm in readings.keys() for i in range(len(readings[arm]))]))
             
             if self.transform is not None:
