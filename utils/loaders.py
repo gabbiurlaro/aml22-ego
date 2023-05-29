@@ -550,7 +550,7 @@ class ActionNetDataset(data.Dataset, ABC):
         def __call__(self, sample):
             # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
             # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
-            emg_signal = emg_signal['EMG'].reshape(16, -1)  # Reshape to (16, 1024)
+            emg_signal = sample['EMG'].reshape(16, -1)  # Reshape to (16, 1024)
             # Rectify the signal on each channel
             rectified_signal = torch.abs(emg_signal)            
               # Design a low-pass filter using a cutoff frequency of 5Hz
