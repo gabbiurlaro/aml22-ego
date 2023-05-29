@@ -515,13 +515,8 @@ class ActionNetDataset(data.Dataset, ABC):
                 # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
                 freq = {}
                 result = []
-                if indices[-1] > len(readings['left']):
-                    print("NON SI PUòòòò")
-                    exit(9)
-                for arm in ['left', 'right']:
-                    signal = torch.from_numpy(readings[arm]).float()
-                    #print(signal)
-                    freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
+                for i in range(16):
+                    signal = spectrogram(process_data[i])
                     for channel in freq[arm]:
                         # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
                         # print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
@@ -577,7 +572,7 @@ class Basic_Transform:
     def __call__(self, sample):
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
-        emg_signal = sample['EMG'].reshape(16, -1)  # Reshape to (16, 1024)
+        emg_signal = sample.reshape(16, -1)  # Reshape to (16, 1024)
         # Rectify the signal on each channel
         rectified_signal = torch.abs(emg_signal)            
           # Design a low-pass filter using a cutoff frequency of 5Hz
