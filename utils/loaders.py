@@ -494,10 +494,8 @@ class ActionNetDataset(data.Dataset, ABC):
             
             if self.transform is not None:
                 process_data = self.transform(process_data)
-                pass
 
             if self.require_spectrogram:
-            
                 # n_fft control the number of frequency bin bin=n_fft // 2+1
                 n_fft = 2*(self.num_frames_per_clip[modality] - 1)
                 win_length = None
