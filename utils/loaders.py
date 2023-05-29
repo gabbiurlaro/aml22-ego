@@ -337,7 +337,7 @@ class ActionNetDataset(data.Dataset, ABC):
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
-        self.transform = transform  # pipeline of transforms
+        self.transform = self.Basic_Transform if transform   else None # pipeline of transforms
         self.load_feat = load_feat
         
         
@@ -487,6 +487,9 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
+            process_data = torch.Tensor([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))])
+            if self.transform is not None:
+                process_data = self.transform[modality](process_data)
 
             if self.require_spectrogram:
             
@@ -521,12 +524,9 @@ class ActionNetDataset(data.Dataset, ABC):
                         # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
                         result.append(torch.stack([channel[:, i] for i in indices]))
                 spectrograms = torch.stack(result)
-                process_data = spectrograms
-            process_data = torch.Tensor([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))])
-
-            if self.transform is None:
-                return process_data, record.label
-            process_data = self.transform[modality](process_data)
+                process_data = {'features' : spectrograms, 'readings' : process_data}
+            
+            
             return process_data, record.label
 
         else:
@@ -542,7 +542,32 @@ class ActionNetDataset(data.Dataset, ABC):
             process_data = self.transform[modality](images)
             return process_data, record.label
 
-
+    class Basic_Transform:   
+        def __init__(self):
+            pass
+        
+        def __call__(self, sample):
+            # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
+            # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
+            emg_signal = emg_signal['EMG'].reshape(16, -1)  # Reshape to (16, 1024)
+            # Rectify the signal on each channel
+            rectified_signal = torch.abs(emg_signal)            
+              # Design a low-pass filter using a cutoff frequency of 5Hz
+            cutoff_freq = 5.0
+            nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
+            normalized_cutoff = cutoff_freq / nyquist_freq
+            filter_order = 3  # Adjust filter order as per your requirements            
+            # Apply the low-pass filter to each channel
+            filtered_signal = torch.zeros_like(rectified_signal)
+            for channel_idx in range(filtered_signal.shape[0]):
+                filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], normalized_cutoff, filter_order)         
+              # Jointly normalize the signal across all channels using the minimum and maximum values
+            min_value = filtered_signal.min()
+            max_value = filtered_signal.max()
+            normalized_signal = 2 * (filtered_signal - min_value) / (max_value - min_value) - 1
+           
+            return normalized_signal
+            
     def _load_data(self, modality, record, idx):
         data_path = self.dataset_conf[modality].data_path
         tmpl = self.dataset_conf[modality].tmpl
