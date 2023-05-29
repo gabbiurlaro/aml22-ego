@@ -340,6 +340,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         self.transform = transforms.Compose([self.Basic_Transform]) if transform   else None # pipeline of transforms
         self.load_feat = load_feat
+        print(type(self.transform))
         
         
 
