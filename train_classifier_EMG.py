@@ -62,7 +62,7 @@ def main():
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
-        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, args.num_clips)
+        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, 10)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
@@ -276,7 +276,7 @@ def main():
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
             logger.info(f'Finished extracting train features, now exiting...')
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                    'test', args.dataset, {'EMG': 32}, 10, {'EMG': False},
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
@@ -286,18 +286,18 @@ def main():
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                        'train', args.dataset, {'EMG': 32}, 10, {'EMG': False},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                        'test', args.dataset,  {'EMG': 32}, 5, {'EMG': False},
+                                                                        'test', args.dataset,  {'EMG': 32}, 10, {'EMG': False},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                 'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                 'train', args.dataset, {'EMG': 32}, 10, {'EMG': False},
                                                                        transform=transform, load_feat=False, additional_info=True,
                                                                 kwargs={"save": args.split}),
                                             batch_size=1, shuffle=False,
