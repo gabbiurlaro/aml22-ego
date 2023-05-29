@@ -474,10 +474,10 @@ class ActionNetDataset(data.Dataset, ABC):
                 # here the testing indexes are obtained with no randomization, i.e., centered
                 segment_indices[modality] = self._get_val_indices(record, modality)
 
-        # for m in self.modalities:
-        #     img, label = self.get(m, record, segment_indices[m])
-        #     frames[m] = img
-        frames = []
+        for m in self.modalities:
+            img, label = self.get(m, record, segment_indices[m])
+            frames[m] = img
+       
 
         if self.additional_info:
             return frames, label, record.untrimmed_video_name, record.uid
@@ -490,10 +490,10 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-            #process_data = torch.from_numpy(np.array([np.array(readings[arm][i]) for arm in readings.keys() for i in range(len(readings[arm]))]))
+            process_data = torch.from_numpy(np.array([np.array(readings[arm][i]) for arm in readings.keys() for i in range(len(readings[arm]))]))
             
             if self.transform is not None:
-                #process_data = self.transform(process_data)
+                process_data = self.transform(process_data)
                 pass
 
             if self.require_spectrogram:
