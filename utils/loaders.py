@@ -492,7 +492,7 @@ class ActionNetDataset(data.Dataset, ABC):
             }
             
             process_data = torch.from_numpy(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
-            logger.info(f'yo1!: {process_data.shape}')
+            #logger.info(f'yo1!: {process_data.shape}')
             #process_data = readings
             if self.transform is not None:
                 process_data = self.transform(process_data)
@@ -518,9 +518,9 @@ class ActionNetDataset(data.Dataset, ABC):
                 freq = {}
                 result = []
                 for i in range(16):
-                    print(f'process_data_i!: {process_data[i].shape}')
+                   # print(f'process_data_i!: {process_data[i].shape}')
                     signal = spectrogram(process_data[i])
-                    print(f'signal!: {signal.shape}')
+                   # print(f'signal!: {signal.shape}')
                     result.append(torch.stack([signal[:, j] for j in indices]))
                 
                 spectrograms = torch.stack(result)
