@@ -360,8 +360,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 else:
                     self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
                 self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
-        
-    
+         
     def _get_train_indices(self, record, modality='RGB'):
         if self.dense_sampling[modality]:
             # selecting one frame and discarding another (alternation), to avoid duplicates
@@ -475,9 +474,10 @@ class ActionNetDataset(data.Dataset, ABC):
                 # here the testing indexes are obtained with no randomization, i.e., centered
                 segment_indices[modality] = self._get_val_indices(record, modality)
 
-        for m in self.modalities:
-            img, label = self.get(m, record, segment_indices[m])
-            frames[m] = img
+        # for m in self.modalities:
+        #     img, label = self.get(m, record, segment_indices[m])
+        #     frames[m] = img
+        frames = []
 
         if self.additional_info:
             return frames, label, record.untrimmed_video_name, record.uid
