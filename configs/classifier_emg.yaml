@@ -5,7 +5,7 @@ split: train
 resume_from: ???
 num_clips: 5
 wandb_name: 'EMG_classification'
-augmentation: True
+augmentation: False
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
@@ -33,7 +33,7 @@ models:
     resolution: 224
     kwargs: {}
     lr_steps: 500 
-    epochs: 100
+    epochs: 10
     lr: 1e-2
     sgd_momentum: 0.9
     weight_decay: 5e-3
