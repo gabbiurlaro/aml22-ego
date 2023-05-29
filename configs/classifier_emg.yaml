@@ -3,7 +3,7 @@ name: ???
 shift: ActionNet-ActionNet
 split: train
 resume_from: ???
-num_clips: 5
+num_clips: 10
 wandb_name: 'EMG_classification'
 augmentation: False
 
