@@ -492,7 +492,7 @@ class ActionNetDataset(data.Dataset, ABC):
             }
             
             process_data = torch.from_numpy(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
-            #logger.info(f'yo1!: {process_data.shape}')
+            logger.info(f'yo1!: {process_data.shape}')
             #process_data = readings
             if self.transform is not None:
                 process_data = self.transform(process_data)
@@ -519,7 +519,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 result = []
                 for i in range(16):
                     signal = spectrogram(process_data[i])
-                    result.append(signal )
+                    result.append(torch.stack([signal[j] for j in indices]))
                 spectrograms = torch.stack(result)
                 process_data = spectrograms
             
