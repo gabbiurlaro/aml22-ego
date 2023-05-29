@@ -490,8 +490,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings,
                 'right': record.myo_right_readings
             }
-            logger.info(f"yo1 : {len(readings['left'])}")
-            process_data = torch.from_numpy(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
+            process_data = torch.from_numpy(np.array([readings[arm][:][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
             
             if self.transform is not None:
                 process_data = self.transform(process_data)
