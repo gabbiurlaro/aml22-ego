@@ -340,7 +340,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         self.transform = transforms.Compose([self.Basic_Transform]) if transform   else None # pipeline of transforms
         self.load_feat = load_feat
-        print(type(self.transform))
+        
         
         
 
@@ -444,7 +444,7 @@ class ActionNetDataset(data.Dataset, ABC):
             return frame_idx
 
     def __getitem__(self, index):
-
+        print(type(self.transform))
         frames = {}
         label = None
         # record is a row of the pkl file containing one sample/action
