@@ -345,7 +345,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
             label = label.to(device)
             #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
-                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,10,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
@@ -455,7 +455,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         for m in modalities:
             #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-            data[m] = data[m].reshape(-1,16,5,32,32)
+            data[m] = data[m].reshape(-1,16,10,32,32)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
@@ -518,7 +518,7 @@ def validate(model, val_loader, device, it, num_classes):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-                data[m] = data[m].reshape(-1,16,5,32,32)
+                data[m] = data[m].reshape(-1,16,10,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
