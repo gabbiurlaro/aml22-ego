@@ -522,7 +522,7 @@ class ActionNetDataset(data.Dataset, ABC):
                         result.append(torch.stack([channel[:, i] for i in indices]))
                 spectrograms = torch.stack(result)
                 process_data = spectrograms
-            process_data = torch.Tensor([readings["left"], readings["right"]])
+            process_data = torch.Tensor([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))])
 
             if self.transform is None:
                 return process_data, record.label
