@@ -548,7 +548,7 @@ class ActionNetDataset(data.Dataset, ABC):
 
     class Basic_Transform:   
         def __init__(self):
-            pass
+            self.transform = True
         
         def __call__(self, sample):
             # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
