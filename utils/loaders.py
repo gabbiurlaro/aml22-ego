@@ -338,8 +338,8 @@ class ActionNetDataset(data.Dataset, ABC):
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
-        t = Basic_Transform()
-        self.transform = transforms.Compose([t]) if transform   else None # pipeline of transforms
+        
+        self.transform = transform
         self.load_feat = load_feat
         
         
@@ -567,30 +567,3 @@ class ActionNetDataset(data.Dataset, ABC):
 
     def __len__(self):
         return len(self.video_list)
-    
-
-class Basic_Transform:   
-    def __init__(self):
-        self.transform = True
-    
-    def __call__(self, sample):
-        # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
-        # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
-        emg_signal = sample['EMG'].reshape(16, -1)  # Reshape to (16, 1024)
-        # Rectify the signal on each channel
-        rectified_signal = torch.abs(emg_signal)            
-          # Design a low-pass filter using a cutoff frequency of 5Hz
-        cutoff_freq = 5.0
-        nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
-        normalized_cutoff = cutoff_freq / nyquist_freq
-        filter_order = 3  # Adjust filter order as per your requirements            
-        # Apply the low-pass filter to each channel
-        filtered_signal = torch.zeros_like(rectified_signal)
-        for channel_idx in range(filtered_signal.shape[0]):
-            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], normalized_cutoff, filter_order)         
-          # Jointly normalize the signal across all channels using the minimum and maximum values
-        min_value = filtered_signal.min()
-        max_value = filtered_signal.max()
-        normalized_signal = 2 * (filtered_signal - min_value) / (max_value - min_value) - 1
-       
-        return normalized_signal
