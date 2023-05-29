@@ -520,6 +520,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 for i in range(16):
                     print(f'process_data_i!: {process_data[i].shape}')
                     signal = spectrogram(process_data[i])
+                    print(f'signal!: {signal.shape}')
                     result.append(torch.stack([signal[j] for j in indices]))
                 spectrograms = torch.stack(result)
                 process_data = spectrograms
