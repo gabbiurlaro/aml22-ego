@@ -577,7 +577,7 @@ class Basic_Transform:
         logger.info(f'yo3!: {emg_signal.shape}')
 
         # Rectify the signal on each channel
-        rectified_signal = int(torch.abs(emg_signal))            
+        rectified_signal = torch.int(torch.abs(emg_signal))            
           # Design a low-pass filter using a cutoff frequency of 5Hz
         cutoff_freq = 5.0
         nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
