@@ -575,7 +575,7 @@ class Basic_Transform:
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
         logger.info(f'yo2!: {sample.shape}')
         emg_signal = sample.reshape(16, -1)  # Reshape to (16, 1024)
-        logger.info(f'yo3!: {emg_signal.shape}')
+        logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
 
         # Rectify the signal on each channel
         rectified_signal = torch.Tensor.int(torch.abs(emg_signal))   
