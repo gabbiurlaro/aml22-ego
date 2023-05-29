@@ -581,11 +581,11 @@ class Basic_Transform:
           # Design a low-pass filter using a cutoff frequency of 5Hz
         cutoff_freq = 5.0
         nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
-        normalized_cutoff = float(cutoff_freq / nyquist_freq)          
+        normalized_cutoff = int(cutoff_freq / nyquist_freq)          
         # Apply the low-pass filter to each channel
         filtered_signal = torch.zeros_like(rectified_signal)
         for channel_idx in range(filtered_signal.shape[0]):
-            print(f'yo4!: {channel_idx}, {type(rectified_signal[channel_idx])}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
+            print(f'yo4!: {channel_idx}, {type(rectified_signal[channel_idx][0])}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
             filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx], cutoff_freq=normalized_cutoff, sample_rate=10, Q=0.707)         
           # Jointly normalize the signal across all channels using the minimum and maximum values
         min_value = filtered_signal.min()
