@@ -585,7 +585,8 @@ class Basic_Transform:
         filtered_data = torch.zeros_like(rectified_data)
        
         for i in range(filtered_data.shape[0]):
-            filtered_data[i, :] = torch.Tensor(lfilter(b, a, filtered_data[i, :]))
+            filtered_data[i, :] = torch.Tensor(lfilter(b, a, rectified_data[i, :]))
+            #F.lowpass_biquad(rectified_signal[i].float(), cutoff_freq=normalized_cutoff, sample_rate=3, Q=0.707)  
         normalized_data = self.normalize_data(filtered_data)
         return normalized_data
    
