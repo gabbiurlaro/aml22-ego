@@ -583,6 +583,7 @@ class Basic_Transform:
         b, a = self.butterworth_lowpass()
         # Apply the filter to each channel of the data
         filtered_data = torch.zeros_like(rectified_data)
+        print(rectified_data.shape)
         for i in range(filtered_data.shape[0]):
             filtered_data[:, i] = torch.Tensor(lfilter(b, a, filtered_data[:, i]))
         normalized_data = self.normalize_data(filtered_data)
@@ -632,4 +633,3 @@ class Basic_Transform:
         # max_value = filtered_signal.max()
         # normalized_signal = 2 * (filtered_signal - min_value) / (max_value - min_value) - 1
        
-        return normalized_signal
