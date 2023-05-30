@@ -600,7 +600,7 @@ class Basic_Transform:
    
     def lfilter(self, b, a, data):
         # Apply the filter to the data using lfilter function from scipy
-        filtered_data = lfilter(b, a, data.numpy(), axis=0)
+        filtered_data = lfilter(b, a, data, axis=0)
         return torch.from_numpy(filtered_data)
     
     def butterworth_lowpass(self):
