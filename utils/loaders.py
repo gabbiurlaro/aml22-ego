@@ -1,5 +1,7 @@
 import glob
 import math
+from multiprocessing import process
+from uu import Error
 import torch
 import torchaudio
 import torchaudio.transforms as T
@@ -324,7 +326,8 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
-
+        self.require_spectrogram = kwargs
+        
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
         else:
@@ -335,8 +338,10 @@ class ActionNetDataset(data.Dataset, ABC):
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
         logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
-        self.transform = transform  # pipeline of transforms
+        
+        self.transform = transform
         self.load_feat = load_feat
+    
         
         
 
@@ -355,8 +360,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 else:
                     self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
                 self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
-        
-    
+         
     def _get_train_indices(self, record, modality='RGB'):
         if self.dense_sampling[modality]:
             # selecting one frame and discarding another (alternation), to avoid duplicates
@@ -440,7 +444,7 @@ class ActionNetDataset(data.Dataset, ABC):
             return frame_idx
 
     def __getitem__(self, index):
-
+        
         frames = {}
         label = None
         # record is a row of the pkl file containing one sample/action
@@ -473,6 +477,7 @@ class ActionNetDataset(data.Dataset, ABC):
         for m in self.modalities:
             img, label = self.get(m, record, segment_indices[m])
             frames[m] = img
+       
 
         if self.additional_info:
             return frames, label, record.untrimmed_video_name, record.uid
@@ -481,47 +486,47 @@ class ActionNetDataset(data.Dataset, ABC):
 
     def get(self, modality, record, indices):
         if modality == 'EMG':
-            # n_fft control the number of frequency bin bin=n_fft // 2+1
-            n_fft = 2*(self.num_frames_per_clip[modality] - 1)
-            win_length = None
-            hop_length = 1
-            # print(f'nfft +{n_fft}')
-            spectrogram = T.Spectrogram(
-                n_fft=n_fft,
-                win_length=win_length,
-                hop_length=hop_length,
-                center=False,
-                pad_mode="reflect",
-                power=2.0,
-                normalized=True
-            )
-            
-            # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
             readings = {
-                'left': record.myo_left_readings,
-                'right': record.myo_right_readings
+                'left': record.myo_left_readings.reshape(8, -1),
+                'right': record.myo_right_readings.reshape(8, -1)
             }
+            
+            process_data = torch.from_numpy(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))]))
+            #logger.info(f'yo1!: {process_data.shape}')
+            #process_data = readings
+            if self.transform is not None:
+                process_data = self.transform(process_data)
 
-            # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
-            freq = {}
-            result = []
-            if indices[-1] > len(readings['left']):
-                print("NON SI PUòòòò")
-                exit(9)
-            for arm in ['left', 'right']:
-                signal = torch.from_numpy(readings[arm]).float()
-                #print(signal)
-                freq[arm] = [spectrogram(signal[:, i]) for i in range(8)]
-                for channel in freq[arm]:
-                    # print(f" [ DEBUG ] - {arm} in freq has {channel.shape} samples")
-                    # print(f"[ DEBUG ] indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    # print(f"[ DEBUG ] spec_indices: {len(indices)}, from {indices[0]} to {indices[-1]}")
-                    result.append(torch.stack([channel[:, i] for i in indices]))
-            result = torch.stack(result)
-
-            if self.transform is None:
-                return result, record.label
-            process_data = self.transform[modality](result)
+            if self.require_spectrogram:
+                # n_fft control the number of frequency bin bin=n_fft // 2+1
+                n_fft = 2*(self.num_frames_per_clip[modality] - 1)
+                win_length = None
+                hop_length = 1
+                # print(f'nfft +{n_fft}')
+                spectrogram = T.Spectrogram(
+                    n_fft=n_fft,
+                    win_length=win_length,
+                    hop_length=hop_length,
+                    center=False,
+                    pad_mode="reflect",
+                    power=2.0,
+                    normalized=True
+                )
+                # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
+                # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
+                
+                freq = {}
+                result = []
+                for i in range(16):
+                   # print(f'process_data_i!: {process_data[i].shape}')
+                    signal = spectrogram(process_data[i])
+                   # print(f'signal!: {signal.shape}')
+                    result.append(torch.stack([signal[:, j] for j in indices]))
+                
+                spectrograms = torch.stack(result)
+                process_data = spectrograms
+            
+            
             return process_data, record.label
 
         else:
@@ -536,8 +541,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 return images, record.label
             process_data = self.transform[modality](images)
             return process_data, record.label
-
-
+            
     def _load_data(self, modality, record, idx):
         data_path = self.dataset_conf[modality].data_path
         tmpl = self.dataset_conf[modality].tmpl
@@ -558,4 +562,37 @@ class ActionNetDataset(data.Dataset, ABC):
             raise NotImplementedError("Modality not implemented")
 
     def __len__(self):
+    
         return len(self.video_list)
+
+
+class Basic_Transform:   
+    def __init__(self):
+        self.transform = True
+    
+    def __call__(self, sample):
+        # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
+        # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
+        #logger.info(f'yo2!: {sample.shape}')
+        emg_signal = sample.reshape(16, -1)  # Reshape to (16, 1024)
+        #logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
+
+        # Rectify the signal on each channel
+        rectified_signal = torch.abs(emg_signal)
+        #logger.info(f'yo4!: {len(rectified_signal)}, {rectified_signal[0]} {rectified_signal}')
+         
+          # Design a low-pass filter using a cutoff frequency of 5Hz
+        cutoff_freq = 5.0
+        nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
+        normalized_cutoff = int(cutoff_freq / nyquist_freq)          
+        # Apply the low-pass filter to each channel
+        filtered_signal = torch.zeros_like(rectified_signal)
+        for channel_idx in range(filtered_signal.shape[0]):
+            #print(f'yo5!: {channel_idx}, {rectified_signal[channel_idx][0]}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
+            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx].float(), cutoff_freq=normalized_cutoff, sample_rate=10, Q=0.707)         
+          # Jointly normalize the signal across all channels using the minimum and maximum values
+        min_value = filtered_signal.min()
+        max_value = filtered_signal.max()
+        normalized_signal = 2 * (filtered_signal - min_value) / (max_value - min_value) - 1
+       
+        return normalized_signal

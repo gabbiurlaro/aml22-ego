@@ -3,7 +3,7 @@ from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
 import torch
-from utils.loaders import ActionNetDataset
+from utils.loaders import ActionNetDataset, Basic_Transform
 from utils.args import args
 from utils.utils import pformat_dict
 import utils
@@ -61,12 +61,12 @@ def main():
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
-        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, args.num_clips)
+        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, 10)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips, args.models, args=args, device=device)
+                                                10, args.models, args=args, device=device)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
@@ -108,13 +108,13 @@ def main():
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  args.split, args.dataset,
                                                                  args.save.num_frames_per_clip,
-                                                                 args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                 1, args.save.dense_sampling,additional_info=True,
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
                                              num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
     
-    elif args.action == "job_feature_extraction":
+    elif args.action == "job_feature_extraction_aug":
         if args.augmentation:
             T_train_loaders = {}
             T_val_loaders = {}
@@ -245,7 +245,7 @@ def main():
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     args.split, args.dataset,
                                                                     args.save.num_frames_per_clip,
-                                                                    args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                    1, args.save.dense_sampling,additional_info=True,
                                                                     **{"save": args.split}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -261,6 +261,59 @@ def main():
                 logger.info(f'Finished saving model, now extracting features...')
                 save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
                 logger.info(f'Finished extracting {args.split} features, now exiting...')
+    
+    elif args.action == "job_feature_extraction":
+        transform = Basic_Transform()
+
+        if args.resume_from is not None:
+            #ae = train(models, train_loader, val_loader, device, args.models.EMG)
+            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                    'train',args.dataset, {'EMG': 32}, 5, {'EMG': False},
+                                                                        transform=transform, load_feat=False, additional_info=True, kwargs={}),
+                                                batch_size=1, shuffle=False,
+                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
+            logger.info(f'Finished extracting train features, now exiting...')
+            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                    'test', args.dataset, {'EMG': 32}, 10, {'EMG': False},
+                                                                        transform=transform, load_feat=False, additional_info=True, kwargs={}),
+                                                batch_size=1, shuffle=False,
+                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+            logger.info(f'Finished extracting test features, now exiting...')
+        else:
+            training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
+            # all dataloaders are generated here
+            train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                        'train', args.dataset, {'EMG': 32}, 10, {'EMG': False},
+                                                                       transform=transform, load_feat=False, kwargs={}),
+                                                    batch_size=args.batch_size, shuffle=False,
+                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+            val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
+                                                                        'test', args.dataset,  {'EMG': 32}, 10, {'EMG': False},
+                                                                       transform=transform, load_feat=False, kwargs={}),
+                                                    batch_size=args.batch_size, shuffle=False,
+                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+            
+            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+                                                                 'train', args.dataset, {'EMG': 32}, 10, {'EMG': False},
+                                                                       transform=transform, load_feat=False, additional_info=True,
+                                                                kwargs={"save": args.split}),
+                                            batch_size=1, shuffle=False,
+                                            num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
+                                            
+            logger.info(f'Starting training...')
+            train(action_classifier, train_loader, val_loader, device, num_classes)
+            logger.info(f'Finished training, now validating...')
+            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
+            logger.info(f'Finished validating, now saving model...')
+            timestamp = datetime.now()
+            save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
+            logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
+            logger.info(f'Finished saving model, now extracting features...')
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+            logger.info(f'Finished extracting {args.split} features, now exiting...')
+
     else:
         raise NotImplementedError
     
@@ -314,7 +367,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
 
                 #logger.info(f'main : feat: len_keys: {len(feat.keys())}, keys: {feat.keys()}, \n feat_:{feat}')
                
-                swap = [feat[i][m] for i in range(args.save.num_clips)]
+                swap = [feat[i][m] for i in range(10)]
 
                 #logger.info(f'swap: {len(swap)}, {swap[0].shape}')
                 #logger.info(f'features: {features[m].shape}')
@@ -340,7 +393,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             filename = str('../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
             pickle.dump(results_dict, open(filename, 'wb'))
         else:
-            pickle.dump(results_dict, open(os.path.join("../drive/MyDrive/ACTIONNET_EMG/", args.name + "_" +
+            pickle.dump(results_dict, open(os.path.join("../drive/MyDrive/ACTIONNET_EMG/", args.name + "_" + datetime.now().strftime("%Y%m%d-%H%M%S") + "_" +
                                                         ('train' if train else 'test') + "_" +
                                                         args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
@@ -414,7 +467,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
         
         for m in modalities:
             #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-            data[m] = data[m].reshape(-1,16, num_clips,32,32)
+            data[m] = data[m].reshape(-1,16, num_clips, 32, 32)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)

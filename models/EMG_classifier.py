@@ -10,7 +10,7 @@ class EMG_classifier(nn.Module):
         self.num_input = num_input
         self.num_classes = num_classes
         self.num_clips = num_clips
-        self.classifier = nn.Sequential(
+        self.classifier = nn.Sequential( #16x32x32
             nn.Conv2d(num_input, 32, kernel_size=4, stride=1, padding=0),  # Output size: 32x29x29
             nn.BatchNorm2d(32),  # Apply batch normalization
             nn.ReLU(),  # Apply ReLU activation
@@ -22,9 +22,9 @@ class EMG_classifier(nn.Module):
             nn.ReLU(),  # Apply ReLU activation
             nn.Conv2d(128, 256, kernel_size=4, stride=1, padding=0),  # Output size: 256x20x20
             nn.BatchNorm2d(256),  # Apply batch normalization
-            nn.ReLU(),  # Apply ReLU activation
-            nn.Conv2d(256, 1024, kernel_size=1, stride=1, padding=0),  # Output size: 1024x20x20
-            nn.BatchNorm2d(1024),  # Apply batch normalization
+            #nn.ReLU(),  # Apply ReLU activation
+            #nn.Conv2d(256, 1024, kernel_size=1, stride=1, padding=0),  # Output size: 1024x20x20
+            nn.BatchNorm2d(256),  # Apply batch normalization
             nn.ReLU(),  # Apply ReLU activation
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten()  # Output size: 1024x1x1
@@ -44,7 +44,7 @@ class EMG_classifier(nn.Module):
             # nn.MaxPool2d(2, stride=1)
         )
         self.fc = nn.Sequential(
-            nn.Linear(1024, 128),
+            nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, num_classes)
         )
