@@ -65,7 +65,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         # the second argument is the dimensionality of the latent space
-        models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024)
+        models[m] = getattr(model_list, args.models[m].model)(1024, args.models[m].architecture.bottleneck, 1024)
     if args.action == "train":
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
@@ -99,7 +99,7 @@ def main():
         logger.info(f"Loading last model from {last_model}")
         load_model(models['RGB'], last_model)
         logger.info(f"Reconstructing features...")
-        filename = f"./saved_features/reconstructed/VAE_{args.models.RGB.lr}_{datetime.now()}"
+        filename = f"./saved_features/reconstructed/VAE_lr{args.models.RGB.lr}_beta{args.models.RGB.beta}_{datetime.now()}"
         reconstructed_features, output = reconstruct(models, loader, device, "train", save = True, filename=filename, debug=True)
         logger.debug(f"Train Output {output}")
         reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
@@ -135,7 +135,7 @@ def main():
         logger.info(f"Model saved in {args.name}_lr{args.models.RGB.lr}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
 
-        filename = f"{args.models.RGB.model}_{args.models.RGB.lr}_{args.name}"
+        filename = f"{args.models.RGB.model}_lr{args.models.RGB.lr}_beta_costant{args.models.RGB.beta}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
         logger.debug(f"Results on train: {results}")
         reconstructed_features = reconstruct(models, loader_test, device, "test", save = True, filename=filename)
@@ -244,18 +244,14 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
-    reconstruction_loss = nn.MSELoss(reduction='mean') #  keep the sum of the loss, not the mean
+    reconstruction_loss = nn.MSELoss(reduction='mean')
 
     for m in modalities:
         autoencoder[m].train(True)
-    """
-    We can use a beta scheduler to increase the weight of the KLD loss, as described in the paper 
-    - "Understanding disentangling in β-VAE" by Burgess et al.
-    """
     # beta = np.concatenate((costant_scheduler(1/(100*1024), model_args.epochs//2), frange_cycle_sigmoid(0, 1.0, model_args.epochs//2, n_cycle=1)))
     # beta = np.ones(model_args.epochs) - frange_cycle_sigmoid(1/(100*1024), 1, model_args.epochs, n_cycle=10, ratio=.001)
-    # beta = costant_scheduler(1/(100*1024), model_args.epochs)
-    beta = np.concatenate((costant_scheduler(1/(100 * 1024), (model_args.epochs//5)*4), frange_cycle_linear(1/(100 * 1024), .5, (model_args.epochs//5)*1, n_cycle=1, ratio=.001)))
+    beta = costant_scheduler(model_args.beta, model_args.epochs)
+    # beta = np.concatenate((costant_scheduler(1/(100 * 1024), (model_args.epochs//5)*4), frange_cycle_linear(1/(100 * 1024), .5, (model_args.epochs//5)*1, n_cycle=1, ratio=.001)))
     for epoch in range(model_args.epochs):
         # train_loop
         total_loss = 0 # total loss for the epoch
@@ -272,16 +268,16 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
                     x_hat, _, mean, log_var = autoencoder[m](clip)
 
-                    mse_loss = reconstruction_loss(x_hat, clip)                             #  compute the reconstruction loss
-                    kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())  #  compute the KLD loss
+                    mse_loss = reconstruction_loss(x_hat, clip)                              #  compute the reconstruction loss
+                    kld_loss = - 0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())  #  compute the KLD loss
                     loss = mse_loss + beta[epoch] * kld_loss
                     # generate an error if loss is nan
                     if loss.isnan():
                         raise ValueError("Loss is NaN.")
                     clip_level_loss += loss
+                    loss.backward()
+                    opt.step()
                     wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
-                clip_level_loss.backward()
-                opt.step()
             total_loss += clip_level_loss.item()
         if epoch % 10 == 0:
             wandb.log({"validation_loss": validate(autoencoder['RGB'], val_dataloader, device, reconstruction_loss)})

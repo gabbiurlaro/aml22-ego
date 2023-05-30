@@ -9,21 +9,18 @@ class VariationalEncoder(nn.Module):
         super(VariationalEncoder, self).__init__()
         self.in_channels = in_channels
         self.latent_dims = latent_dims
-
         self.variational = variational
-
         self.encoder = nn.Sequential(nn.Linear(self.in_channels, self.latent_dims),
                                      nn.BatchNorm1d(self.latent_dims),
                                      nn.ReLU(inplace=True),
-                                     nn.BatchNorm1d(latent_dims),
                                      nn.Linear(latent_dims, latent_dims),
                                      nn.BatchNorm1d(self.latent_dims),
                                      nn.ReLU(inplace=True),
                                      nn.Dropout(0.2),
                                      )
 
-        self.fc1 = nn.Linear(latent_dims, latent_dims)
-        self.fc2 = nn.Linear(latent_dims, latent_dims)
+        self.mu = nn.Linear(latent_dims, latent_dims)
+        self.sigma = nn.Linear(latent_dims, latent_dims)
     
     def encode(self, x):
         return self.encoder(x)
@@ -31,7 +28,7 @@ class VariationalEncoder(nn.Module):
     def forward(self, x):
         h = self.encoder(x)
         if self.variational:
-            return self.fc1(h), self.fc2(h)
+            return self.mu(h), self.sigma(h)
         else:
             return h
     
@@ -40,14 +37,14 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.latent_dims = latent_dims
         self.out_channels = out_channels
-        self.decoder = nn.Sequential(nn.Linear(self.latent_dims, self.latent_dims),
+        self.decoder = nn.Sequential(
+                             nn.Linear(self.latent_dims, self.latent_dims),
                              nn.ReLU(inplace=True),
                              nn.BatchNorm1d(self.latent_dims),
                              nn.Linear(latent_dims, self.out_channels),
                              nn.Dropout(0.2),
                              )
-
-        
+    
     def forward(self, z):
         return self.decoder(z)
 
@@ -63,7 +60,7 @@ class VariationalAutoencoder(nn.Module):
         self.decoder = self.decoder.to(device)
     
     def reparametrize(self, mu, logvar):
-        std = torch.exp(0.5*logvar)
+        std = torch.exp(0.5 *logvar)
         eps = torch.randn_like(std)
         return eps.mul(std).add_(mu)
     
