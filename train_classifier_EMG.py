@@ -349,7 +349,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
-                features[m] = torch.zeros((args.save.num_clips, 1024)).to(device)
+                features[m] = torch.zeros((args.save.num_clips, 256)).to(device)
             
                 output, feat = model(data)
                 logits[m] = output[m]
