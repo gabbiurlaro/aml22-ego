@@ -568,7 +568,7 @@ class ActionNetDataset(data.Dataset, ABC):
 
 
 class Basic_Transform:   
-    def __init__(self, cutoff_freq=5, fs=3, order=3):
+    def __init__(self, cutoff_freq=5, fs=10, order=3):
         self.cutoff_freq = cutoff_freq
         self.fs = fs
         self.order = order
@@ -607,7 +607,7 @@ class Basic_Transform:
         nyquist_freq = 0.5 * self.fs
         normal_cutoff = self.cutoff_freq / nyquist_freq
         # Design the Butterworth filter
-        b, a = butter(self.order, normal_cutoff, btype='low', analog=False, output='ba')
+        b, a = butter(self.order, normal_cutoff, btype='low', analog=True, output='ba')
         return b, a
 
         # # Reshape to (16, 1024)
