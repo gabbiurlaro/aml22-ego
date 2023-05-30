@@ -573,16 +573,6 @@ class Basic_Transform:
         self.fs = fs
         self.order = order
     
-    def normalize_data(self, data):
-        # Calculate the minimum and maximum values across all channels
-        min_val = torch.min(data)
-        max_val = torch.max(data)
-        
-        # Shift and scale the data to the range [-1, 1]
-        normalized_data = 2 * ((data - min_val) / (max_val - min_val)) - 1
-        
-        return normalized_data
-
     def __call__(self, sample):
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
@@ -593,7 +583,7 @@ class Basic_Transform:
         b, a = self.butterworth_lowpass()
         # Apply the filter to each channel of the data
         filtered_data = torch.zeros_like(rectified_data)
-        for i in range(filtered_data.shape[1]):
+        for i in range(filtered_data.shape[0]):
             filtered_data[:, i] = torch.Tensor(lfilter(b, a, filtered_data[:, i]))
         normalized_data = self.normalize_data(filtered_data)
         return normalized_data
@@ -609,6 +599,17 @@ class Basic_Transform:
         # Design the Butterworth filter
         b, a = butter(self.order, normal_cutoff, btype='low', analog=True, output='ba')
         return b, a
+    
+    def normalize_data(self, data):
+        # Calculate the minimum and maximum values across all channels
+        min_val = torch.min(data)
+        max_val = torch.max(data)
+        
+        # Shift and scale the data to the range [-1, 1]
+        normalized_data = 2 * ((data - min_val) / (max_val - min_val)) - 1
+        
+        return normalized_data
+
 
         # # Reshape to (16, 1024)
         # #logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
