@@ -15,6 +15,7 @@ from PIL import Image
 import os
 import os.path
 import numpy as np
+from scipy.signal import butter, lfilter 
 from numpy.random import randint
 from utils.logger import logger
 
@@ -567,32 +568,67 @@ class ActionNetDataset(data.Dataset, ABC):
 
 
 class Basic_Transform:   
-    def __init__(self):
-        self.transform = True
+    def __init__(self, cutoff_freq=5, fs=3, order=3):
+        self.cutoff_freq = cutoff_freq
+        self.fs = fs
+        self.order = order
     
+    def normalize_data(self, data):
+        # Calculate the minimum and maximum values across all channels
+        min_val = torch.min(data)
+        max_val = torch.max(data)
+        
+        # Shift and scale the data to the range [-1, 1]
+        normalized_data = 2 * ((data - min_val) / (max_val - min_val)) - 1
+        
+        return normalized_data
+
     def __call__(self, sample):
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
         # Assuming your input EMG signal is stored in a PyTorch tensor called 'emg_signal'
         #logger.info(f'yo2!: {sample.shape}')
-        emg_signal = sample.reshape(16, -1)  # Reshape to (16, 1024)
-        #logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
+        emg_signal = sample.reshape(16, -1) 
+        rectified_data = torch.abs(emg_signal)
+        # Apply a low-pass filter with cutoff frequency 5 Hz
+        b, a = self.butterworth_lowpass()
+        # Apply the filter to each channel of the data
+        filtered_data = torch.zeros_like(data)
+        for i in range(data.shape[1]):
+            filtered_data[:, i] = lfilter(b, a, data[:, i])
+        normalized_data = self.normalize_data(filtered_data)
+        return normalized_data
+   
+    def lfilter(self, b, a, data):
+        # Apply the filter to the data using lfilter function from scipy
+        filtered_data = lfilter(b, a, data.numpy(), axis=0)
+        return torch.from_numpy(filtered_data)
+    
+    def butterworth_lowpass(self):
+        nyquist_freq = 0.5 * self.fs
+        normal_cutoff = self.cutoff_freq / nyquist_freq
+        # Design the Butterworth filter
+        b, a = butter(self.order, normal_cutoff, btype='low', analog=False, output='ba')
+        return b, a
 
-        # Rectify the signal on each channel
-        rectified_signal = torch.abs(emg_signal)
-        #logger.info(f'yo4!: {len(rectified_signal)}, {rectified_signal[0]} {rectified_signal}')
+        # # Reshape to (16, 1024)
+        # #logger.info(f'yo3!: {emg_signal.shape}, {emg_signal.dtype}')
+
+        # # Rectify the signal on each channel
+        # rectified_signal = torch.abs(emg_signal)
+        # #logger.info(f'yo4!: {len(rectified_signal)}, {rectified_signal[0]} {rectified_signal}')
          
-          # Design a low-pass filter using a cutoff frequency of 5Hz
-        cutoff_freq = 5.0
-        nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
-        normalized_cutoff = int(cutoff_freq / nyquist_freq)          
-        # Apply the low-pass filter to each channel
-        filtered_signal = torch.zeros_like(rectified_signal)
-        for channel_idx in range(filtered_signal.shape[0]):
-            #print(f'yo5!: {channel_idx}, {rectified_signal[channel_idx][0]}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
-            filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx].float(), cutoff_freq=normalized_cutoff, sample_rate=3, Q=0.707)         
-          # Jointly normalize the signal across all channels using the minimum and maximum values
-        min_value = filtered_signal.min()
-        max_value = filtered_signal.max()
-        normalized_signal = 2 * (filtered_signal - min_value) / (max_value - min_value) - 1
+        #   # Design a low-pass filter using a cutoff frequency of 5Hz
+        # cutoff_freq = 5.0
+        # nyquist_freq = 0.5 * 10  # Nyquist frequency for the target sample rate of 10Hz
+        # normalized_cutoff = int(cutoff_freq / nyquist_freq)          
+        # # Apply the low-pass filter to each channel
+        # filtered_signal = torch.zeros_like(rectified_signal)
+        # for channel_idx in range(filtered_signal.shape[0]):
+        #     #print(f'yo5!: {channel_idx}, {rectified_signal[channel_idx][0]}, {type(normalized_cutoff)}, {type(normalized_cutoff)}')
+        #     filtered_signal[channel_idx] = F.lowpass_biquad(rectified_signal[channel_idx].float(), cutoff_freq=normalized_cutoff, sample_rate=3, Q=0.707)         
+        #   # Jointly normalize the signal across all channels using the minimum and maximum values
+        # min_value = filtered_signal.min()
+        # max_value = filtered_signal.max()
+        # normalized_signal = 2 * (filtered_signal - min_value) / (max_value - min_value) - 1
        
         return normalized_signal
