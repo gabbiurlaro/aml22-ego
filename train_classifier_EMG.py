@@ -67,7 +67,7 @@ def main():
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips, args.models, args=args, device=device)
+                                                10, args.models, args=args, device=device)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
@@ -109,7 +109,7 @@ def main():
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  args.split, args.dataset,
                                                                  args.save.num_frames_per_clip,
-                                                                 args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                 1, args.save.dense_sampling,additional_info=True,
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
                                              num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -246,7 +246,7 @@ def main():
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     args.split, args.dataset,
                                                                     args.save.num_frames_per_clip,
-                                                                    args.save.num_clips, args.save.dense_sampling,additional_info=True,
+                                                                    1, args.save.dense_sampling,additional_info=True,
                                                                     **{"save": args.split}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -348,14 +348,14 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
                 data[m] = data[m].reshape(-1,16,10,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 data[m] = data[m].to(device)
-                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
-                features[m] = torch.zeros((args.save.num_clips, 256)).to(device)
+                logits[m] = torch.zeros((10, batch, num_classes)).to(device)
+                features[m] = torch.zeros((10, 256)).to(device)
             
                 output, feat = model(data)
                 logits[m] = output[m]
                 #logger.info(f'main : feat: len_keys: {len(feat.keys())}, keys: {feat.keys()}, \n feat_:{feat}')
                
-                swap = [feat[i][m] for i in range(args.save.num_clips)]
+                swap = [feat[i][m] for i in range(10)]
 
                 #logger.info(f'swap: {len(swap)}, {swap[0].shape}')
                 #logger.info(f'features: {features[m].shape}')
