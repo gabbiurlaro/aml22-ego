@@ -22,19 +22,19 @@ dataset:
   Event:
     rgb4e: 6
 
-# these are the action recognition models for each modality
 models:
   RGB:
+    architecture:
+      bottleneck: 128
     model: VAE
     dropout: 0.2
     normalize: False
     resolution: 224
     kwargs: {}
     lr_steps: 30 
-    epochs: 100
+    epochs: 20
     lr: 0.001
     lr_gamma: 0.01
-    sgd_momentum: 0.9
-    weight_decay: 1e-7
-    weight_i3d_rgb: './pretrained_i3d/rgb_imagenet.pt'
+    beta: 0.00001
+
 

@@ -1,6 +1,4 @@
 from datetime import datetime
-from statistics import mean
-from tkinter import ttk
 from utils.logger import logger
 import torch.nn.parallel
 import torch.optim
@@ -37,11 +35,12 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
-        wandb.init()
-        wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        wandb.run.name = f'{args.name}_{args.models.EMG.model}'
-
+        WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
+        if os.getenv('WANDB_KEY') is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY)
+        run = wandb.init(project="EMG-fe", entity="egovision-aml22", name=F"{args.models.EMG.model}_{args.models.EMG.lr}_fe")
 
 
 def main():
@@ -321,7 +320,7 @@ def main():
 
 
 
-def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
+def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -337,7 +336,6 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
     results_dict = {"features": []}
     num_samples = 0
     logits = {}
-    features = {}
     # Iterate over the models
     with torch.no_grad():
         for i_val, (data, label, video_name, uid) in enumerate(loader):
@@ -345,14 +343,28 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
             label = label.to(device)
             #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
-                data[m] = data[m].reshape(-1,16,10,32,32)
-                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                data[m] = data[m].reshape(-1, 16, num_clips, 32, 32)
+                data[m] = data[m].permute(2, 0, 1, 3, 4)
                 data[m] = data[m].to(device)
-                logits[m] = torch.zeros((10, batch, num_classes)).to(device)
-                features[m] = torch.zeros((10, 256)).to(device)
+                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
             
                 output, feat = model(data)
                 logits[m] = output[m]
+                swap = [feat[i][m] for i in range(args.save.num_clips)]
+
+                final_features = torch.stack(swap)
+
+                logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
+           
+                sample = {}
+                
+                sample['label'] = label.item()
+                sample['uid'] = uid.item()
+                sample['untrimmed_video_name'] = video_name
+                sample[f'features_{m}'] = final_features.cpu().numpy()    
+
+                results_dict['features'].append(sample)
+
                 #logger.info(f'main : feat: len_keys: {len(feat.keys())}, keys: {feat.keys()}, \n feat_:{feat}')
                
                 swap = [feat[i][m] for i in range(10)]
@@ -395,7 +407,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
 
     return 0
 
-def train(action_classifier, train_loader, val_loader, device, num_classes):
+def train(action_classifier, train_loader, val_loader, device, num_classes, num_clips):
     """
     function to train the model on the test set
     action_classifier: Task containing the model to be trained
@@ -455,7 +467,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         for m in modalities:
             #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-            data[m] = data[m].reshape(-1,16,10,32,32)
+            data[m] = data[m].reshape(-1,16, num_clips, 32, 32)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
@@ -495,8 +507,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
-
-def validate(model, val_loader, device, it, num_classes):
+def validate(model, val_loader, device, it, num_classes, num_clips):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -518,7 +529,7 @@ def validate(model, val_loader, device, it, num_classes):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-                data[m] = data[m].reshape(-1,16,10,32,32)
+                data[m] = data[m].reshape(-1,16, num_clips, 5,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
