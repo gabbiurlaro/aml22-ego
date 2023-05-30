@@ -594,7 +594,7 @@ class Basic_Transform:
         # Apply the filter to each channel of the data
         filtered_data = torch.zeros_like(rectified_data)
         for i in range(filtered_data.shape[1]):
-            filtered_data[:, i] = lfilter(b, a, filtered_data[:, i])
+            filtered_data[:, i] = torch.Tensor(lfilter(b, a, filtered_data[:, i]))
         normalized_data = self.normalize_data(filtered_data)
         return normalized_data
    
