@@ -320,7 +320,7 @@ def main():
 
 
 
-def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5):
+def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5, aug=None):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -366,20 +366,6 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
                 results_dict['features'].append(sample)
 
                 #logger.info(f'main : feat: len_keys: {len(feat.keys())}, keys: {feat.keys()}, \n feat_:{feat}')
-               
-                swap = [feat[i][m] for i in range(args.train.num_clips)]
-
-                #logger.info(f'swap: {len(swap)}, {swap[0].shape}')
-                #logger.info(f'features: {features[m].shape}')
-                features[m] = torch.stack(swap)
-                logits[m] = torch.mean(logits[m], dim=0) # average over clips to predict the label
-           
-                sample={}
-                sample["features_" + m] = features[m].cpu().detach().numpy()
-                sample['label'] = label.item()
-                sample['uid'] = uid.item()
-                sample['untrimmed_video_name'] = video_name
-                results_dict["features"].append(sample)
             num_samples += batch
 
             #model.compute_accuracy(logits, label)
@@ -387,7 +373,6 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             #if (i_val + 1) % (len(loader) // 5) == 0:
             #    logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(loader),
             #                                                              model.accuracy.avg[1], model.accuracy.avg[5]))
-
         os.makedirs("saved_features", exist_ok=True)
         if aug:
             filename = str('../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
