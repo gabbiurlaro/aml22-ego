@@ -272,14 +272,14 @@ def main():
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting train features, now exiting...')
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     'test', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False,  num_clips=args.save.num_clips)
             logger.info(f'Finished extracting test features, now exiting...')
         else:
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
@@ -303,15 +303,15 @@ def main():
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
                                             
             logger.info(f'Starting training...')
-            train(action_classifier, train_loader, val_loader, device, num_classes)
+            train(action_classifier, train_loader, val_loader, device, num_classes , num_clips=args.train.num_clips)
             logger.info(f'Finished training, now validating...')
-            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
+            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes,  num_clips=args.test.num_clips)
             logger.info(f'Finished validating, now saving model...')
             timestamp = datetime.now()
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting {args.split} features, now exiting...')
 
     else:
