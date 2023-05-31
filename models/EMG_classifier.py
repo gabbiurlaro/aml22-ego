@@ -48,7 +48,7 @@ class EMG_classifier(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear( self.emdedding_size , self.emdedding_size/2),
             nn.ReLU(),
-            nn.Linear( self.emdedding_size/2 , 128),
+            nn.Linear( self.emdedding_size /2 , 128),
             nn.ReLU(),
             nn.Linear(128, num_classes)
         )
