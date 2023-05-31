@@ -268,14 +268,14 @@ def main():
         if args.resume_from is not None:
             #ae = train(models, train_loader, val_loader, device, args.models.EMG)
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'train',args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                    'train',args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting train features, now exiting...')
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'test', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                    'test', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
@@ -285,18 +285,18 @@ def main():
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                        'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                        'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                        'test', args.dataset,  {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                        'test', args.dataset,  {'EMG': 32}, args.train.num_clips, {'EMG': True},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                 'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                 'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
                                                                        transform=transform, load_feat=False, additional_info=True,
                                                                 kwargs={"save": args.split}),
                                             batch_size=1, shuffle=False,
@@ -311,8 +311,12 @@ def main():
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
+            split = 'train'
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
+            logger.info(f'Finished extracting {split} features')
+            logger.info(f'Now extracting features...')
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
-            logger.info(f'Finished extracting {args.split} features, now exiting...')
+            logger.info(f'Finished extracting {split} features, now exiting...')
 
     else:
         raise NotImplementedError
@@ -477,7 +481,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
 
         # every eval_freq "real iteration" (iterations on total_batch) the validation is done, notice we validate and
         # save the last 9 models
-        if gradient_accumulation_step and real_iter % 10 == 0:
+        if gradient_accumulation_step and real_iter % 5 == 0:
             val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes,  num_clips=num_clips)
             wandb.log({'accuracy on val': val_metrics['top1']})
            
