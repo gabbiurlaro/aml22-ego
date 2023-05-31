@@ -3,7 +3,7 @@ name: ???
 shift: ActionNet-ActionNet
 split: train
 resume_from: ???
-num_clips: 5
+num_clips: 10
 wandb_name: 'EMG_classification'
 augmentation: False
 
@@ -15,9 +15,9 @@ dataset:
   resolution: 224
 train:
   num_iter: 300 # number of training iterations with total_batch size
-  lr_steps: 80 # steps before reducing learning rate
+  lr_steps: 100 # steps before reducing learning rate
   eval_freq: 50 # evaluation frequency
-  num_clips: 5 # clips adopted in training
+  num_clips: 10 # clips adopted in training
   dense_sampling: # sampling version adopted in training for each modality
     RGB: True
     EMG: True
