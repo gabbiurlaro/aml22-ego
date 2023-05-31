@@ -46,9 +46,9 @@ class EMG_classifier(nn.Module):
             # nn.MaxPool2d(2, stride=1)
         )
         self.fc = nn.Sequential(
-            nn.Linear(self.emdedding_size, self.emdedding_size/2),
+            nn.Linear(self.emdedding_size, 512),
             nn.ReLU(),
-            nn.Linear(self.emdedding_size/2, 128),
+            nn.Linear(512, 128),
             nn.ReLU(),
             nn.Linear(128, num_classes)
         )
