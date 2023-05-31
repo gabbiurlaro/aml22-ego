@@ -66,7 +66,7 @@ def main():
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips, args.models, device=device)
+                                                args.train.num_clips, args.models, args, device=device)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
