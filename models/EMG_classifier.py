@@ -27,7 +27,8 @@ class EMG_classifier(nn.Module):
             nn.ReLU(),  # Apply ReLU activation
             nn.Conv2d(256,  self.emdedding_size , kernel_size=3, stride=2, padding=1),# Output size: 1024x1x1
             nn.BatchNorm2d( self.emdedding_size ),  # Apply batch normalization
-            nn.ReLU(),  # Apply ReLU activation
+            nn.Sigmoid(),  # Apply ReLU activation
+            nn.Squeeze(),  # Apply ReLU activation
             #nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten()  # Output size: 1024x1x1
             # nn.Conv2d(num_input, 32, kernel_size=4, stride=2, padding=1),
@@ -46,9 +47,9 @@ class EMG_classifier(nn.Module):
             # nn.MaxPool2d(2, stride=1)
         )
         self.fc = nn.Sequential(
-            nn.Linear( self.emdedding_size , self.emdedding_size/2),
+            nn.Linear(self.emdedding_size, self.emdedding_size/2),
             nn.ReLU(),
-            nn.Linear( self.emdedding_size /2 , 128),
+            nn.Linear(self.emdedding_size/2, 128),
             nn.ReLU(),
             nn.Linear(128, num_classes)
         )
