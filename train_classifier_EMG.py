@@ -506,20 +506,20 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
     model.reset_acc()
     model.train(False)
     logits = {}
-    print(f'val: {val_loader.dataset.__len__()}')
+    #print(f'val: {val_loader.dataset.__len__()}')
     # Iterate over the models
     with torch.no_grad():
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
-                print(f'yoyo1: {data[m].size()}, {data[m].shape}')
+                #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].reshape(-1,16, num_clips,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
-                print(f'yoyo2: {data[m].size()}, {data[m].shape}')
+                #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
                 batch = data[m].shape[0]
-                print('num_classes: ', num_classes)
+                #print('num_classes: ', num_classes)
                 logits[m] = torch.zeros((batch, num_classes)).to(device)
 
 
@@ -528,10 +528,10 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
             for m in modalities:
                 logits[m] = output[m]
             
-            print(f"label: {label.size()}, {label.shape}")
+            #print(f"label: {label.size()}, {label.shape}")
             # for m in modalities:
             #     logits[m] = torch.mean(logits[m], dim=0)
-            print(f"output1: {output}, {output['EMG']} {output['EMG'].shape}")
+            #print(f"output1: {output}, {output['EMG']} {output['EMG'].shape}")
             model.compute_accuracy(logits, label)
 
             # if (i_val + 1) % (len(val_loader) // 5) == 0:
