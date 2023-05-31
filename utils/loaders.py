@@ -322,7 +322,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.modalities = modalities  # considered modalities (ex. [RGB,EMG])
         self.mode = mode  # 'train', 'val' or 'test'
         self.dataset_conf = dataset_conf
-        self.num_frames_per_clip = num_frames_per_clip
+        self.num_frames_per_clip = num_frames_per_clip['EMG']
         self.dense_sampling = dense_sampling
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
