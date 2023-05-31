@@ -28,8 +28,7 @@ class EMG_classifier(nn.Module):
             nn.Conv2d(256,  self.emdedding_size , kernel_size=3, stride=2, padding=1),# Output size: 1024x1x1
             nn.BatchNorm2d( self.emdedding_size ),  # Apply batch normalization
             nn.Sigmoid(),  # Apply ReLU activation
-            
-            #nn.AdaptiveAvgPool2d((1, 1)),
+            nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten()  # Output size: 1024x1x1
             # nn.Conv2d(num_input, 32, kernel_size=4, stride=2, padding=1),
             # nn.BatchNorm2d(32),
