@@ -4,13 +4,13 @@ import torch
 from utils.logger import logger
 
 class EMG_classifier(nn.Module):
-    def __init__(self, num_input, num_classes, num_clips) -> None:
+    def __init__(self, num_input, num_classes, num_clips, embeddings) -> None:
         super().__init__()
        
         self.num_input = num_input
         self.num_classes = num_classes
         self.num_clips = num_clips
-        self.emdedding_size = 1024
+        self.emdedding_size = embeddings
         self.classifier = nn.Sequential( 
             #16x32x32
             nn.Conv2d(num_input, 32, kernel_size=3, stride=2, padding=1),  # Output size: 32x16x16

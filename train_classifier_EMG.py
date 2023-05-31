@@ -61,7 +61,7 @@ def main():
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
-        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, args.train.num_clips)
+        models[m] = getattr(model_list, args.models[m].model)(16, num_classes, args.train.num_clips, args.embeddings_size)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
@@ -77,13 +77,13 @@ def main():
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                       'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                        None, load_feat=False),
                                                    batch_size=args.batch_size, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                     'z', args.dataset,  {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                     'z', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                      None, load_feat=False),
                                                  batch_size=args.batch_size, shuffle=False,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -130,22 +130,22 @@ def main():
             for a in _features.keys():
                 args.dataset.EMG.features_name = _features[a]
                 T_train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                            'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': False},
                                                                             None, load_feat=True, additional_info=False, kwargs={'aug': True}),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 T_val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'test', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=True, additional_info=False, kwargs={'aug': True}),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                         batch_size=1, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'test', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=True, additional_info=True, kwargs={'aug': True}),
                                                         batch_size=1, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -164,24 +164,24 @@ def main():
                 training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
                 # all dataloaders are generated here
                 T_train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
                 T_val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                            'test', args.dataset,  {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=True),
                                                         batch_size=1, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
                 val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                            'test', args.dataset,  {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False,additional_info=True ),
                                                         batch_size=1, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -212,7 +212,7 @@ def main():
             if args.resume_from is not None:
                 #ae = train(models, train_loader, val_loader, device, args.models.EMG)
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                        'train',args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                        'train',args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=True),
                                                     batch_size=1, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -220,7 +220,7 @@ def main():
                 logger.info(f'Finished extracting train features, now exiting...')
 
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                        'test', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                        'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=True),
                                                     batch_size=1, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -230,13 +230,13 @@ def main():
                 training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
                 # all dataloaders are generated here
                 train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
                 val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                            'test', args.dataset,  {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -268,54 +268,54 @@ def main():
         if args.resume_from is not None:
             #ae = train(models, train_loader, val_loader, device, args.models.EMG)
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'train',args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
+                                                                    'train',args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
             logger.info(f'Finished extracting train features, now exiting...')
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                    'test', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
+                                                                    'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
                                                                         transform=transform, load_feat=False, additional_info=True, kwargs={}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False,  num_clips=args.save.num_clips)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
             logger.info(f'Finished extracting test features, now exiting...')
         else:
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                        'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
+                                                                        'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                        'test', args.dataset,  {'EMG': 32}, args.train.num_clips, {'EMG': True},
+                                                                        'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                 'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': True},
+                                                                 'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
                                                                        transform=transform, load_feat=False, additional_info=True,
                                                                 kwargs={"save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
                                             
             logger.info(f'Starting training...')
-            train(action_classifier, train_loader, val_loader, device, num_classes , num_clips=args.train.num_clips)
+            train(action_classifier, train_loader, val_loader, device, num_classes )
             logger.info(f'Finished training, now validating...')
-            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes,  num_clips=args.test.num_clips)
+            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
             logger.info(f'Finished validating, now saving model...')
             timestamp = datetime.now()
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
             split = 'train'
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
             logger.info(f'Finished extracting {split} features')
             logger.info(f'Now extracting features...')
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
             logger.info(f'Finished extracting {split} features, now exiting...')
 
     else:
@@ -324,7 +324,7 @@ def main():
 
 
 
-def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5, aug=None):
+def save_feat(model, loader, device, it, num_classes, train=False, aug=None):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -347,7 +347,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             label = label.to(device)
             #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
-                data[m] = data[m].reshape(-1, 16, num_clips, 32, 32)
+                data[m] = data[m].reshape(-1, 16, args.train.num_clips,args.train.num_frames_per_clip.EMG,args.train.num_frames_per_clip.EMG)
                 data[m] = data[m].permute(2, 0, 1, 3, 4)
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
@@ -396,7 +396,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
 
     return 0
 
-def train(action_classifier, train_loader, val_loader, device, num_classes, num_clips):
+def train(action_classifier, train_loader, val_loader, device, num_classes):
     """
     function to train the model on the test set
     action_classifier: Task containing the model to be trained
@@ -456,7 +456,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
         
         for m in modalities:
             #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-            data[m] = data[m].reshape(-1,16, num_clips, 32, 32)
+            data[m] = data[m].reshape(-1,16, args.train.num_clips,args.train.num_frames_per_clip.EMG,args.train.num_frames_per_clip.EMG)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
@@ -482,7 +482,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
         # every eval_freq "real iteration" (iterations on total_batch) the validation is done, notice we validate and
         # save the last 9 models
         if gradient_accumulation_step and real_iter % 5 == 0:
-            val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes,  num_clips=num_clips)
+            val_metrics = validate(action_classifier, val_loader, device, int(real_iter), num_classes,  args=args)
             wandb.log({'accuracy on val': val_metrics['top1']})
            
             if val_metrics['top1'] <= action_classifier.best_iter_score:
@@ -496,7 +496,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
             action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
-def validate(model, val_loader, device, it, num_classes, num_clips):
+def validate(model, val_loader, device, it, num_classes):
     """
     function to validate the model on the test set
     model: Task containing the model to be tested
@@ -518,7 +518,7 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-                data[m] = data[m].reshape(-1,16, num_clips,32,32)
+                data[m] = data[m].reshape(-1,16, args.train.num_clips,32,32)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)

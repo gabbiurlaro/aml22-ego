@@ -6,6 +6,7 @@ resume_from: ???
 num_clips: 10
 wandb_name: 'EMG_classification'
 augmentation: False
+embeddings_size: 512
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
