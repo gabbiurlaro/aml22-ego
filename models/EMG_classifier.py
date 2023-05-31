@@ -46,7 +46,9 @@ class EMG_classifier(nn.Module):
             # nn.MaxPool2d(2, stride=1)
         )
         self.fc = nn.Sequential(
-            nn.Linear( self.emdedding_size , 128),
+            nn.Linear( self.emdedding_size , self.emdedding_size/2),
+            nn.ReLU(),
+            nn.Linear( self.emdedding_size/2 , 128),
             nn.ReLU(),
             nn.Linear(128, num_classes)
         )
@@ -59,5 +61,5 @@ class EMG_classifier(nn.Module):
             feats.append(y.squeeze())
             #print(f'y shape: {y.shape}') 
             logits.append(self.fc(y))
-        return torch.stack(logits, dim=0).sum(dim=0), {i: feats[i] for i in range(self.num_clips)}
+        return torch.stack(logits, dim=0).mean(dim=0), {i: feats[i] for i in range(self.num_clips)}
 
