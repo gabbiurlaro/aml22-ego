@@ -214,7 +214,7 @@ def main():
             if args.resume_from is not None:
                 #ae = train(models, train_loader, val_loader, device, args.models.EMG)
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                        'train',args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                        'train',args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=True),
                                                     batch_size=1, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -222,7 +222,7 @@ def main():
                 logger.info(f'Finished extracting train features, now exiting...')
 
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                        'test', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                        'test', args.dataset, {'EMG': args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=True),
                                                     batch_size=1, shuffle=False,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -232,7 +232,7 @@ def main():
                 training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
                 # all dataloaders are generated here
                 train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
