@@ -79,7 +79,7 @@ def main():
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, args.train.num_clips, {'EMG': False},
+                                                                       'train', args.dataset, {'EMG': args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': False},
                                                                        None, load_feat=False, kwargs={}),
                                                    batch_size=args.batch_size, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
@@ -352,7 +352,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             label = label.to(device)
             #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
-                data[m] = data[m].reshape(-1, 16, num_clips, 32, 32)
+                data[m] = data[m].reshape(-1, 16, num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
                 data[m] = data[m].permute(2, 0, 1, 3, 4)
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
@@ -461,7 +461,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
         
         for m in modalities:
             #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-            data[m] = data[m].reshape(-1,16, num_clips, 32, 32)
+            data[m] = data[m].reshape(-1,16, num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
             #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
@@ -523,7 +523,7 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-                data[m] = data[m].reshape(-1,16, args.train.num_clips,32,32)
+                data[m] = data[m].reshape(-1,16, args.train.num_clips,args.train.num_frames_per_clip.EMG,args.train.num_frames_per_clip.EMG)
                 data[m] = data[m].permute(2, 0, 1, 3,4 )
                 #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
