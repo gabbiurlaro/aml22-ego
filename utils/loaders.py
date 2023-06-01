@@ -523,7 +523,7 @@ class ActionNetDataset(data.Dataset, ABC):
                    #print(f'process_data_i!: {process_data[i].shape}')
                     spec_indices = [int(i/320*n_fft) for i in indices]
                     signal = spectrogram(process_data[i])
-                    if any(lambda x : indices[x] > signal.shape[1]):
+                    if any([ind >= signal.shape[1] for ind in spec_indices]):
                         print(f'indices: {indices}, signal.shape: {signal.shape}')
                         exit(-1)
                         #indices = [i for i in indices if i < signal.shape[1]]
