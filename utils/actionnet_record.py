@@ -41,4 +41,4 @@ class ActionNetRecord(VideoRecord):
     @property
     def num_frames(self):
         return {'RGB': self.end_frame - self.start_frame,
-                'EMG': len(self._series['myo_right_readings'])//2}
+                'EMG': min(len(self._series['myo_right_readings'])//2, len(self._series['myo_left_readings'])//2)}
