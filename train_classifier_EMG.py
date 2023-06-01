@@ -287,18 +287,18 @@ def main():
             training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                        'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
+                                                                        'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': False},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                        'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
+                                                                        'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': False},
                                                                        transform=transform, load_feat=False, kwargs={}),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                 'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': True},
+                                                                 'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, {'EMG': False},
                                                                        transform=transform, load_feat=False, additional_info=True,
                                                                 kwargs={"save": args.split}),
                                             batch_size=1, shuffle=False,

@@ -524,7 +524,7 @@ class ActionNetDataset(data.Dataset, ABC):
                     spec_indices = [int(i/320*n_fft) for i in indices]
                     signal = spectrogram(process_data[i])
                     if any([ind >= signal.shape[1] for ind in spec_indices]):
-                        print(f'indices: {indices}, signal.shape: {signal.shape}')
+                        logger.info(f'indices: {indices}, signal.shape: {signal.shape}')
                         exit(-1)
                         #indices = [i for i in indices if i < signal.shape[1]]
                     #logger.info('signal!: {}, max_ind {}, max_spec {}, len_ind {}'.format(signal.shape, np.max(indices), np.max(spec_indices), len(indices)))
