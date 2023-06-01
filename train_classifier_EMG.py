@@ -59,7 +59,7 @@ def main():
     logger.info("Instantiating models per modality")
     for m in modalities:
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
-        
+
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         models[m] = getattr(model_list, args.models[m].model)(input_size = (16, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG), 
@@ -166,13 +166,13 @@ def main():
                 training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
                 # all dataloaders are generated here
                 T_train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'train', args.dataset, {'EMG': args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
                 T_val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
-                                                                            'test', args.dataset,  {'EMG': 32}, args.train.num_clips,{'EMG': False},
+                                                                            'test', args.dataset,  {'EMG': args.train.num_frames_per_clip.EMG}, args.train.num_clips,{'EMG': False},
                                                                             None, load_feat=False, additional_info=False),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
