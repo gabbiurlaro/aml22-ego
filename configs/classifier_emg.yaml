@@ -27,7 +27,7 @@ train:
 
 models:
   EMG:
-    model: EMG_classifier
+    model: EMG_classifier_parametric
     dropout: 0.2
     normalize: False
     resolution: 224
