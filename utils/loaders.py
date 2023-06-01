@@ -486,7 +486,7 @@ class ActionNetDataset(data.Dataset, ABC):
             return frames, label
 
     def get(self, modality, record, indices):
-        logger.info(f'nel_get : {indices}')
+        #logger.info(f'nel_get : {indices}')
         if modality == 'EMG':
             readings = {
                 'left': record.myo_left_readings.reshape(8, -1),
@@ -524,7 +524,7 @@ class ActionNetDataset(data.Dataset, ABC):
                     
                     spec_indices = [int(i/n_fft*160) for i in indices]
                     signal = spectrogram(process_data[i])
-                    logger.info(f'indices_spec!: {spec_indices}')
+                    #logger.info(f'indices_spec!: {spec_indices}')
                     result.append(torch.stack([signal[:, j] for j in spec_indices]))
                 
                 spectrograms = torch.stack(result)
