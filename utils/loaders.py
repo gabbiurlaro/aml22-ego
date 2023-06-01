@@ -523,7 +523,7 @@ class ActionNetDataset(data.Dataset, ABC):
                    # print(f'process_data_i!: {process_data[i].shape}')
                     spec_indices = [int(i/n_fft*160) for i in indices]
                     signal = spectrogram(process_data[i])
-                    logger.info('signal!: {}, max_ind {}, max_spec {}'.format(signal.shape, np.max(indices)))
+                    logger.info('signal!: {}, max_ind {}, max_spec {}'.format(signal.shape, np.max(indices), np.maX(spec_indices)))
                     result.append(torch.stack([signal[:, j] for j in spec_indices]))
                 
                 spectrograms = torch.stack(result)
