@@ -312,6 +312,7 @@ def main():
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
+            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting {args.split} features, now exiting...')
 
     else:
@@ -378,7 +379,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             filename = str('../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/' + 'Augmented_features_' + aug.split("/")[-1].split('_')[3]  + "_" + ('train' if train else 'test') + ".pkl")
             pickle.dump(results_dict, open(filename, 'wb'))
         else:
-            pickle.dump(results_dict, open(os.path.join("../drive/MyDrive/ACTIONNET_EMG/", args.name + "_" + datetime.now().strftime("%Y%m%d-%H%M%S") + "_" +
+            pickle.dump(results_dict, open(os.path.join("saved_features/", args.name + "_" + datetime.now().strftime("%Y%m%d-%H%M%S") + "_" +
                                                         ('train' if train else 'test') + "_" +
                                                         args.split + ".pkl"), 'wb'))
     #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'

@@ -81,3 +81,15 @@ Bisogna capire il perchè solo con lr = 10^-3 funziona. Reduction = sum, non fun
 #### 3.3 Reconstructe EMG features
 
 ```bash
+
+
+python train_classifier_EMG.py action="job_feature_extraction" name="job_feature_extraction" \
+  config=configs/classifier_emg.yaml \
+  dataset.shift=ActionNet-ActionNet \
+  train.num_iter=300\
+  wandb_name='EMG'\
+  wandb_dir='Experiment_logs'\
+  dataset.RGB.data_path=../ek_data/frames  \
+  models.EMG.model='EMG_classifier' \
+  models.EMG.lr=0.1
+```

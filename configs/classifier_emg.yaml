@@ -8,7 +8,7 @@ wandb_name: 'EMG_classification'
 augmentation: False
 
 dataset:
-  annotations_path: ../drive/MyDrive/train_val_EMG
+  annotations_path: train_val
   shift: ActionNet-ActionNet
   workers: 4
   stride: 2

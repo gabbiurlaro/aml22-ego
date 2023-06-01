@@ -89,7 +89,7 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     # extract from each video the corrisponding feature(in this case, the middle clip)
     
     features = [ video[num_clips // 2, :] for video in data[f'features_{modality}'] ]
-
+    print(f"Features size: {len(features)}, shape: {features[0].shape}")
     reduced = None
     if method == "tsne":
         reduced = TSNE(n_components=n_dim, random_state=0).fit_transform(features)
