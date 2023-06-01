@@ -521,7 +521,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 result = []
                 for i in range(16):
                    # print(f'process_data_i!: {process_data[i].shape}')
-                    
+                    logger.info('process_data_i!: {}, max_ind {}'.format(process_data[i].shape, np.max(indices)))
                     spec_indices = [int(i/n_fft*160) for i in indices]
                     signal = spectrogram(process_data[i])
                     #logger.info(f'indices_spec!: {spec_indices}')
