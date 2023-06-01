@@ -6,4 +6,4 @@ from models.actionLSTM import ActionLSTM
 from models.FC_VAE import VariationalAutoencoder as VAE
 from models.EMG_VAE import VariationalAutoencoder as EMG_VAE
 from models.EMG_classifier import EMG_classifier as EMG_classifier
-
+from models.EMG_classifier import EMG_classifier_parametric as EMG_classifier_parametric

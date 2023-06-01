@@ -9,7 +9,7 @@ augmentation: False
 embeddings_size: 512
 
 dataset:
-  annotations_path: ../drive/MyDrive/train_val_EMG
+  annotations_path: train_val
   shift: ActionNet-ActionNet
   workers: 4
   stride: 2
@@ -28,7 +28,7 @@ train:
 
 models:
   EMG:
-    model: EMG_classifier
+    model: EMG_classifier_parametric
     dropout: 0.2
     normalize: False
     resolution: 224
