@@ -487,7 +487,6 @@ class ActionNetDataset(data.Dataset, ABC):
 
     def get(self, modality, record, indices):
         logger.info(f'nel_get : {indices}')
-        exit(-1)
         if modality == 'EMG':
             readings = {
                 'left': record.myo_left_readings.reshape(8, -1),
