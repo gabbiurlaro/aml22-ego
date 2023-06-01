@@ -299,7 +299,7 @@ def train(autoencoder, train_dataloader, train_original_dataloader, val_dataload
                     clip = data[m][i_c].to(device)
                     clip_o = data_o[m][i_c].to(device)
 
-                    print(f"Clip shape: {clip.shape}")
+                    #print(f"Clip shape: {clip.shape}")
                     x_hat_a, _, mean_a, log_var_a = autoencoder[m](clip)
                     x_hat_o, _, log_var_o, log_var_o = autoencoder[m](clip_o)
                     mse_loss = reconstruction_loss(x_hat_a, clip_o)

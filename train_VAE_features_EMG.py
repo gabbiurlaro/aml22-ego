@@ -285,7 +285,7 @@ def train_aug(autoencoder, train_a_dataloader, train_o_dataloader, val_dataloade
     weights = {'mse': [1]*model_args.epochs ,#frange_cycle_linear(0.5, 1.0, model_args.epochs, n_cycle=2), #list([1 for _ in range(25)] + [1 -0.3*i/75 for i in range(75)]),
                 'kld': [1]*model_args.epochs } 
     #list([1 for _ in range(50)] + [1 - 0.2*i/75 for i in range(50)])}
-    print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
+    #print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
     
     for epoch in range(model_args.epochs):
         total_loss = 0
