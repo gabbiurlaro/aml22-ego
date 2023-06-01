@@ -59,6 +59,7 @@ def main():
     logger.info("Instantiating models per modality")
     for m in modalities:
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
+        
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         models[m] = getattr(model_list, args.models[m].model)(input_size = (16, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG), 

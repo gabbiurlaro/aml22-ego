@@ -9,7 +9,7 @@ augmentation: False
 embeddings_size: 512
 
 dataset:
-  annotations_path: train_val
+  annotations_path: ../drive/MyDrive/train_val
   shift: ActionNet-ActionNet
   workers: 4
   stride: 2
