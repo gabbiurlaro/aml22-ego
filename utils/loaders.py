@@ -327,7 +327,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
-        self.require_spectrogram = kwargs
+        self.require_spectrogram = kwargs.get('require_spectrogram', False)
         
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
@@ -337,24 +337,19 @@ class ActionNetDataset(data.Dataset, ABC):
         
         self.list_file = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
-        logger.info(f"Dataloader for {split}-{self.mode} with {len(self.list_file)} samples generated")
+        logger.info(f"Dataloader for {split} - {self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
         
         self.transform = transform
         self.load_feat = load_feat
     
-        
-        
-
         if self.load_feat:
             self.model_features = None
             for m in self.modalities:
                 # load features for each modality
                 if kwargs:
-                    #logger.info(f'jeez : saved_features/{self.dataset_conf[m].features_name}_{pickle_name}')
                     model_features = pd.DataFrame(pd.read_pickle(os.path.join(self.dataset_conf[m].features_name + "_" + pickle_name))['features'])[["uid", "features_" + m]]
                 else:
-                    #logger.info(f'jeez : saved_features/{self.dataset_conf[m].features_name}_{pickle_name}')
                     model_features = pd.DataFrame(pd.read_pickle(os.path.join("saved_features", self.dataset_conf[m].features_name + "_" + pickle_name))['features'])[["uid", "features_" + m]]
                 if self.model_features is None:
                     self.model_features = model_features
@@ -452,7 +447,6 @@ class ActionNetDataset(data.Dataset, ABC):
         # notice that it is already converted into a EpicVideoRecord object so that here you can access
         # all the properties of the sample easily
         record = self.video_list[index]
-       
         if self.load_feat:
             sample = {}
             sample_row = self.model_features[self.model_features["uid"] == int(record.uid)]
@@ -491,10 +485,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings.reshape(8, -1),
                 'right': record.myo_right_readings.reshape(8, -1)
             }
-            
             process_data = torch.from_numpy(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))])).float()
-            #logger.info(f'yo1!: {process_data.shape}')
-            #process_data = readings
             if self.transform is not None:
                 process_data = self.transform(process_data)
 
@@ -503,27 +494,20 @@ class ActionNetDataset(data.Dataset, ABC):
                 n_fft = 2*(self.num_frames_per_clip[modality] - 1)
                 win_length = None
                 hop_length = 1
-                # print(f'nfft +{n_fft}')
                 spectrogram = T.Spectrogram(
                     n_fft=n_fft,
                     win_length=win_length,
                     hop_length=hop_length,
-                    center=False,
+                    center=True,
                     pad_mode="reflect",
                     power=2.0,
                     normalized=True
                 )
-                # legge lo spectrogramma di tutto il video, ha dimensione 160*durata del video(in s)
-                # print(f" [ DEBUG ] - right: {len(readings['left'])} samples, left: {len(readings['right'])} samples")
-                
                 freq = {}
                 result = []
                 for i in range(16):
-                   # print(f'process_data_i!: {process_data[i].shape}')
                     signal = spectrogram(process_data[i])
-                   # print(f'signal!: {signal.shape}')
-                    result.append(torch.stack([signal[:, j] for j in indices]))
-                
+                    result.append(torch.stack([signal[:, j] for j in indices]))    
                 spectrograms = torch.stack(result)
                 process_data = spectrograms
             

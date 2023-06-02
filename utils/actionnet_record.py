@@ -23,7 +23,6 @@ class ActionNetRecord(VideoRecord):
     def untrimmed_video_name(self):
         return self._series['subject']
         
-
     @property
     def label(self):
         if 'verb_class' not in self._series.keys().tolist():
@@ -41,4 +40,4 @@ class ActionNetRecord(VideoRecord):
     @property
     def num_frames(self):
         return {'RGB': self.end_frame - self.start_frame,
-                'EMG': len(self._series['myo_right_readings'])//2}
+                'EMG': len(self._series['myo_right_readings']) }
