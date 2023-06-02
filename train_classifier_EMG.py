@@ -297,16 +297,16 @@ def main():
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             
-            loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+            loader_e = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       transform=transform, load_feat=False, additional_info=True,
+                                                                       transform=transform, load_feat=False, additional_info=False,
                                                                 kwargs={'require_spectrogram': True, "save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-            val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
+            val_loader_e = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       transform=transform, load_feat=False, additional_info=True,
+                                                                       transform=transform, load_feat=False, additional_info=False,
                                                                 kwargs={'require_spectrogram': True, "save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
@@ -320,15 +320,10 @@ def main():
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
             logger.info(f'Finished saving model, now extracting features...')
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
-            logger.info(f'Finished extracting {args.split} features, now exiting...')
-            split = 'train'
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True)
-            logger.info(f'Finished extracting {split} features')
+            save_feat(action_classifier, loader_e, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
             logger.info(f'Now extracting features...')
-            save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=False)
-            logger.info(f'Finished extracting {split} features, now exiting...')
+            save_feat(action_classifier, val_loader_e, device, action_classifier.current_iter, num_classes, train=False)
+            logger.info(f'Finished extracting features, now exiting...')
 
     else:
         raise NotImplementedError
