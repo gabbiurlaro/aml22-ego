@@ -63,7 +63,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         models[m] = getattr(model_list, args.models[m].model)(input_size = (16, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG), 
-                                                                output_size = (256, 1, 1), num_classes= num_classes, num_clips=args.train.num_clips, use_batch_norm=True)
+                                                                output_size = (args.embeddings_size, 1, 1), num_classes= num_classes, num_clips=args.train.num_clips, use_batch_norm=True)
 
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
@@ -423,7 +423,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
     for i in range(iteration, training_iterations):
         # iteration w.r.t. the paper (w.r.t the bs to simulate).... i is the iteration with the actual bs( < tot_bs)
         real_iter = (i + 1) / (args.total_batch // args.batch_size)
-        if real_iter == args.models['EMG'].lr_steps:
+        if real_iter % args.models['EMG'].lr_steps == 0:
             # learning rate decay at iteration = lr_steps
             action_classifier.reduce_learning_rate()
         # gradient_accumulation_step is a bool used to understand if we accumulated at least total_batch
