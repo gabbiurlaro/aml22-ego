@@ -80,7 +80,7 @@ def main():
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       None, load_feat=False, kwargs={}),
+                                                                       None, load_feat=False, kwargs={'require_spectrogram': True}),
                                                    batch_size=args.batch_size, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
@@ -133,12 +133,12 @@ def main():
                 args.dataset.EMG.features_name = _features[a]
                 T_train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                            None, load_feat=True, additional_info=False, kwargs={'aug': True}),
+                                                                            None, load_feat=True, additional_info=False, kwargs={'require_spectrogram': True, 'aug': True}),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 T_val_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                             'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips,args.train.dense_sampling,
-                                                                            None, load_feat=True, additional_info=False, kwargs={'aug': True}),
+                                                                            None, load_feat=True, additional_info=False, kwargs={'require_spectrogram': True, 'aug': True}),
                                                         batch_size=args.batch_size, shuffle=False,
                                                         num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
                 train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
@@ -288,26 +288,26 @@ def main():
             # all dataloaders are generated here
             train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                         'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       transform=transform, load_feat=False, kwargs={}),
+                                                                       transform=transform, load_feat=False, kwargs={'require_spectrogram': True}),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
                                                                         'test', args.dataset,  {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       transform=transform, load_feat=False, kwargs={}),
+                                                                       transform=transform, load_feat=False, kwargs={'require_spectrogram': True}),
                                                     batch_size=args.batch_size, shuffle=True,
                                                     num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
             
             loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
                                                                        transform=transform, load_feat=False, additional_info=True,
-                                                                kwargs={"save": args.split}),
+                                                                kwargs={'require_spectrogram': True, "save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
             val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
                                                                        transform=transform, load_feat=False, additional_info=True,
-                                                                kwargs={"save": args.split}),
+                                                                kwargs={'require_spectrogram': True, "save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
                                           
