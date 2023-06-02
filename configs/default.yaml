@@ -19,7 +19,7 @@ train:
     EMG: False
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
-    EMG: 128
+    EMG: 64
 
 save: 
   num_clips: 10 # clips adopted in training
@@ -28,7 +28,7 @@ save:
     EMG: False
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
-    EMG: 128
+    EMG: 64
 
 test:
   num_clips: 10 # number of clips in testing
@@ -37,7 +37,7 @@ test:
     EMG: False
   num_frames_per_clip: # number of frames adopted in test for each modality
     RGB: 16
-    EMG: 128
+    EMG: 64
 
 dataset:
   annotations_path: train_val # path for the annotations data
