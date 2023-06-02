@@ -16,28 +16,28 @@ train:
   num_clips: 10 # clips adopted in training
   dense_sampling: # sampling version adopted in training for each modality
     RGB: False
-    EMG: True
+    EMG: False
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
-    EMG: 64
+    EMG: 128
 
 save: 
   num_clips: 10 # clips adopted in training
   dense_sampling: # sampling version adopted in training for each modality
     RGB: False
-    EMG: True
+    EMG: False
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
-    EMG: 64
+    EMG: 128
 
 test:
   num_clips: 10 # number of clips in testing
   dense_sampling: # sampling version adopted in test for each modality
     RGB: False
-    EMG: True
+    EMG: False
   num_frames_per_clip: # number of frames adopted in test for each modality
     RGB: 16
-    EMG: 64
+    EMG: 128
 
 dataset:
   annotations_path: train_val # path for the annotations data
