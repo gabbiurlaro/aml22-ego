@@ -322,7 +322,7 @@ def main():
             logger.info(f'Finished saving model, now extracting features...')
             save_feat(action_classifier, loader_e, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.save.num_clips)
             logger.info(f'Now extracting features...')
-            save_feat(action_classifier, val_loader_e, device, action_classifier.current_iter, num_classes, train=False)
+            save_feat(action_classifier, val_loader_e, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.save.num_clips)
             logger.info(f'Finished extracting features, now exiting...')
 
     else:
