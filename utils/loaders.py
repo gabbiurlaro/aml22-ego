@@ -501,7 +501,7 @@ class ActionNetDataset(data.Dataset, ABC):
 
             if self.require_spectrogram:
                 # n_fft control the number of frequency bin bin=n_fft // 2+1
-                n_fft = 2*(self.num_frames_per_clip[modality] - 1)
+                n_fft = 2*(self.num_frames_per_clip[modality])
                 win_length = None
                 hop_length = 1
                 # print(f'nfft +{n_fft}')
