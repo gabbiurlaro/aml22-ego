@@ -354,7 +354,7 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             label = label.to(device)
             #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
-                data[m] = data[m].reshape(-1, 16, num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
+                data[m] = data[m].reshape(-1, 16, args.save.num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
                 data[m] = data[m].permute(2, 0, 1, 3, 4)
                 data[m] = data[m].to(device)
                 logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
