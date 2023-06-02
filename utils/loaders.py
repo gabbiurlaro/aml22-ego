@@ -501,7 +501,7 @@ class ActionNetDataset(data.Dataset, ABC):
 
             if self.require_spectrogram:
                 # n_fft control the number of frequency bin bin=n_fft // 2+1
-                n_fft = 2*(self.num_frames_per_clip[modality])
+                n_fft = 2*(self.num_frames_per_clip[modality]-1)
                 win_length = None
                 hop_length = 1
                 # print(f'nfft +{n_fft}')
@@ -521,7 +521,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 result = []
                 for i in range(16):
                    #print(f'process_data_i!: {process_data[i].shape}')
-                    spec_indices = [int(i) for i in indices]
+                    spec_indices = [int(i/4) for i in indices]
                     signal = spectrogram(process_data[i])
                     if any([ind >= signal.shape[1] for ind in spec_indices]):
                         logger.info(f'indices: {indices}, signal.shape: {signal.shape}')
