@@ -299,14 +299,14 @@ def main():
             
             loader_e = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  'train', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       transform=transform, load_feat=False, additional_info=False,
+                                                                       transform=transform, load_feat=False, additional_info=True,
                                                                 kwargs={'require_spectrogram': True, "save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
             val_loader_e = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  'test', args.dataset, {'EMG':args.train.num_frames_per_clip.EMG}, args.train.num_clips, args.train.dense_sampling,
-                                                                       transform=transform, load_feat=False, additional_info=False,
+                                                                       transform=transform, load_feat=False, additional_info=True,
                                                                 kwargs={'require_spectrogram': True, "save": args.split}),
                                             batch_size=1, shuffle=False,
                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
