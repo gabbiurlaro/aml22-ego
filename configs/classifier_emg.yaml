@@ -5,7 +5,7 @@ split: train
 resume_from: ???
 wandb_name: 'EMG_classification'
 augmentation: False
-embeddings_size: 128
+embeddings_size: 1024
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
