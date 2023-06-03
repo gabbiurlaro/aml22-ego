@@ -327,7 +327,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
-        self.require_spectrogram = kwargs.get('require_spectrogram', True)
+        self.require_spectrogram = kwargs.get('require_spectrogram', False)
         
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
