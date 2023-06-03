@@ -320,7 +320,7 @@ def main():
             save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.train.num_clips)
             logger.info(f'Finished extracting train features')
 
-            save_feat(action_classifier, loader_test, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.train.num_clips)
+            save_feat(action_classifier, loader_test, device, action_classifier.current_iter, num_classes, train=False, num_clips=args.train.num_clips)
             logger.info(f'Finished extracting test features')
 
 

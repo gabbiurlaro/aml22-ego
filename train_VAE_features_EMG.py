@@ -43,7 +43,9 @@ def init_operations():
     
     if args.wandb_name is not None:
         WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
-        
+        if os.getenv('WANDB_KEY') is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
         run = wandb.init(project="FC-VAE(EMG)", entity="egovision-aml22")
         wandb.run.name = f'{args.name}_{args.models.EMG.model}'
@@ -69,7 +71,7 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(1024, 512, 1024)
+        models[m] = getattr(model_list, args.models[m].model)(1024, 256, 1024)
     transform = None
     # transform = augmentation_transforms = transforms.Compose([
     #         transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
@@ -128,61 +130,31 @@ def main():
         logger.debug(f"Test Output {output}")
 
     elif args.action == "train_and_save":
-        if args.augmentation:
-            train_loaders = {}
-            val_loaders = {}
-            _features= { '0': '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction',
-                        'WD-MW': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW-WD', 
-                        'MW': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW',
-                        'WD': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_WD', 
-                        'MW-WD': '../drive/MyDrive/EXTRACTED_FEATURES_AUG_1/Augmented_features_MW-WD',
-                        }
-            
-            for a in _features.keys():
-                args.dataset.EMG.features_name = _features[a]
-                train_loaders[a] = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                            'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                            transform=transform, load_feat=True, kwargs={'aug': True}),
-                                                        batch_size=args.batch_size, shuffle=False,
-                                                        num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-
-        else:
-                train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+        train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                                 'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                                transform=transform, load_feat=True, kwargs={'aug': True}),
+                                                                                transform=transform, load_feat=True, require_spectrogram=True),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
 
-                val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                                'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                                transform=transform, load_feat=True, kwargs={'aug': True}),
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
+                                                                                'test', args.dataset, {'EMG': 32}, 10, {'EMG': False},
+                                                                                transform=transform, load_feat=True, require_spectrogram=True),
                                                             batch_size=args.batch_size, shuffle=True,
                                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)    
-        args.dataset.EMG.features_name = '../drive/MyDrive/ACTIONNET_EMG/job_feature_extraction'
-        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True,kwargs={'aug': True} ),
-                                                   batch_size=1, shuffle=False,
-                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
+                                                                       'train', args.dataset, {'EMG': 32}, 10, {'EMG': False},
+                                                                       transform=transform, load_feat=True, additional_info=True, require_spectrogram=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
         loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       transform=transform, load_feat=True, additional_info=True, kwargs={'aug': True}),
+                                                                       'test', args.dataset, {'EMG': 32}, 10, {'EMG': False},
+                                                                       transform=transform, load_feat=True, additional_info=True,require_spectrogram=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         timestamp = datetime.now()
-        if args.augmentation:
-            ae = models
-            for a in train_loaders.keys():
-                ae = train_aug(ae, train_loaders[a], train_loaders['0'], val_loader, device, args.models.EMG)
-        else:
-            ae = train(models, train_loader, val_loader, device, args.models.EMG)
+        ae = train(models, train_loader, val_loader, device, args.models.EMG)
         save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
@@ -337,7 +309,27 @@ def train_aug(autoencoder, train_a_dataloader, train_o_dataloader, val_dataloade
         scheduler.step()
     return autoencoder
 
-def train(autoencoder,train_dataloader, val_dataloader, device, model_args):
+def costant_scheduler(value = 1, n_epoch = 200):
+    return np.ones(n_epoch) * value
+
+def frange_cycle_sigmoid(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # step is in [0,1]
+    
+    # transform into [-6, 6] for plots: v*12.-6.
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop:
+            L[int(i+c*period)] = 1.0/(1.0+ np.exp(- (v*12.-6.)))
+            v += step
+            i += 1
+    return L    
+
+
+def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     logger.info(f"Start VAE training.")
 
     for m in modalities:
@@ -347,60 +339,47 @@ def train(autoencoder,train_dataloader, val_dataloader, device, model_args):
 
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=model_args.lr_steps, gamma=model_args.lr_gamma)
 
-    reconstruction_loss = nn.MSELoss()
+    reconstruction_loss = nn.MSELoss(reduction='mean')
 
-    autoencoder['EMG'].train(True)
-
-   #beta = frange_cycle_linear(0, 1.0, model_args.epochs, n_cycle=2)
-    beta = [0 for _ in range(model_args.epochs)]
-    weights = {'mse': [1]*model_args.epochs ,#frange_cycle_linear(0.5, 1.0, model_args.epochs, n_cycle=2), #list([1 for _ in range(25)] + [1 -0.3*i/75 for i in range(75)]),
-                'kld': [1]*model_args.epochs } 
-    #list([1 for _ in range(50)] + [1 - 0.2*i/75 for i in range(50)])}
-    print(f"weights: {len(weights['mse'])}, {len(weights['kld'])}")
-    
-    noise_level = 0.2
-
+    for m in modalities:
+        autoencoder[m].train(True)
+    # beta = np.concatenate((costant_scheduler(1/(100*1024), model_args.epochs//2), frange_cycle_sigmoid(0, 1.0, model_args.epochs//2, n_cycle=1)))
+    # beta = np.ones(model_args.epochs) - frange_cycle_sigmoid(1/(100*1024), 1, model_args.epochs, n_cycle=10, ratio=.001)
+    beta = costant_scheduler(model_args.beta, model_args.epochs)
+    # beta = np.concatenate((costant_scheduler(1/(100 * 1024), (model_args.epochs//5)*4), frange_cycle_linear(1/(100 * 1024), .5, (model_args.epochs//5)*1, n_cycle=1, ratio=.001)))
     for epoch in range(model_args.epochs):
-        total_loss = 0
-        for i, ((data_a, _), (data_o, _)) in enumerate(zip(train_a_dataloader, train_o_dataloader)):
-            opt.zero_grad()        
+        # train_loop
+        total_loss = 0 # total loss for the epoch
+        for i, (data, _) in enumerate(train_dataloader):
+            opt.zero_grad()                                                                 #  reset the gradients    
             for m in modalities:
-               # data[m] = torch.stack(data[m])
-                logger.info(f"Data size: {data[m].shape}")
-                data[m] = data[m].permute(1, 0, 2) # Data is now in the form (clip, batch, features)
-                # print(f"Data after permutation: {data[m].size()}")
-                
+                data[m] = data[m].permute(1, 0, 2)                                          #  Data is now in the form (clip, batch, features)
+            
             for i_c in range(args.test.num_clips):
-                clip_level_loss = 0
+                clip_level_loss = 0                                                         #  loss for the clip             
                 for m in modalities:
                     # extract the clip related to the modality
-                    
                     clip = data[m][i_c].to(device)
-                    
-                    
-                    # if np.random.rand() < 0.3:
-                    #         noise = torch.randn(clip.size()).to(device)
-                    #         clip = clip + noise_level * noise
-                    
+
                     x_hat, _, mean, log_var = autoencoder[m](clip)
 
-                    mse_loss = reconstruction_loss(x_hat, clip)
-                    kld_loss = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
-                    loss = weights['mse'][epoch]*mse_loss + weights['kld'][epoch]*kld_loss
-                    loss.backward()
+                    mse_loss = reconstruction_loss(x_hat, clip)                              #  compute the reconstruction loss
+                    kld_loss = - 0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())  #  compute the KLD loss
+                    loss = mse_loss + beta[epoch] * kld_loss
                     # generate an error if loss is nan
                     if loss.isnan():
                         raise ValueError("Loss is NaN.")
                     clip_level_loss += loss
-                    wandb.log({"MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
+                    loss.backward()
+                    opt.step()
+                    wandb.log({"Beta": beta[epoch], "MSE LOSS": mse_loss, 'KLD_loss': kld_loss, 'loss': loss, 'lr': scheduler.get_last_lr()[0]})
             total_loss += clip_level_loss.item()
-            opt.step()
-
         if epoch % 10 == 0:
-            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_o_dataloader, device, reconstruction_loss), 'weight mse:' : weights['mse'][epoch], 'weight kld': weights['kld'][epoch]})
-        print(f"[{epoch+1}/{model_args.epochs}] - Loss: {total_loss/(args.test.num_clips * len(train_dataloader))}")
+            wandb.log({"validation_loss": validate(autoencoder['EMG'], val_dataloader, device, reconstruction_loss)})
+        print(f"[{epoch+1}/{model_args.epochs}] - Total loss: {total_loss}")
         scheduler.step()
     return autoencoder
+
 
 def save_model(model, filename):
         try:
