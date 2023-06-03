@@ -141,9 +141,8 @@ class EMG_classifier_parametric(nn.Module):
             
             if channels != self.input_size[0] or height != self.input_size[1] or width != self.input_size[2]:
                 raise ValueError(f"Input shape {x[clip].shape} does not match the expected shape {self.input_size}")
-            y = self.backbone(x[clip]).squeeze()
-
-            feats.append(y)
+            y = self.backbone(x[clip])
+            feats.append(y.squeeze())
             logit = self.on_top_classifier(y)
             logits.append(logit)
         return torch.stack(logits, dim=0).mean(dim=0), {i: feats[i] for i in range(self.num_clips)}
