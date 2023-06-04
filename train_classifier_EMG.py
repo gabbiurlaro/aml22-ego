@@ -108,8 +108,8 @@ def main():
         
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                  args.split, args.dataset,
-                                                                 args.save.num_frames_per_clip,
-                                                                 1, args.save.dense_sampling,additional_info=True,
+                                                                 args.train.num_frames_per_clip,
+                                                                 1, args.train.dense_sampling,additional_info=True,
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
                                              num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -244,8 +244,8 @@ def main():
 
                 loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
                                                                     args.split, args.dataset,
-                                                                    args.save.num_frames_per_clip,
-                                                                    1, args.save.dense_sampling,additional_info=True,
+                                                                    args.train.num_frames_per_clip,
+                                                                    1, args.train.dense_sampling,additional_info=True,
                                                                     **{"save": args.split}),
                                                 batch_size=1, shuffle=False,
                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
@@ -309,7 +309,7 @@ def main():
             logger.info(f'Starting training...')
             train(action_classifier, train_loader, val_loader, device, num_classes , num_clips=args.train.num_clips)
             logger.info(f'Finished training, now validating...')
-            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes,  num_clips=args.test.num_clips)
+            validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes,  num_clips=args.train.num_clips)
             logger.info(f'Finished validating, now saving model...')
             timestamp = datetime.now()
             save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
@@ -353,14 +353,14 @@ def save_feat(model, loader, device, it, num_classes, train=False, num_clips = 5
             label = label.to(device)
             #logger.info(f'video_name: {video_name},  data: {data["EMG"].shape} {data["EMG"][0].shape}')
             for m in modalities:
-                data[m] = data[m].reshape(-1, 16, args.save.num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
+                data[m] = data[m].reshape(-1, 16, args.train.num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
                 data[m] = data[m].permute(2, 0, 1, 3, 4)
                 data[m] = data[m].to(device)
-                logits[m] = torch.zeros((args.save.num_clips, batch, num_classes)).to(device)
+                logits[m] = torch.zeros((args.train.num_clips, batch, num_classes)).to(device)
             
                 output, feat = model(data)
                 logits[m] = output[m]
-                swap = [feat[i][m] for i in range(args.save.num_clips)]
+                swap = [feat[i][m] for i in range(args.train.num_clips)]
 
                 final_features = torch.stack(swap)
 
