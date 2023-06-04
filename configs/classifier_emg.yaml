@@ -13,9 +13,10 @@ dataset:
   workers: 4
   stride: 2
   resolution: 224
+
 train:
   num_iter: 300 # number of training iterations with total_batch size
-  lr_steps: 50 # steps before reducing learning rate
+  lr_steps: 40 # steps before reducing learning rate
   eval_freq: 50 # evaluation frequency
   num_clips: 10 # clips adopted in training
   embedding_size: 1024 # size of the embedding vector
