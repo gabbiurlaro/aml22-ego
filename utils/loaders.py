@@ -327,7 +327,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
-        self.require_spectrogram = kwargs.get('require_spectrogram', True)
+        self.require_spectrogram = kwargs.get('require_spectrogram', False)
         
         if self.mode == "train":
             pickle_name = split + "_train.pkl"
@@ -452,7 +452,7 @@ class ActionNetDataset(data.Dataset, ABC):
             sample_row = self.model_features[self.model_features["uid"] == int(record.uid)]
             assert len(sample_row) == 1
             for m in self.modalities:
-                sample[m] = torch.stack([torch.Tensor(sample_row["features_" + m].values[i]) for i in range(len(sample_row))])
+                sample[m] = torch.Tensor(sample_row["features_" + m].values[0])
             if self.additional_info:
                 return sample, record.label, record.untrimmed_video_name, record.uid
             else:

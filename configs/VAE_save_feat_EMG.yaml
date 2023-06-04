@@ -3,7 +3,6 @@ name: ???
 split: train
 resume_from: ???
 wandb_name: 'VAE_EMG'
-augmentation: True
 
 save:
   num_clips: 5
@@ -12,10 +11,10 @@ save:
     EMG: True
   num_frames_per_clip:
     RGB: 16
-    EMG: 16
+    EMG: 32
 
 dataset:
-  annotations_path: ../drive/MyDrive/train_val_EMG
+  annotations_path: train_val
   shift: ActionNet-ActionNet
   workers: 4
   stride: 2
@@ -33,3 +32,4 @@ models:
     lr_gamma: 0.1
     sgd_momentum: 0.9
     weight_decay: 1e-7
+    beta: 0.00001
