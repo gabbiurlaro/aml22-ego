@@ -27,8 +27,8 @@ class ActionRecognition(tasks.Task, ABC):
             if device:
                 self.task_models[m].to(device)
             optim_params[m] = filter(lambda parameter: parameter.requires_grad, self.task_models[m].parameters())
-            self.optimizer[m] = torch.optim.SGD(optim_params[m], (wandb.lr if wandb else model_args[m].lr),
-                                                weight_decay=(wandb.weight_decay if wandb else model_args[m].weight_decay),
+            self.optimizer[m] = torch.optim.SGD(optim_params[m], ( wandb.lr if wandb else model_args[m].lr ),
+                                                weight_decay= ( wandb.weight_decay if wandb else model_args[m].weight_decay),
                                                 momentum=model_args[m].sgd_momentum)
 
     def forward(self, data, **kwargs):

@@ -93,7 +93,7 @@ class EMG_classifier_parametric(nn.Module):
         self.num_clips = num_clips
 
         self.use_batch_norm = kwargs.get("use_batch_norm", False)
-
+        self.dropout_rate = kwargs.get("dropout_rate", 0.6)
         in_channels, in_height, in_width = input_size
         out_channels, out_height, out_width = output_size
         self.backbone = nn.Sequential()
@@ -130,7 +130,7 @@ class EMG_classifier_parametric(nn.Module):
             nn.Linear(fc_input_size, fc_hidden_size),
             nn.ReLU(inplace=True),
             nn.Linear(fc_hidden_size, num_classes),
-            nn.Dropout(p=0.6)
+            nn.Dropout(self.dropout_rate)
         )
 
     def forward(self, x):
