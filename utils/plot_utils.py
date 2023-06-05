@@ -87,19 +87,34 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
         data= pd.merge(data, annotations, how="inner", on="uid")
 
     # extract from each video the corrisponding feature(in this case, the middle clip)
-    
-    features = [ video[num_clips // 2, :] for video in data[f'features_{modality}'] ]
+    if video_level:
+        features = [ video[num_clips // 2, :] for video in data[f'features_{modality}'] ]
+    else:
+        features = [ video[clip_no, :] for video in data[f'features_{modality}'] for clip_no in range(num_clips)]
+
     print(f"Features size: {len(features)}, shape: {features[0].shape}")
     reduced = None
     if method == "tsne":
         reduced = TSNE(n_components=n_dim, random_state=0).fit_transform(features)
     else:
         reduced = PCA(n_components=n_dim).fit_transform(features)
-    data['x'] = reduced[:, 0]
-    data['y'] = reduced[:, 1]
-    for i in range(12): # ek has 8 classes
+    if video_level:
+        data['x'] = reduced[:, 0]
+        data['y'] = reduced[:, 1]
+    else:
+        reduced_x = [clips for clips in reduced[:, 0].reshape(-1, num_clips)]
+        reduced_y = [clips for clips in reduced[:, 1].reshape(-1, num_clips)]
+        data['x'] = reduced_x
+        data['y'] = reduced_y
+    for i in range(len(LABELS[dataset].keys())):
         filtered = data[data[label_name] == i]
-        plt.scatter(filtered['x'], filtered['y'], c=COLORS['AN'][i], label=LABELS['AN'][i])
+        if video_level:
+            plt.scatter(filtered['x'], filtered['y'], c=COLORS[dataset][i], label=LABELS[dataset][i])
+        else:
+            x = [clip for video in filtered['x'] for clip in video]
+            y = [clip for video in filtered['y'] for clip in video]
+            plt.scatter(x, y, c=COLORS[dataset][i], label=LABELS[dataset][i])
+
     plt.title(title)
     plt.show()
 
