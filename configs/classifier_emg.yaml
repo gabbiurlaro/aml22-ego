@@ -1,6 +1,5 @@
 action: train # train or test
 name: ???
-shift: ActionNet-ActionNet
 split: train
 resume_from: ???
 wandb_name: 'EMG_classification'
@@ -8,7 +7,7 @@ augmentation: False
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG
-  shift: ActionNet-ActionNet
+  shift: S04-S04
   workers: 4
   stride: 1
   resolution: 224
@@ -17,10 +16,10 @@ train:
   lr_steps: 50 # steps before reducing learning rate
   eval_freq: 50 # evaluation frequency
   num_clips: 10 # clips adopted in training
-  embedding_size: 256 # size of the embedding vector
+  embedding_size: 1024 # size of the embedding vector
   dense_sampling: # sampling version adopted in training for each modality
     RGB: True
-    EMG: True
+    EMG: False
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
     EMG: 32
@@ -28,13 +27,13 @@ train:
 models:
   EMG:
     model: EMG_classifier_parametric
-    dropout: 0.2
+    dropout: 0.5
     normalize: False
     transform: False
     resolution: 224
     kwargs: {}
-    lr_steps: 80
+    lr_steps: 25
     epochs: 10
-    lr: 1e-2
+    lr: 0.2
     sgd_momentum: 0.9
-    weight_decay: 5e-3
+    weight_decay: 0.001

@@ -95,7 +95,7 @@ python train_classifier_EMG.py action="job_feature_extraction" name="job_feature
 ```
 
 ```bash
-python train_VAE_EMG_features.py action="train_and_save" \
+python train_VAE_EMG_features.py action="train" \
   name="VAE_EMG" \
   config=configs/VAE_save_feat_EMG.yaml \
   dataset.shift=ActionNet-ActionNet \
@@ -103,6 +103,5 @@ python train_VAE_EMG_features.py action="train_and_save" \
   wandb_dir='Experiment_logs'  \
   dataset.RGB.data_path=../ek_data/frames \
   dataset.EMG.features_name='saved_features/job_feature_extraction_20230603-170211' \
-  models.EMG.model='VAE' \
-  models.EMG.lr=1e-3
+  models.EMG.model='VAE'
 ```
