@@ -60,7 +60,7 @@ COLORS = {'EK': {
 
 
 
-def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = "Features"):
+def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = "Features", **kwargs):
     """
     Plot the features of the dataset using the specified method.
     - feature_name: name of the feature to plot(.pkl file)
@@ -69,6 +69,9 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     - method: method to use for dimensionality reduction [tsne, pca]
     - model: model used to extract the features [I3D]
     """
+
+    legend = kwargs.get('legend', False)
+
     if n_dim != 2 and n_dim != 3:
         raise ValueError("n_dim must be 2 or 3")
     if method != 'tsne' and method != 'pca':
@@ -114,7 +117,8 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
             x = [clip for video in filtered['x'] for clip in video]
             y = [clip for video in filtered['y'] for clip in video]
             plt.scatter(x, y, c=COLORS[dataset][i], label=LABELS[dataset][i])
-
+    if legend:
+        plt.legend(loc='upper left')
     plt.title(title)
     plt.show()
 
