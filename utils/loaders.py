@@ -330,12 +330,15 @@ class ActionNetDataset(data.Dataset, ABC):
         self.require_spectrogram = kwargs.get('require_spectrogram', False)
         
         if self.mode == "train":
-            pickle_name = split + "_train.pkl"
+            pickle_name = "ActionNet" + "_train.pkl"
         else:
-            pickle_name = split + "_test.pkl"
+            pickle_name = "ActionNet" + "_test.pkl"
         
-        
-        self.list_file = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
+        raw_data = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
+        if split == "S04":
+            self.list_file = raw_data[raw_data["subject"] == "S04_1"]
+        else:
+            self.list_file = raw_data
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')
         logger.info(f"Dataloader for {split} - {self.mode} with {len(self.list_file)} samples generated")
         self.video_list = [ ActionNetRecord(tup, self.dataset_conf) for tup in self.list_file.iterrows()]
@@ -486,7 +489,10 @@ class ActionNetDataset(data.Dataset, ABC):
                 'left': record.myo_left_readings.reshape(8, -1),
                 'right': record.myo_right_readings.reshape(8, -1)
             }
-            process_data = torch.from_numpy(np.array([readings[arm][i] for arm in readings.keys() for i in range(len(readings[arm]))])).float()
+            process_data = torch.from_numpy( np.vstack(
+                                                [ readings[arm] for arm in readings.keys()]
+                                            ) 
+                                            ).float()
             if self.transform is not None:
                 process_data = self.transform(process_data)
 
