@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 import torch
-
+import numpy as np
 
 def get_domains_and_labels(args):
     domains = {'D1': 8, 'D2': 1, 'D3': 22, 'ActionNet': 0 ,'S04': 3}
@@ -123,3 +123,38 @@ def pformat_dict(d, indent=0):
         else:
             fstr += ' ' + str(value)
     return fstr
+
+# Schedulers
+
+def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # linear schedule
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop and (int(i+c*period) < n_epoch):
+            L[int(i+c*period)] = v
+            v += step
+            i += 1
+    return L  
+
+def costant_scheduler(value = 1, n_epoch = 200):
+    return np.ones(n_epoch) * value
+
+def frange_cycle_sigmoid(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # step is in [0,1]
+    
+    # transform into [-6, 6] for plots: v*12.-6.
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop:
+            L[int(i+c*period)] = 1.0/(1.0+ np.exp(- (v*12.-6.)))
+            v += step
+            i += 1
+    return L    
