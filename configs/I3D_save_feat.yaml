@@ -2,7 +2,7 @@ action: save # train or test
 name: saved_feat_I3D
 split: train
 resume_from: ???
-modality: ['RGB']
+modality: ["RGB"]
 
 save:
   num_clips: 10
