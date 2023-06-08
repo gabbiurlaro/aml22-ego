@@ -2,15 +2,7 @@ action: save # train or test
 name: saved_feat_I3D
 split: train
 resume_from: ???
-<<<<<<< HEAD
-<<<<<<< HEAD
 modality: ['RGB']
-=======
-modality: ["RGB"]
->>>>>>> 6d2458d (sae)
-=======
-modality: ['RGB']
->>>>>>> db37605 (saved)
 
 save:
   num_clips: 10
