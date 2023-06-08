@@ -78,30 +78,25 @@ lr = 10^-2: bruttissimi risultati
 Bisogna capire il perchè solo con lr = 10^-3 funziona. Reduction = sum, non funziona con reduction = mean.
 
 
-#### 3.3 Reconstructe EMG features
+#### 3.3 Reconstructed EMG features
+
+In order to learn to transfer the modality, we need to train an EMG classifier, that provides us the features. We have tried different values. We can now extract the feature using the following command:
 
 ```bash
-
-
-python train_classifier_EMG.py action="job_feature_extraction" name="job_feature_extraction" \
-  config=configs/classifier_emg.yaml \
-  dataset.shift=ActionNet-ActionNet \
-  train.num_iter=300\
-  wandb_name='EMG'\
-  wandb_dir='Experiment_logs'\
-  dataset.RGB.data_path=../ek_data/frames  \
-  models.EMG.model='EMG_classifier' \
-  models.EMG.lr=0.1
+python train_classifier_EMG.py action="job_feature_extraction" \
+  name="job_feature_extraction" \
+  config=configs/emg/emg_classifier_1.yaml 
 ```
 
 ```bash
-python train_VAE_EMG_features.py action="train" \
-  name="VAE_EMG" \
+python train_VAE_EMG_features.py action="train_and_save" \
+  name="VAE_EMG"   \
   config=configs/VAE_save_feat_EMG.yaml \
-  dataset.shift=ActionNet-ActionNet \
-  wandb_name='vae' \
-  wandb_dir='Experiment_logs'  \
-  dataset.RGB.data_path=../ek_data/frames \
-  dataset.EMG.features_name='saved_features/job_feature_extraction_20230603-170211' \
-  models.EMG.model='VAE'
+  dataset.shift=ActionNet-ActionNet  \
+  wandb_name='vae'   \
+  wandb_dir='Experiment_logs'    \
+  dataset.RGB.data_path=../ek_data/frames   \
+  dataset.EMG.features_name='saved_features/ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
+  models.EMG.model='VAE' \
+  models.EMG.epochs=100
 ```

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+import os
 
 # Epic Kitchens and ActionNet labels and colors.
 
@@ -71,6 +72,8 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     """
 
     legend = kwargs.get('legend', False)
+    save = kwargs.get('save', False)
+    filename = kwargs.get('filename', f"{dataset}_{split}_{model}_{modality}_{method}_{n_dim}D.png")
 
     if n_dim != 2 and n_dim != 3:
         raise ValueError("n_dim must be 2 or 3")
@@ -91,14 +94,12 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
 
     # extract from each video the corrisponding feature(in this case, the middle clip)
     if video_level:
-        features = [ video[num_clips // 2, :] for video in data[f'features_{modality}'] ]
+        features = np.array([ video[num_clips // 2, :] for video in data[f'features_{modality}'] ])
     else:
-        features = [ video[clip_no, :] for video in data[f'features_{modality}'] for clip_no in range(num_clips)]
-
-    print(f"Features size: {len(features)}, shape: {features[0].shape}")
+        features = np.array([ video[clip_no, :] for video in data[f'features_{modality}'] for clip_no in range(num_clips)])
     reduced = None
     if method == "tsne":
-        reduced = TSNE(n_components=n_dim, random_state=0).fit_transform(features)
+        reduced = TSNE(n_components=n_dim, learning_rate="auto", random_state=0, verbose=0, init = "pca", ).fit_transform(features)
     else:
         reduced = PCA(n_components=n_dim).fit_transform(features)
     if video_level:
@@ -120,7 +121,13 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     if legend:
         plt.legend(loc='upper left')
     plt.title(title)
-    plt.show()
+
+    if save:
+        plt.savefig(os.path.join("img","vae_emg", filename))
+    else:
+        plt.show()
+
+    plt.close()
 
 def plot_reconstructed_sep(reconstructed_features, original_features, reduction = "tsne", model = "AE", num_clips = 5):
     """

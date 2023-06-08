@@ -1,5 +1,5 @@
 """
-Versione per non sporcare l'altra, dovrebbe essere più aggiornata
+Versione per non sporcare l'altra, dovrebbe essere più aggiornata. I bug li ho risolti tutti qui
 """
 from utils.logger import logger
 import torch.nn.parallel
@@ -73,6 +73,8 @@ def main():
         #print(getattr(model_list, args.models[m].model)())
         models[m] = getattr(model_list, args.models[m].model)(args.train[m].feature_size, args.train.bottleneck_size, args.train[m].feature_size)
 
+    print(models['EMG'])
+    
     if args.action == "train":
         # TODO: fiX dataset_config passing during multimodal training
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], 
@@ -104,7 +106,7 @@ def main():
         timestamp = datetime.now()
         model_filename = f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth"
         save_model(ae['EMG'], model_filename)
-        logger.info(f"Model saved in ")
+        logger.info(f"Model saved in {model_filename}")
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
@@ -186,13 +188,13 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
             opt.zero_grad()                                                                 #  reset the gradients    
             for m in modalities:
                 data[m] = data[m].permute(1, 0, 2)                                          #  Data is now in the form (clip, batch, features)            
+            
             for i_c in range(args.test.num_clips):
                 clip_level_loss = 0                                                         #  loss for the clip             
                 for m in modalities:
                     # extract the clip related to the modality
                     clip = data[m][i_c].to(device)
                     x_hat, _, mean, log_var = autoencoder[m](clip)
-
                     mse_loss = reconstruction_loss(x_hat, clip)                              #  compute the reconstruction loss
                     kld_loss = - 0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())  #  compute the KLD loss
                     loss = mse_loss + beta[epoch] * kld_loss
@@ -294,7 +296,8 @@ def save_model(model, filename):
         date = str(datetime.now().date())
         if not os.path.isdir(os.path.join('./saved_models/VAE_EMG', date)):
             os.mkdir(os.path.join('./saved_models/VAE_EMG', date))
-        torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_EMG', date, filename))
+        torch.save({'encoder': model.encoder.state_dict(), 'decoder': model.decoder.state_dict()}, 
+                   os.path.join('./saved_models/VAE_EMG', date, filename))
     except Exception as e:
         logger.info("An error occurred while saving the checkpoint:")
         logger.info(e)

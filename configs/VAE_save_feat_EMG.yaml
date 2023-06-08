@@ -9,7 +9,7 @@ train:
   EMG:
     feature_size: 1024
 save:
-  num_clips: 5
+  num_clips: 10
   dense_sampling:
     RGB: True
     EMG: True
@@ -26,12 +26,12 @@ dataset:
 
 models:
   EMG:
-    model: EMG_VAE
+    model: VAE
     dropout: 0.2
     normalize: True
     kwargs: {}
     lr_steps: 30 
-    epochs: 1
+    epochs: 100
     lr: 1e-4
     lr_gamma: 0.1
     sgd_momentum: 0.9
