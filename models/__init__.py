@@ -4,5 +4,4 @@ from models.I3D import I3D
 from models.FinalClassifier import Classifier, MLP_late_fusion, action_TRN
 from models.actionLSTM import ActionLSTM 
 from models.FC_VAE import VariationalAutoencoder as VAE
-from models.EMG_classifier import EMG_classifier as EMG_classifier
 from models.EMG_classifier import EMG_classifier_parametric as EMG_classifier_parametric
