@@ -39,6 +39,7 @@ def main():
     # this will output the domain conversion (D1 -> 8, et cetera) and the label list
     num_classes, valid_labels, source_domain, target_domain = utils.utils.get_domains_and_labels(args)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    num_classes = 8 # questa è un hack per far funzionare il codice, in realtà non è vero che sono 8 classi
 
     models = {}
     train_augmentations = {}
@@ -60,17 +61,17 @@ def main():
         augmentations = {"train": train_augmentations, "test": test_augmentations}
         # the only action possible with this script is "save"
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], 
-                                                            modalities,
-                                                            args.split, 
-                                                            args.dataset,
-                                                            args.save.num_frames_per_clip,
-                                                            args.save.num_clips, 
-                                                            args.save.dense_sampling,
-                                                            augmentations[args.split],
-                                                            additional_info=True,
-                                                            **{"save": args.split}),
+                                                                modalities,
+                                                                args.split, 
+                                                                args.dataset,
+                                                                args.save.num_frames_per_clip,
+                                                                args.save.num_clips, 
+                                                                args.save.dense_sampling,
+                                                                augmentations[args.split],
+                                                                additional_info=True,
+                                                                **{"save": args.split}),
                                              batch_size=1, shuffle=False,
-                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                                             num_workers=args.dataset.workers, pin_memory=False, drop_last=False)
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
     else:
         raise NotImplementedError
@@ -127,11 +128,11 @@ def save_feat(model, loader, device, it, num_classes):
                 results_dict["features"].append(sample)
             num_samples += batch
 
-            model.compute_accuracy(logits, label)
+            #model.compute_accuracy(logits, label)
 
-            if (i_val + 1) % (len(loader) // 5) == 0:
-                logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(loader),
-                                                                          model.accuracy.avg[1], model.accuracy.avg[5]))
+            # if (i_val + 1) % (len(loader) // 5) == 0:
+            #     logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(loader),
+            #                                                               model.accuracy.avg[1], model.accuracy.avg[5]))
 
         os.makedirs("saved_features", exist_ok=True)
         pickle.dump(results_dict, open(os.path.join("saved_features/ACTIONNET", args.name + "_" +
