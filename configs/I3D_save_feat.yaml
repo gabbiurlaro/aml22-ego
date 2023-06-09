@@ -1,10 +1,11 @@
 action: save # train or test
 name: saved_feat_I3D
-split: test
+split: train
 resume_from: ???
+modality: ['RGB']
 
 save:
-  num_clips: 5
+  num_clips: 10
   dense_sampling:
     RGB: True
   num_frames_per_clip:
