@@ -1,0 +1,23 @@
+program: train_VAE_EMG_features_sweep.py
+name: FC-VAE-emg
+method: grid
+metric:
+  name: validation_loss
+  goal: minimize
+parameters:
+  lr: 
+    values: [0.0001, 0.0005, 0.001, 0.005, 0.01]
+  beta:
+    values: [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-4]
+command:
+  - python
+  - train_VAE_EMG_features_sweep.py
+  - action="train_and_save" 
+  - name="VAE_FT_D_16f"
+  - config=configs/VAE_save_feat_EMG.yaml   
+  - dataset.shift=D1-D1
+  - wandb_name='vae'
+  - wandb_dir='Experiment_logs' 
+  - dataset.RGB.data_path=../ek_data/frames    
+  - dataset.EMG.features_name="saved_features/ACTIONNET_EMG/2023-06-07/EMG_fe_lr0.2_2023-06-07 18:23:48.689306"
+  - models.EMG.model='VAE'
