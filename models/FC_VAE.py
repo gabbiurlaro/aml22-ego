@@ -1,3 +1,7 @@
+"""
+This class is the same for the EMG or RGB features
+"""
+
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -49,11 +53,13 @@ class Decoder(nn.Module):
         return self.decoder(z)
 
 class VariationalAutoencoder(nn.Module):
-    def __init__(self, in_channels, latent_dims, out_channels, variational=True):
+    def __init__(self, in_channels, latent_dims, out_channels, variational=True, resume_from = None):
         super(VariationalAutoencoder, self).__init__()
         self.variational = variational
         self.encoder = VariationalEncoder(in_channels, latent_dims, variational=self.variational)
         self.decoder = Decoder(latent_dims, out_channels)
+        self.resume_from = resume_from
+        
     
     def load_on(self, device):
         self.encoder = self.encoder.to(device)
@@ -74,3 +80,8 @@ class VariationalAutoencoder(nn.Module):
             z = self.encoder(x)
             res = self.decoder(z)
             return res, z
+        
+    def load_last_model(self):
+        last_model = torch.load(self.resume_from)
+        self.encoder.load_state_dict(last_model['encoder'])
+        self.decoder.load_state_dict(last_model['decoder'])

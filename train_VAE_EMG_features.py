@@ -71,7 +71,10 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         #print(getattr(model_list, args.models[m].model)())
-        models[m] = getattr(model_list, args.models[m].model)(args.train[m].feature_size, args.train.bottleneck_size, args.train[m].feature_size)
+        models[m] = getattr(model_list, args.models[m].model)(args.train[m].feature_size, 
+                                                              args.train.bottleneck_size, 
+                                                              args.train[m].feature_size,
+                                                              resume_from=args.last_model)
 
     print(models['EMG'])
     
@@ -108,23 +111,37 @@ def main():
         save_model(ae['EMG'], model_filename)
         logger.info(f"Model saved in {model_filename}")
     elif args.action == "save":
-        loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'train', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                        load_feat=True, additional_info=True),
+        if args.last_model is None:
+            raise ValueError("You must specify a model to load from")
+        print(args.last_model)
+        models['EMG'].load_last_model()
+        models['EMG'].load_on(device)
+        loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], 
+                                                                modalities,
+                                                                'train', 
+                                                                args.dataset,
+                                                                args.save.num_frames_per_clip, 
+                                                                args.save.num_clips, 
+                                                                args.save.dense_sampling,
+                                                                load_feat=True, 
+                                                                additional_info=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
         
-        loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       'test', args.dataset, {'EMG': 32}, 5, {'EMG': False},
-                                                                       load_feat=True, additional_info=True),
+        loader_test = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], 
+                                                                    modalities,
+                                                                    'test',
+                                                                    args.dataset,
+                                                                    args.save.num_frames_per_clip, 
+                                                                    args.save.num_clips, 
+                                                                    args.save.dense_sampling,
+                                                                    load_feat=True, 
+                                                                    additional_info=True),
                                                    batch_size=1, shuffle=False,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        last_model = args.resume_from
-        logger.info(f"Loading last model from {last_model}")
-        load_model(models['EMG'], last_model)
+        timestamp = datetime.now()
         logger.info(f"Reconstructing features...")
-
-        filename = f"../drive/MyDrive/reconstructed/AUG_VAE_2050_{args.models.EMG.lr}"
+        filename = f"features_lr{args.models.EMG.lr}_b{args.models.EMG.beta}_{timestamp}"
         reconstructed_features, output = reconstruct(models, loader, device, "train", save = True, filename=filename, debug=True)
         logger.debug(f"Train Output {output}")
         reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
@@ -156,9 +173,9 @@ def main():
         timestamp = datetime.now()
 
         ae = train(models, train_loader, val_loader, device, args.models.EMG)
-
-        save_model(ae['EMG'], f"{args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
-        logger.info(f"Model saved in {args.name}_lr{args.models.EMG.lr}_{timestamp}.pth")
+        model_filename = f"{args.name}_lr{args.models.EMG.lr}_b{args.models.EMG.beta}_{timestamp}.pth"
+        save_model(ae['EMG'], model_filename)
+        logger.info(f"Model saved in {model_filename}")
         logger.info(f"TRAINING VAE FINISHED, RECONSTUCTING FEATURES...")
         filename = f"features_lr{args.models.EMG.lr}_b{args.models.EMG.beta}_{timestamp}"
         reconstructed_features, results = reconstruct(models, loader, device, "train", save = True, filename=filename, debug = True)
@@ -291,7 +308,6 @@ def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     return total_loss/len(val_dataloader)
 
 def save_model(model, filename):
-    # TODO: save the model separately
     try:
         date = str(datetime.now().date())
         if not os.path.isdir(os.path.join('./saved_models/VAE_EMG', date)):
