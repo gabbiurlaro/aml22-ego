@@ -13,12 +13,12 @@ save:
 
 dataset:
   annotations_path: train_val
-  shift: ???
+  shift: S04-S04
   workers: 4
   stride: 2
   resolution: 224
   RGB:
-    data_path: ???
+    data_path: ../an_data/frames
     tmpl: "img_{:010d}.jpg"
   Event:
     rgb4e: 6
