@@ -59,8 +59,6 @@ COLORS = {'EK': {
         11 : "cadetblue"
 }}
 
-
-
 def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = "Features", **kwargs):
     """
     Plot the features of the dataset using the specified method.
@@ -73,7 +71,7 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
 
     legend = kwargs.get('legend', False)
     save = kwargs.get('save', False)
-    filename = kwargs.get('filename', f"{dataset}_{split}_{model}_{modality}_{method}_{n_dim}D.png")
+    filename = kwargs.get('filename', f"{dataset}_{split}_{model}_{modality}_{method}_{n_dim}.png")
 
     if n_dim != 2 and n_dim != 3:
         raise ValueError("n_dim must be 2 or 3")

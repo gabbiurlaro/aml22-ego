@@ -327,6 +327,7 @@ class ActionNetDataset(data.Dataset, ABC):
         self.num_clips = num_clips
         self.stride = self.dataset_conf.stride
         self.additional_info = additional_info
+
         self.require_spectrogram = kwargs.get('require_spectrogram', False)
         
         if self.mode == "train":
@@ -347,6 +348,8 @@ class ActionNetDataset(data.Dataset, ABC):
         self.load_feat = load_feat
 
         # TODO: REFACTORING
+        # model features will be the dictionary containing the features for each modality
+        # 
         if self.load_feat:
             self.model_features = None
             for m in self.modalities:
@@ -356,7 +359,7 @@ class ActionNetDataset(data.Dataset, ABC):
                 else:
                     self.model_features = pd.merge(self.model_features, model_features, how="inner", on="uid")
                 self.model_features = pd.merge(self.model_features, self.list_file, how="inner", on="uid")
-         
+        
     def _get_train_indices(self, record, modality='RGB'):
         if self.dense_sampling[modality]:
             # selecting one frame and discarding another (alternation), to avoid duplicates

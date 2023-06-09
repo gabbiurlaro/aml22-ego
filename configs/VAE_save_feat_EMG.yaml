@@ -3,6 +3,7 @@ name: ???
 split: train
 resume_from: ???
 wandb_name: 'VAE_EMG'
+last_model: 'saved_models/VAE_EMG/VAE_EMG_lr0.0001_b1e-05.pth'
 
 train:
   bottleneck_size: 256
