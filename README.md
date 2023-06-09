@@ -31,7 +31,65 @@ As a reference, `colab_runner.ipynb` provides an example of how to set up a work
 
 NOTE: you need to stay connected to the Google Colab interface at all times for your python scripts to keep training.
 
-### 3. Recreate our experiments
+### 3. How to recreate the results
+
+In the paper, we have discussed first feature extraction on RGB videos using I3D, later we have investigated the possibility to use another modality(i.e. EMG), and try to use it to make multimodal action recognition. Later, we have discussed the possibility to translate from one modality to another using the Variational Autoencoder framework.
+
+#### 3.1 Feature extraction
+All the analysis are present in the paper.
+
+##### 3.1.1 RGB features extraction
+
+In order to extract features, we have used the I3D model based on the inception module. In our analysis we have included different frame numbers, clip numbers and sampling, in order to find the best configuration, both qualitatively and quantitatively. To extract the features, we have used the following command:
+
+
+```bash
+python save_feat_epic.py \
+      config=configs/save_feat.yaml  \
+      dataset.shift=D1-D1 wandb_name='i3d' \
+      wandb_dir='Experiment_logs' \
+      dataset.RGB.data_path=../ek_data/frames \
+      dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' \
+      models.RGB.model='i3d'
+```
+
+##### 3.1.2 EMG features extraction
+Also for this task we have used different configurations, in order to find the best parameters, in order to achieve good qualitative and quantitative results. To extract the features, we have used the following command:
+
+```bash
+python train_classifier_EMG.py action="job_feature_extraction" \
+      name="job_feature_extraction" \
+      config=configs/emg/emg_classifier_1.yaml
+```
+
+#### 3.2 Train a variational autoencoder
+
+Variational autoencoder is a powerful framework that allow to learn a latent representation of the data. In our case, we have used it to learn a latent representation of the RGB data, and then use it to translate from RGB to EMG. In order to train the VAE, we have used the following command:
+
+```bash
+python train_VAE_features_clip.py action="train_and_save"  name="VAE_FT_D_16f" \
+  config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
+  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE'
+```
+
+```bash
+python train_VAE_EMG_features.py action="train_and_save"  name="VAE_FT_D_16f" \
+  config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
+  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE'
+```
+
+##### 3.2.1 Train a classifier on reconstructed features
+
+In order to check if the reconstructed features are good enough, we have used them to train a classifier. In order to do so, we have used the following command:
+
+```bash
+```
+
+```bash
+```
+
+
+### Stuff
 
 #### 3.2 Use reconstructed feature to train a classifier
 First, we need to train the vae and save the model
@@ -112,5 +170,14 @@ python train_VAE_EMG_features.py action="save" \
   dataset.RGB.data_path=../ek_data/frames   \
   dataset.EMG.features_name='ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
   models.EMG.model='VAE' \
-  models.EMG.epochs=100 \
+  models.EMG.epochs=100 
 ```
+
+#### SAVE FEATURE ACTIONNET
+```bash
+python save_feat_actionnet.py action="save" \
+  name="feature_actionnet" \
+  config=configs/I3D_save_feat.yaml \
+  resume_from='saved_models/I3D_SourceOnlyD1'
+```
+
