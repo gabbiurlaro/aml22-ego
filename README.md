@@ -107,7 +107,7 @@ python train_VAE_features_clip.py action="save" name="VAE_FT_D_16f"   config=con
 Or, using the same command:
 
 ```bash
-python train_VAE_features_clip.py action="train_and_save" name="VAE_RGB" config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae-rgb'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE'
+python train_VAE_features_clip.py action="train_and_save" split="train" name="VAE_RGB" config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae-rgb'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE'
 ```
 
 The second option is preferable, because we don't need to provide the path of the model to resume from.
