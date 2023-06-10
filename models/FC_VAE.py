@@ -1,7 +1,6 @@
 """
 This class is the same for the EMG or RGB features
 """
-
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
