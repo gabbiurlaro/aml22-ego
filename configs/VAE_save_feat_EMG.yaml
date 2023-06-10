@@ -3,14 +3,16 @@ name: ???
 split: train
 resume_from: ???
 wandb_name: 'VAE_EMG'
-last_model: 'saved_models/VAE_EMG/VAE_EMG_lr0.0001_b1e-05.pth'
+last_model: 
+  encoder: "saved_models/VAE_EMG/VAE_EMG_lr0.0001_b1e-05_2023-06-10 11:40:54.140793.pth"
+  decoder: "saved_models/VAE_EMG/VAE_EMG_lr0.0001_b1e-05_2023-06-10 11:40:54.140793.pth"
 
 train:
   bottleneck_size: 256
   EMG:
     feature_size: 1024
 save:
-  num_clips: 10
+  num_clips: 5
   dense_sampling:
     RGB: True
     EMG: True
