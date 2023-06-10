@@ -5,6 +5,10 @@ from utils.logger import logger
 import numpy as np
 
 class BasicBlock(nn.Module):
+    """Basic block for the EMG classifier.
+    It consist of a convolutional layer, an activation function and an optional pooling layer.
+    It allow to modify the dimensionality of the feature map.
+    """
     def __init__(self, input_channels, output_channels, **kwargs) -> None:
         super().__init__()
 
@@ -27,6 +31,10 @@ class BasicBlock(nn.Module):
         return x
     
 class EMG_classifier_parametric(nn.Module):
+    """
+    EMG classifier model for action recognition.
+    Based on a convolutional neural network and a fully connected classifier.
+    """
     def __init__(self, input_size, output_size, num_classes, num_clips, **kwargs) -> None:
         super().__init__()
        

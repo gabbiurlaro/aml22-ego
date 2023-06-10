@@ -84,7 +84,6 @@ class RelationModuleMultiScale(torch.nn.Module):
         import itertools
         return list(itertools.combinations([i for i in range(num_frames)], num_frames_relation))
 
-
 class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
     # relation module in multi-scale with a classifier at the end
     def __init__(self, img_feature_dim, num_frames, num_class):
