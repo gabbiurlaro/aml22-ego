@@ -75,8 +75,6 @@ def main():
                                                               args.train.bottleneck_size, 
                                                               args.train[m].feature_size,
                                                               resume_from=args.last_model)
-
-    print(models['EMG'])
     
     if args.action == "train":
         # TODO: fiX dataset_config passing during multimodal training
