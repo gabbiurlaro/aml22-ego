@@ -17,6 +17,7 @@ import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+from utils.utils import costant_scheduler, frange_cycle_linear, frange_cycle_sigmoid
 
 # global variables among training functions
 training_iterations = 0
@@ -45,6 +46,7 @@ def init_operations():
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
         run = wandb.init(project="FC-VAE(rgb)", entity="egovision-aml22", name = f"{args.models.RGB.model}_{args.models.RGB.lr}")
+        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
 
 def main():
     global training_iterations, modalities
@@ -55,7 +57,7 @@ def main():
     # this will output the domain conversion (D1 -> 8, et cetera) and the label list
     num_classes, valid_labels, source_domain, target_domain = utils.utils.get_domains_and_labels(args)
     # device where everything is run
-    device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # these dictionaries are for more multi-modal training/testing, each key is a modality used
     models = {}
@@ -65,7 +67,9 @@ def main():
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         # the second argument is the dimensionality of the latent space
-        models[m] = getattr(model_list, args.models[m].model)(1024, args.models[m].architecture.bottleneck, 1024)
+        models[m] = getattr(model_list, args.models[m].model)(args.train[m].feature_size, 
+                                                              args.train.bottleneck_size, 
+                                                              args.train[m].feature_size)
     if args.action == "train":
         # all dataloaders are generated here
         train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
@@ -83,7 +87,6 @@ def main():
         ae = train(models, train_loader, val_loader, device, args.models.RGB)
         logger.info(f"TRAINING VAE FINISHED, SAVING THE MODELS...")
         save_model(ae['RGB'], f"{args.models.RGB.model}_lr{args.models.RGB.lr}.pth")
-
     elif args.action == "save":
         loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        args.split , args.dataset, None, None, None,
@@ -104,7 +107,6 @@ def main():
         logger.debug(f"Train Output {output}")
         reconstructed_features, output = reconstruct(models, loader_test, device, "test", save = True, filename=filename, debug=True)
         logger.debug(f"Test Output {output}")
-
     elif args.action == "train_and_save":
         train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, None, None, None,
@@ -158,7 +160,9 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
                 for i_c in range(args.test.num_clips): #  iterate over the clips
                     clip = data[m][i_c].to(device)     #  retrieve the clip
                     x_hat, _, _, _ = autoencoder[m](clip)      
-                    x_hat = x_hat.to(device).detach()
+                    
+                    clip = clip.cpu()
+                    x_hat = x_hat.cpu()
                     # logger.debug(f"Clip: {clip.shape}, x_hat: {x_hat.shape}")
                     # logger.debug(f"Reconstruction loss: {reconstruction_loss(clip, x_hat)}")
                     clip_loss += reconstruction_loss(clip, x_hat)
@@ -185,39 +189,6 @@ def reconstruct(autoencoder, dataloader, device, split=None, save = False, filen
         return result, {'total_loss': avg_video_level_loss, 'avg_loss': avg_video_level_loss/len(dataloader)}
     else:
         return result
-
-def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
-    L = np.ones(n_epoch)
-    period = n_epoch/n_cycle
-    step = (stop-start)/(period*ratio) # linear schedule
-
-    for c in range(n_cycle):
-
-        v , i = start , 0
-        while v <= stop and (int(i+c*period) < n_epoch):
-            L[int(i+c*period)] = v
-            v += step
-            i += 1
-    return L  
-
-def costant_scheduler(value = 1, n_epoch = 200):
-    return np.ones(n_epoch) * value
-
-def frange_cycle_sigmoid(start, stop, n_epoch, n_cycle=4, ratio=0.5):
-    L = np.ones(n_epoch)
-    period = n_epoch/n_cycle
-    step = (stop-start)/(period*ratio) # step is in [0,1]
-    
-    # transform into [-6, 6] for plots: v*12.-6.
-
-    for c in range(n_cycle):
-
-        v , i = start , 0
-        while v <= stop:
-            L[int(i+c*period)] = 1.0/(1.0+ np.exp(- (v*12.-6.)))
-            v += step
-            i += 1
-    return L    
 
 def validate(autoencoder, val_dataloader, device, reconstruction_loss):
     total_loss = 0
@@ -286,18 +257,15 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
     return autoencoder
 
 def save_model(model, filename):
-        try:
-            ts = datetime.now()
-            date = str(ts.date())
-            if not os.path.isdir(os.path.join('./saved_models/VAE_RGB', date)):
-                os.mkdir(os.path.join('./saved_models/VAE_RGB', date))
-
-            filename = os.path.join('./saved_models/VAE_RGB', date, f"{filename}_{ts}.pth")
-            torch.save({'model_state_dict': model.state_dict()}, filename)
-            logger.info(f"Model saved in {filename}")
-        except Exception as e:
-            logger.info("An error occurred while saving the checkpoint:")
-            logger.info(e)
+    try:
+        date = str(datetime.now().date())
+        if not os.path.isdir(os.path.join('./saved_models/VAE_EMG', date)):
+            os.mkdir(os.path.join('./saved_models/VAE_EMG', date))
+        torch.save({'encoder': model.encoder.state_dict(), 'decoder': model.decoder.state_dict()}, 
+                   os.path.join('./saved_models/VAE_EMG', date, filename))
+    except Exception as e:
+        logger.info("An error occurred while saving the checkpoint:")
+        logger.info(e)
 
 def load_model(ae, path):
     state_dict = torch.load(path)["model_state_dict"]
