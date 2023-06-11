@@ -41,7 +41,7 @@ def init_operations():
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
         run = wandb.init(project="Multimodal classifier", entity="egovision-aml22", 
-                name=f"(RGB+sEMG)lr-{args.models.EMG.lr}_nf-{args.train.num_frames_per_clip.EMG}_clip-{args.train.num_clips}_embedding_size-{args.train.embedding_size}_{'D' if args.train.dense_sampling.EMG else 'U'}")
+                name=f"(RGB+sEMG)lr-{args.models.EMG.lr}_nf-{args.train.num_frames_per_clip.EMG}_clip-{args.train.num_clips}_embedding_size-{args.in_features}")
 
 
 
