@@ -88,6 +88,9 @@ In order to check if the reconstructed features are good enough, we have used th
 ```bash
 ```
 
+```bash
+python RGB_sEMG.py action="train_and_save" name="RGB_sEMG" config=configs/vae/RGB_sEMG.yaml
+```
 
 ### Stuff
 
