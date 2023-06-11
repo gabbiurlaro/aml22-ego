@@ -259,10 +259,10 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 def save_model(model, filename):
     try:
         date = str(datetime.now().date())
-        if not os.path.isdir(os.path.join('./saved_models/VAE_EMG', date)):
-            os.mkdir(os.path.join('./saved_models/VAE_EMG', date))
+        if not os.path.isdir(os.path.join('./saved_models/VAE_RGB', date)):
+            os.mkdir(os.path.join('./saved_models/VAE_RGB', date))
         torch.save({'encoder': model.encoder.state_dict(), 'decoder': model.decoder.state_dict()}, 
-                   os.path.join('./saved_models/VAE_EMG', date, filename))
+                   os.path.join('./saved_models/VAE_RGB', date, filename))
     except Exception as e:
         logger.info("An error occurred while saving the checkpoint:")
         logger.info(e)
