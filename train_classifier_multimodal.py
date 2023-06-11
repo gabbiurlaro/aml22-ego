@@ -226,6 +226,8 @@ def validate(model, val_loader, device, it, num_classes):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 data[m] = data[m].to(device)
+                data[m] = data[m].permute(1, 0, 2)
+
                 batch = data[m].shape[0]
                 logits[m] = torch.zeros((batch, num_classes)).to(device)
 
