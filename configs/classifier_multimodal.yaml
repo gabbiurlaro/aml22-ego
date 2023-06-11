@@ -47,7 +47,7 @@ test:
     EMG: 32
 
 dataset:
-  annotations_path: ../drive/MyDrive/train_val # path for the annotations data
+  annotations_path: ../drive/MyDrive/train_val_EMG # path for the annotations data
   shift: S04-S04  # shifts of the dataset
   workers: 4                  # number of workers for the dataloader
   stride: 1                   # stride in case of dense sampling
