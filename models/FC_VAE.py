@@ -1,6 +1,10 @@
 """
 This class is the same for the EMG or RGB features
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0a63e26 (Some tidying, save and resume from separatly)
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -83,4 +87,8 @@ class VariationalAutoencoder(nn.Module):
     def load_last_model(self):
         last_model = torch.load(self.resume_from)
         self.encoder.load_state_dict(last_model['encoder'])
+<<<<<<< HEAD
         self.decoder.load_state_dict(last_model['decoder'])
+=======
+        self.decoder.load_state_dict(last_model['decoder'])
+>>>>>>> 0a63e26 (Some tidying, save and resume from separatly)
