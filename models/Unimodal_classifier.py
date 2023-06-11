@@ -27,7 +27,7 @@ class Unimodal_classifier_parametric(nn.Module):
 def forward(self, x):
         logits = []
         for clip in range(self.num_clips):    
-            logit = self.on_top_classifier(x[clip])
+            logit = self.classifier(x[clip])
             logits.append(logit)
        
         return torch.stack(logits, dim=0).mean(dim=0), {}
