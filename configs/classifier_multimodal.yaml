@@ -48,7 +48,7 @@ test:
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val # path for the annotations data
-  shift: ActionNet-ActionNet  # shifts of the dataset
+  shift: S04-S04  # shifts of the dataset
   workers: 4                  # number of workers for the dataloader
   stride: 1                   # stride in case of dense sampling
   EMG:
