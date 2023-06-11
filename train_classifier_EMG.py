@@ -64,7 +64,6 @@ def main():
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         models[m] = getattr(model_list, args.models[m].model)(input_size = (16, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG), 
                                                                 output_size = (args.train.embedding_size, 1, 1), num_classes= num_classes, num_clips=args.train.num_clips, use_batch_norm=True, dropout_rate = 0.8)
-        # logger.info(f"{models[m]}")
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
@@ -93,27 +92,39 @@ def main():
         train(action_classifier, train_loader, val_loader, device, num_classes)
         save_model(models['EMG'], f"{args.name}_lr{args.models.EMG.lr}.pth")
     elif args.action == "validate":
-        ## TODO: check dataset class argument
         if args.resume_from is not None:
-            action_classifier.load_last_model(args.resume_from)
-        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
-                                                                       args.split , args.dataset, None, None, None,
-                                                                       None, load_feat=True),
-                                                 batch_size=args.batch_size, shuffle=False,
-                                                 num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-
-        validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
+            load_model(models['EMG'], args.resume_from)
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset("S04", 
+                                                                        ['EMG'],
+                                                                        'test',
+                                                                        args.dataset,
+                                                                        args.train.num_frames_per_clip,
+                                                                        args.train.num_clips, 
+                                                                        args.train.dense_sampling,
+                                                                        transform=None, 
+                                                                        load_feat=False, 
+                                                                        require_spectrogram=True),
+                                                        batch_size=args.batch_size, shuffle=True,
+                                                        num_workers=args.dataset.workers, pin_memory=True)
+        logger.info("Validating model")
+        validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes, num_clips=args.test.num_clips)
+        logger.info("Validation finished")
     elif args.action == "save":
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
         
-        loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], modalities,
-                                                                 args.split, args.dataset,
-                                                                 args.save.num_frames_per_clip,
-                                                                 1, args.save.dense_sampling,additional_info=True,
-                                                                 **{"save": args.split}),
-                                             batch_size=1, shuffle=False,
-                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], 
+                                                                  modalities,
+                                                                  'test',
+                                                                   args.dataset,
+                                                                   args.train.num_frames_per_clip,
+                                                                   args.train.num_clips, 
+                                                                   args.train.dense_sampling,
+                                                                   transform=transform, 
+                                                                   load_feat=False, 
+                                                                   require_spectrogram=True),
+                                                batch_size=args.batch_size, shuffle=True,
+                                                num_workers=args.dataset.workers, pin_memory=True, drop_last=True)
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes) 
     elif args.action == "job_feature_extraction_aug":
         if args.augmentation:
@@ -335,10 +346,10 @@ def main():
 
         model_filename = f"{args.name}_lr{args.models.EMG.lr}_{datetime.now()}.pth"
         save_model(models['EMG'], model_filename)
+        logger.info(f"Model saved in {model_filename}")
 
-        logger.info(f'Finished saving model, now extracting features...')
+        logger.info(f'Extracting features...')
 
-        # TODO: feature_name passato come argomento
         feature_name = f"{args.name}_lr{args.models.EMG.lr}_{datetime.now()}"
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes, train=True, num_clips=args.train.num_clips, feature_name = feature_name)
         
@@ -513,7 +524,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
                 action_classifier.best_iter = real_iter
                 action_classifier.best_iter_score = val_metrics['top1']
 
-            action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
+            # action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
             action_classifier.train(True)
 
 def validate(model, val_loader, device, it, num_classes, num_clips):
@@ -532,14 +543,16 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
     logits = {}
     #print(f'val: {val_loader.dataset.__len__()}')
     # Iterate over the models
+    logger.info(f"{len(val_loader)}")
     with torch.no_grad():
+
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
-                data[m] = data[m].reshape(-1,16, args.train.num_clips,args.train.num_frames_per_clip.EMG,args.train.num_frames_per_clip.EMG)
-                data[m] = data[m].permute(2, 0, 1, 3,4 )
+                data[m] = data[m].reshape(-1,16, args.train.num_clips, args.train.num_frames_per_clip.EMG,args.train.num_frames_per_clip.EMG)
+                data[m] = data[m].permute(2, 0, 1, 3, 4)
                 #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
                 batch = data[m].shape[0]
@@ -582,14 +595,18 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
     return test_results
 
 def save_model(model, filename):
+        """
+        Custom save model
+        """
         try:
-            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/VAE_RGB', filename))
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/EMG_fe', filename))
         except Exception as e:
             logger.info("An error occurred while saving the checkpoint:")
             logger.info(e)
 
-
-
+def load_model(model, filename):
+    saved_model = torch.load(filename)
+    model.load_state_dict(saved_model['model_state_dict'])
 
 if __name__ == '__main__':
     main()
