@@ -338,10 +338,6 @@ class ActionNetDataset(data.Dataset, ABC):
         raw_data = pd.read_pickle(os.path.join(dataset_conf.annotations_path, pickle_name))
         if split == "S04":
             self.list_file = raw_data[raw_data["subject"] == "S04_1"]
-            if self.mode == "train":
-                pickle_name = "S04" + "_train.pkl"
-            else:
-                pickle_name = "S04" + "_test.pkl"
         else:
             self.list_file = raw_data
         #print(f'list_val_load: {self.list_file}, add: {os.path.join(self.dataset_conf.annotations_path, pickle_name)}')

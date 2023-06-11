@@ -78,7 +78,8 @@ def main():
         # i.e. number of batches passed
         # notice, here it is multiplied by tot_batch/batch_size since gradient accumulation technique is adopted
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
-        # all dataloaders are generated here
+        # all dataload
+        # ers are generated here
         train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, None, None, None,
                                                                        None, load_feat=True),
