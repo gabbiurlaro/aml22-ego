@@ -1,10 +1,6 @@
 """
 This class is the same for the EMG or RGB features
 """
-<<<<<<< HEAD
-=======
-
->>>>>>> 0a63e26 (Some tidying, save and resume from separatly)
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
