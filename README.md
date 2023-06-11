@@ -173,6 +173,7 @@ python train_VAE_EMG_features.py action="save" \
   dataset.RGB.data_path=../ek_data/frames   \
   dataset.EMG.features_name='ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
   models.EMG.model='VAE' \
+<<<<<<< HEAD
   models.EMG.epochs=100 
 ```
 
@@ -184,3 +185,7 @@ python save_feat_actionnet.py action="save" \
   resume_from='saved_models/I3D_SourceOnlyD1'
 ```
 
+=======
+  models.EMG.epochs=100 \
+```
+>>>>>>> 86def97 (Some tidying, save and resume from separatly)
