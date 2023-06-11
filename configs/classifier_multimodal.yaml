@@ -17,7 +17,7 @@ dataset:
   EMG:
     features_name: translated/2023-06-10/features_lr0.001_b0.0001_2023-06-10 19:41:07.722501
   RGB:
-    dataset.RGB.data_path: '../ek_data/frames'  
+    data_path: '../ek_data/frames'  
     features_name: ACTIONNET/FT_D_S04_16f_5c
 
 
