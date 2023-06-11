@@ -66,7 +66,6 @@ def main():
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
         models[m] = getattr(model_list, args.models[m].model)(args.in_features, num_classes, args.num_clips)
     
-    print(models)
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
@@ -169,8 +168,6 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         for m in modalities:
             data[m] = data[m].to(device)
-        print(data)
-        print(data['RGB'].shape, data['EMG'].shape)
         logits, _  = action_classifier.forward(data)
 
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
