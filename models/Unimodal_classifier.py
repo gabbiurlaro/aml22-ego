@@ -22,9 +22,8 @@ class Unimodal_classifier_parametric(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(int(input_size/4), num_classes),
             nn.Dropout(self.dropout_rate))
-
-
-def forward(self, x):
+    
+    def forward(self, x):
         logits = []
         for clip in range(self.num_clips):    
             logit = self.classifier(x[clip])
