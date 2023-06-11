@@ -226,14 +226,10 @@ def validate(model, val_loader, device, it, num_classes):
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
                 data[m] = data[m].to(device)
-
-                batch = data[m].shape[0]
-                logits[m] = torch.zeros((batch, num_classes)).to(device)
-
             output, _ = model(data)
             #print(f'output: {output.size()}, {output.shape}')
             for m in modalities:
-                logits[m] += output[m]
+                logits[m] = output[m]
             
             model.compute_accuracy(logits, label)
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
