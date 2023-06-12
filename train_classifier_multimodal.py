@@ -167,7 +167,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         
         for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
+            #data[m] = data[m].permute(1, 0, 2)
             data[m] = data[m].to(device)
         logits, _  = action_classifier.forward(data)
 
@@ -225,7 +225,7 @@ def validate(model, val_loader, device, it, num_classes):
             label = label.to(device)
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
+                #data[m] = data[m].permute(1, 0, 2)
                 data[m] = data[m].to(device)
             output, _ = model(data)
             #print(f'output: {output.size()}, {output.shape}')
