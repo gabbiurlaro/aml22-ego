@@ -121,7 +121,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
     wandb.watch(action_classifier.task_models['EMG'])
-    wandb.watch(action_classifier.task_models['RGB'])
+    #wandb.watch(action_classifier.task_models['RGB'])
 
 
     # the batch size should be total_batch but batch accumulation is done with batch size = batch_size.
