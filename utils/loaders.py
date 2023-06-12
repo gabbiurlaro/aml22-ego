@@ -224,6 +224,7 @@ class EpicKitchensDataset(data.Dataset, ABC):
             p = int(frame_index)
             # here the frame is loaded in memory
             frame = self._load_data(modality, record, p)
+            images.extend(frame)
         # finally, all the transformations are applied
         process_data = self.transform[modality](images)
         return process_data, record.label

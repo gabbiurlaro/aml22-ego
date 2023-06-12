@@ -90,6 +90,7 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
         annotations = pd.read_pickle(annotation)
         data= pd.merge(data, annotations, how="inner", on="uid")
 
+    
     # extract from each video the corrisponding feature(in this case, the middle clip)
     if video_level:
         features = np.array([ video[num_clips // 2, :] for video in data[f'features_{modality}'] ])

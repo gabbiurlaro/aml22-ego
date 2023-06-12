@@ -134,10 +134,8 @@ def main():
         timestamp = datetime.now()
         logger.info(f"Reconstructing features...")
         filename = f"features_lr{args.models.EMG.lr}_b{args.models.EMG.beta}_{timestamp}"
-        reconstructed_features, output = reconstruct(model, loader, device, "train", save = True, filename=filename, debug=True)
-        logger.debug(f"Train Output {output}")
-        reconstructed_features, output = reconstruct(model, loader_test, device, "test", save = True, filename=filename, debug=True)
-        logger.debug(f"Test Output {output}")
+        reconstructed_features = reconstruct(model, loader, device, "train", save = True, filename=filename, debug=True)
+        reconstructed_features = reconstruct(model, loader_test, device, "test", save = True, filename=filename, debug=True)
     elif args.action == "train_and_save":
         model.load_last_model()
         model.load_on(device)
@@ -174,6 +172,27 @@ def main():
         filename = f"features_lr{args.models.vae.lr}_b{args.models.vae.beta}_{timestamp}"
         reconstructed_features = reconstruct(model, loader, device, "train", save = True, filename=filename, debug = True)
         reconstructed_features = reconstruct(model, loader_test, device, "test", save = True, filename=filename)
+    elif args.action == "simulate":
+        model.load_last_model()
+        model.load_on(device)   
+        loader = torch.utils.data.DataLoader(EpicKitchensDataset("D1", ['RGB'],
+                                                                       'train', args.dataset,  None, args.train.num_clips, None,
+                                                                       load_feat=True, additional_info=True),
+                                                   batch_size=1, shuffle=False,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        
+        loader_test = torch.utils.data.DataLoader(EpicKitchensDataset("D1", ['RGB'],
+                                                                       'test', args.dataset,  None, args.train.num_clips, None,
+                                                                       load_feat=True, additional_info=True),
+                                                   batch_size=1, shuffle=False,
+                                                   num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+        logger.info(f"Generating FEATURES...")
+        filename = f"features_epic"
+        reconstructed_features = reconstruct(model, loader, device, "train", save = True, filename=filename)
+        reconstructed_features = reconstruct(model, loader_test, device, "test", save = True, filename=filename)
+
+
+
     else:
         raise NotImplementedError(f"Action {args.action} not implemented")
 
