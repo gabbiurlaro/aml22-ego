@@ -79,23 +79,24 @@ def main():
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataload
         # ers are generated here
-        train_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+        train_loader = torch.utils.data.DataLoader(ActionNetDataset()(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, None, None, None,
                                                                        None, load_feat=True),
                                                    batch_size=args.batch_size, shuffle=True,
                                                    num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
 
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[-1], modalities,
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[-1], modalities,
                                                                      'test', args.dataset, None, None, None,
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
-        train(action_classifier, train_loader, val_loader, device, num_classes)
-
+        model_filename = f"lr{args.models.EMG.lr}_{datetime.now()}"
+        train(action_classifier, train_loader, val_loader, device, num_classes, model_filename)
+        
     elif args.action == "validate":
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
-        val_loader = torch.utils.data.DataLoader(EpicKitchensDataset(args.dataset.shift.split("-")[0], modalities,
+        val_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        args.split , args.dataset, None, None, None,
                                                                        None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=True,
@@ -104,7 +105,7 @@ def main():
         validate(action_classifier, val_loader, device, action_classifier.current_iter, num_classes)
 
 
-def train(action_classifier, train_loader, val_loader, device, num_classes):
+def train(action_classifier, train_loader, val_loader, device, num_classes, filename):
     """
     function to train the model on the test set
     action_classifier: Task containing the model to be trained
@@ -200,7 +201,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 action_classifier.best_iter = real_iter
                 action_classifier.best_iter_score = val_metrics['top1']
 
-            #action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
+            action_classifier.save_model(real_iter, val_metrics['top1'], prefix=filename)
             action_classifier.train(True)
 
 def validate(model, val_loader, device, it, num_classes):
@@ -243,6 +244,12 @@ def validate(model, val_loader, device, it, num_classes):
 
     return test_results
 
+def save_model(model, filename):
+        try:
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/MM_CLASSIFIER', filename))
+        except Exception as e:
+            logger.info("An error occurred while saving the checkpoint:")
+            logger.info(e)
 
 if __name__ == '__main__':
     main()
