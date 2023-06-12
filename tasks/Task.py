@@ -105,7 +105,9 @@ class Task(torch.nn.Module, metaclass=ABCMeta):
         path: path-like string containing the path to the model
         """
         # list all files in chronological order (1st is most recent, last is less recent)
-        last_models_dir = list(sorted(Path(path).iterdir(), key=lambda date: datetime.strptime(
+        models_dir = list(sorted(Path(path).iterdir(), key=lambda date: datetime.strptime(
+            os.path.basename(os.path.normpath(date)), "%b%d_%H-%M-%S")))[-1]
+        last_models_dir = list(sorted(Path(models_dir).iterdir(), key=lambda date: datetime.strptime(
             os.path.basename(os.path.normpath(date)), "%b%d_%H-%M-%S")))[-1]
         saved_models = [x for x in reversed(sorted(Path(last_models_dir).iterdir(), key=os.path.getmtime))]
         for m in self.modalities:
