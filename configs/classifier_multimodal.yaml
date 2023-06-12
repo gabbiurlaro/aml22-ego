@@ -63,8 +63,8 @@ models: # models adopted              # Model for each modality
     dropout: 0.8                      # dropout adopted   
     normalize: False                  # normalization adopted         
     transform: False                  # transformation adopted        
-    lr: 0.8                         # learning rate  
-    lr_steps: 100                      # steps before reducing learning rate
+    lr: 1                         # learning rate  
+    lr_steps: 200                      # steps before reducing learning rate
     sgd_momentum: 0.9                 # momentum for the optimizer
     weight_decay: 0.001  
   RGB:
