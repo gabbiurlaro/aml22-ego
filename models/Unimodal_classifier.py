@@ -16,7 +16,7 @@ class Unimodal_classifier_parametric(nn.Module):
         self.num_classes = num_classes
         self.num_clips = num_clips
         
-        self.dropout_rate = kwargs.get("dropout_rate", 0.6)
+        self.dropout_rate = kwargs.get("dropout_rate", 0.8)
 
         self.classifier = nn.Sequential(nn.Linear(input_size, int(input_size/4)),
             nn.ReLU(inplace=True),
