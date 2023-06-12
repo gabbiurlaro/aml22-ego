@@ -183,7 +183,6 @@ python save_feat_actionnet.py action="save" \
   config=configs/I3D_save_feat.yaml \
   resume_from='saved_models/I3D_SourceOnlyD1'
 ```
-
 save actionnet
 ```bash
    python save_feat_actionnet.py action="save" name="FT_10c_16f_S05_U"   config=configs/save_feat/actionnet.yaml split="test"

@@ -1,8 +1,13 @@
 action: save # train or test
 name: saved_feat_I3D
 split: train
+<<<<<<< HEAD
 resume_from: saved_models/I3D_SourceOnlyD1
 modality: ['RGB']
+=======
+resume_from: ???
+modality: ["RGB"]
+>>>>>>> 17781dd2be6217f7dcd30ec17744abb47cbea9ac
 
 save:
   num_clips: 10
