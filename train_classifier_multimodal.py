@@ -41,7 +41,7 @@ def init_operations():
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
         run = wandb.init(project="Multimodal classifier", entity="egovision-aml22", 
-                name=f"(RGB+sEMG)lr-{args.models.EMG.lr}_nf-{args.train.num_frames_per_clip.EMG}_clip-{args.train.num_clips}_embedding_size-{args.in_features}")
+                name=f"(RGB+sEMG)lr-{args.models.RGB.lr}_nf-{args.train.num_frames_per_clip.RGB}_clip-{args.train.num_clips}_embedding_size-{args.in_features}")
 
 
 
@@ -120,7 +120,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.train(True)
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
-    wandb.watch(action_classifier.task_models['EMG'])
+    wandb.watch(action_classifier.task_models['RGB'])
     #wandb.watch(action_classifier.task_models['RGB'])
 
 
@@ -130,7 +130,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         # iteration w.r.t. the paper (w.r.t the bs to simulate).... i is the iteration with the actual bs( < tot_bs)
         real_iter = (i + 1) / (args.total_batch // args.batch_size)
-        if real_iter == args.models['EMG'].lr_steps:
+        if real_iter == args.models['RGB'].lr_steps:
             # learning rate decay at iteration = lr_steps
             action_classifier.reduce_learning_rate()
         # gradient_accumulation_step is a bool used to understand if we accumulated at least total_batch
