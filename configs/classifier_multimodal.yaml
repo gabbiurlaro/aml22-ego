@@ -1,10 +1,10 @@
 action: train # train or test
 name: ???
 modality: ["EMG", "RGB"]
-shift: S04-S04
+shift: D1-D1
 split: train
 resume_from: ???
-num_clips: 5
+num_clips: 10
 wandb_name: 'Multimodal_classification'
 in_features: 1024
 total_batch: 128 # total batch size if training is done with gradient accumulation
@@ -19,7 +19,7 @@ augmentation: False
 train:
   num_iter: 300        # number of training iterations with total_batch size
   eval_freq: 50        # evaluation frequency
-  num_clips: 5        # clips adopted in training
+  num_clips: 10        # clips adopted in training
   embedding_size: 1024 # size of the embedding vector
   dense_sampling:      # sampling version adopted in training for each modality
     RGB: True
@@ -29,7 +29,7 @@ train:
     EMG: 32
 
 save: 
-  num_clips: 5        # clips adopted in training
+  num_clips: 10        # clips adopted in training
   dense_sampling:      # sampling version adopted in training for each modality
     RGB: True
     EMG: False
@@ -38,7 +38,7 @@ save:
     EMG: 32
 
 test:
-  num_clips: 5        # number of clips in testing
+  num_clips: 10        # number of clips in testing
   dense_sampling:      # sampling version adopted in test for each modality
     RGB: True
     EMG: False
@@ -48,14 +48,14 @@ test:
 
 dataset:
   annotations_path: ../drive/MyDrive/train_val_EMG # path for the annotations data
-  shift: S04-S04  # shifts of the dataset
+  shift: D1-D1  # shifts of the dataset
   workers: 4                  # number of workers for the dataloader
   stride: 1                   # stride in case of dense sampling
   EMG:
-    features_name: 'translated/2023-06-11/features_lr0.01_b0.0001_2023-06-11 14:06:38.076861'
+    features_name: 'Epic features/emg/features_epic'
   RGB:
     data_path: '../ek_data/frames'  
-    features_name: ACTIONNET/feature_actionnet # path for the frames data
+    features_name: 'Epic features/rgb/FT_D_D1_16f_10c' # path for the frames data
 
 models: # models adopted              # Model for each modality
   EMG:
