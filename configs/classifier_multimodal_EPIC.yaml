@@ -3,7 +3,7 @@ name: ???
 modality: ["EMG"]
 shift: D1-D1
 split: train
-resume_from: 'train_multimodal_EPIC'
+resume_from: 'saved_models/train_multimodal_EPIC'
 num_clips: 10
 wandb_name: 'Multimodal_classification'
 in_features: 1024
