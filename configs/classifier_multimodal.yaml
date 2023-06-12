@@ -1,6 +1,6 @@
 action: train # train or test
 name: ???
-modality: ["EMG", "RGB"]
+modality: ["EMG"]
 shift: D1-D1
 split: train
 resume_from: ???
