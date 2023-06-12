@@ -9,7 +9,7 @@ class Unimodal_classifier_parametric(nn.Module):
     EMG classifier model for action recognition.
     Based on a convolutional neural network and a fully connected classifier.
     """
-    def __init__(self, input_size, num_classes, num_clips, **kwargs) -> None:
+    def __init__(self, input_size, num_clips, num_classes, **kwargs) -> None:
         super().__init__()
        
         self.input_size = input_size
