@@ -79,7 +79,7 @@ def main():
         training_iterations = args.train.num_iter * (args.total_batch // args.batch_size)
         # all dataload
         # ers are generated here
-        train_loader = torch.utils.data.DataLoader(ActionNetDataset()(args.dataset.shift.split("-")[0], modalities,
+        train_loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[0], modalities,
                                                                        'train', args.dataset, None, None, None,
                                                                        None, load_feat=True),
                                                    batch_size=args.batch_size, shuffle=True,
