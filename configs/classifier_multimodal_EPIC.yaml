@@ -59,7 +59,7 @@ dataset:
 
 models: # models adopted              # Model for each modality
   EMG:
-    model: action_TRN  # model name
+    model: Unimodal_classifier  # model name
     dropout: 0.8                      # dropout adopted   
     normalize: False                  # normalization adopted         
     transform: False                  # transformation adopted        
