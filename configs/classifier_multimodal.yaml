@@ -66,7 +66,7 @@ models: # models adopted              # Model for each modality
     lr: 0.000000001                        # learning rate  
     lr_steps: 200                      # steps before reducing learning rate
     sgd_momentum: 0.9                 # momentum for the optimizer
-    weight_decay: 0.001  
+    weight_decay: 0.1  
   RGB:
     model: Unimodal_classifier  # model name
     dropout: 0.5                      # dropout adopted   
