@@ -110,6 +110,7 @@ class Task(torch.nn.Module, metaclass=ABCMeta):
         saved_models = [x for x in reversed(sorted(Path(last_models_dir).iterdir(), key=os.path.getmtime))]
         for m in self.modalities:
             # get only models which belong to this task and for this modality
+            logger.info(saved_models)
             model = list(filter(lambda x:
                                 m == x.name.split('.')[0].split('_')[-2] and
                                 self.name == x.name.split('.')[0].split('_')[-3], saved_models))[0].name
