@@ -45,7 +45,6 @@ def init_operations():
 
 
 
-
 def main():
     global training_iterations, modalities
     init_operations()

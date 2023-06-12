@@ -23,7 +23,7 @@ train:
   embedding_size: 1024 # size of the embedding vector
   dense_sampling:      # sampling version adopted in training for each modality
     RGB: True
-    EMG: False
+    EMG: True
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
     EMG: 32
@@ -32,7 +32,7 @@ save:
   num_clips: 10        # clips adopted in training
   dense_sampling:      # sampling version adopted in training for each modality
     RGB: True
-    EMG: False
+    EMG: True
   num_frames_per_clip: # number of frames adopted in training for each modality
     RGB: 16
     EMG: 32
@@ -41,7 +41,7 @@ test:
   num_clips: 10        # number of clips in testing
   dense_sampling:      # sampling version adopted in test for each modality
     RGB: True
-    EMG: False
+    EMG: True
   num_frames_per_clip: # number of frames adopted in test for each modality
     RGB: 16
     EMG: 32
@@ -60,7 +60,7 @@ dataset:
 models: # models adopted              # Model for each modality
   EMG:
     model: Unimodal_classifier  # model name
-    dropout: 0.5                      # dropout adopted   
+    dropout: 0.8                      # dropout adopted   
     normalize: False                  # normalization adopted         
     transform: False                  # transformation adopted        
     lr: 0.01                         # learning rate  
