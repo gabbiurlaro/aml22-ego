@@ -1,5 +1,5 @@
 # TODO
-### * Classification RGB-EK (report results and considerations, save pictures and test)
+ <font size='8'> * Classification RGB-EK (report results and considerations, save pictures and test) <\font>
   * Final Classifier (use train_classifier_multimodal)
   * TRN
   * LSTM
