@@ -110,6 +110,7 @@ class Task(torch.nn.Module, metaclass=ABCMeta):
         saved_models = [x for x in reversed(sorted(Path(last_models_dir).iterdir(), key=os.path.getmtime))]
         for m in self.modalities:
             # get only models which belong to this task and for this modality
+            logger.info(saved_models)
             model = list(filter(lambda x:
                                 m == x.name.split('.')[0].split('_')[-2] and
                                 self.name == x.name.split('.')[0].split('_')[-3], saved_models))[0].name
@@ -151,8 +152,8 @@ class Task(torch.nn.Module, metaclass=ABCMeta):
                 filename = prefix + '_' + self.name + '_' + m + '_' + str(self.model_count) + '.pth'
             else:
                 filename = self.name + '_' + m + '_' + str(self.model_count) + '.pth'
-            if not os.path.exists(os.path.join(self.models_dir, self.args.experiment_dir)):
-                os.makedirs(os.path.join(self.models_dir, self.args.experiment_dir))
+            if not os.path.exists(self.models_dir):
+                os.makedirs(self.models_dir)
             try:
                 torch.save({'iteration': current_iter,
                             'best_iter': self.best_iter,
@@ -162,7 +163,7 @@ class Task(torch.nn.Module, metaclass=ABCMeta):
                             'model_state_dict': self.task_models[m].state_dict(),
                             'optimizer_state_dict': self.optimizer[m].state_dict(),
                             'last_model_count_saved': self.model_count
-                            }, os.path.join(self.models_dir, self.args.experiment_dir, filename))
+                            }, os.path.join(self.models_dir, filename))
                 self.model_count = self.model_count + 1 if self.model_count < 9 else 1
 
             except Exception as e:

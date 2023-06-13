@@ -1,10 +1,10 @@
 action: train # train or test
 name: ???
-modality: ["EMG"]
-shift: D1-D1
+modality: ["EMG", "RGB"]
+shift: S04-S04
 split: train
 resume_from: ???
-num_clips: 10
+num_clips: 5
 wandb_name: 'Multimodal_classification'
 in_features: 1024
 total_batch: 128 # total batch size if training is done with gradient accumulation
@@ -19,7 +19,7 @@ augmentation: False
 train:
   num_iter: 300        # number of training iterations with total_batch size
   eval_freq: 50        # evaluation frequency
-  num_clips: 10        # clips adopted in training
+  num_clips: 5        # clips adopted in training
   embedding_size: 1024 # size of the embedding vector
   dense_sampling:      # sampling version adopted in training for each modality
     RGB: True
@@ -29,7 +29,7 @@ train:
     EMG: 32
 
 save: 
-  num_clips: 10        # clips adopted in training
+  num_clips: 5        # clips adopted in training
   dense_sampling:      # sampling version adopted in training for each modality
     RGB: True
     EMG: True
@@ -38,7 +38,7 @@ save:
     EMG: 32
 
 test:
-  num_clips: 10        # number of clips in testing
+  num_clips: 5        # number of clips in testing
   dense_sampling:      # sampling version adopted in test for each modality
     RGB: True
     EMG: True
@@ -47,15 +47,15 @@ test:
     EMG: 32
 
 dataset:
-  annotations_path: 'train_val' # path for the annotations data
-  shift: D1-D1  # shifts of the dataset
+  annotations_path: '../drive/MyDrive/train_val_EMG' # path for the annotations data
+  shift: S04-S04  # shifts of the dataset
   workers: 4                  # number of workers for the dataloader
   stride: 1                   # stride in case of dense sampling
   EMG:
-    features_name: 'Epic features/emg/features_epic'
+    features_name: 'translated/2023-06-11/features_lr0.01_b0.0001_2023-06-11 14:06:38.076861'
   RGB:
     data_path: '../ek_data/frames'  
-    features_name: 'Epic features/rgb/FT_D_D1_16f_10c' # path for the frames data
+    features_name: 'ACTIONNET/feature_actionnet' # path for the frames data
 
 models: # models adopted              # Model for each modality
   EMG:
@@ -63,16 +63,16 @@ models: # models adopted              # Model for each modality
     dropout: 0.8                      # dropout adopted   
     normalize: False                  # normalization adopted         
     transform: False                  # transformation adopted        
-    lr: 0.1                         # learning rate  
-    lr_steps: 100                      # steps before reducing learning rate
+    lr: 0.1                        # learning rate  
+    lr_steps: 200                      # steps before reducing learning rate
     sgd_momentum: 0.9                 # momentum for the optimizer
-    weight_decay: 0.001  
+    weight_decay: 0.1  
   RGB:
     model: Unimodal_classifier  # model name
     dropout: 0.5                      # dropout adopted   
     normalize: False                  # normalization adopted         
     transform: False                  # transformation adopted        
-    lr: 0.3                          # learning rate  
-    lr_steps: 25                      # steps before reducing learning rate
+    lr: 0.1                          # learning rate  
+    lr_steps: 200                     # steps before reducing learning rate
     sgd_momentum: 0.9                 # momentum for the optimizer
     weight_decay: 0.001     

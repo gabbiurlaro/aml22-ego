@@ -40,7 +40,9 @@ def init_operations():
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
-        run = wandb.init(project="Multimodal classifier", entity="egovision-aml22")
+        run = wandb.init(project="Multimodal classifier", entity="egovision-aml22", 
+                name=f"(RGB)lr-{args.models.RGB.lr}_nf-{args.train.num_frames_per_clip.RGB}_clip-{args.train.num_clips}_embedding_size-{args.in_features}")
+
 
         args.models.EMG.lr = wandb.config.lr
         args.models.EMG.lr_steps = wandb.config.lr_steps
@@ -64,7 +66,7 @@ def main():
         logger.info('{} Net\tModality: {}'.format(args.models[m].model, m))
         # notice that here, the first parameter passed is the input dimension
         # In our case it represents the feature dimensionality which is equivalent to 1024 for I3D
-        models[m] = getattr(model_list, args.models[m].model)(args.in_features, num_classes, args.num_clips)
+        models[m] = getattr(model_list, args.models[m].model)(args.in_features, args.num_clips, num_classes)
     
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
@@ -91,8 +93,9 @@ def main():
                                                                      None, load_feat=True),
                                                  batch_size=args.batch_size, shuffle=True,
                                                  num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+ 
         train(action_classifier, train_loader, val_loader, device, num_classes)
-
+        
     elif args.action == "validate":
         if args.resume_from is not None:
             action_classifier.load_last_model(args.resume_from)
@@ -120,7 +123,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.train(True)
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
-    wandb.watch(action_classifier.task_models['EMG'])
+    wandb.watch(action_classifier.task_models['RGB'])
     #wandb.watch(action_classifier.task_models['RGB'])
 
 
@@ -130,7 +133,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         # iteration w.r.t. the paper (w.r.t the bs to simulate).... i is the iteration with the actual bs( < tot_bs)
         real_iter = (i + 1) / (args.total_batch // args.batch_size)
-        if real_iter == args.models['EMG'].lr_steps:
+        if real_iter == args.models['RGB'].lr_steps:
             # learning rate decay at iteration = lr_steps
             action_classifier.reduce_learning_rate()
         # gradient_accumulation_step is a bool used to understand if we accumulated at least total_batch
@@ -167,7 +170,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         
         for m in modalities:
-            data[m] = data[m].permute(1, 0, 2)
+            #data[m] = data[m].permute(1, 0, 2)
             data[m] = data[m].to(device)
         logits, _  = action_classifier.forward(data)
 
@@ -201,7 +204,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 action_classifier.best_iter = real_iter
                 action_classifier.best_iter_score = val_metrics['top1']
 
-            #action_classifier.save_model(real_iter, val_metrics['top1'], prefix=None)
+            action_classifier.save_model(real_iter, val_metrics['top1'])
             action_classifier.train(True)
 
 def validate(model, val_loader, device, it, num_classes):
@@ -225,7 +228,7 @@ def validate(model, val_loader, device, it, num_classes):
             label = label.to(device)
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)
+                #data[m] = data[m].permute(1, 0, 2)
                 data[m] = data[m].to(device)
             output, _ = model(data)
             #print(f'output: {output.size()}, {output.shape}')
@@ -244,6 +247,12 @@ def validate(model, val_loader, device, it, num_classes):
 
     return test_results
 
+def save_model(model, filename):
+        try:
+            torch.save({'model_state_dict': model.state_dict()}, os.path.join('./saved_models/MM_CLASSIFIER', filename))
+        except Exception as e:
+            logger.info("An error occurred while saving the checkpoint:")
+            logger.info(e)
 
 if __name__ == '__main__':
     main()
