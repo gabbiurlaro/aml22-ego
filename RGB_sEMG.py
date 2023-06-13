@@ -213,7 +213,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
         for i, (data, _) in enumerate(train_dataloader):
             opt.zero_grad()                                                                 #  reset the gradients    
             for m in modalities:
-                data[m] = data[m].permute(1, 0, 2)                                              #  Data is now in the form (clip, batch, features)            
+                data[m] = data[m].permute(1, 0, 2)                                          #  Data is now in the form (clip, batch, features)            
             
             for i_c in range(args.test.num_clips):
                 clip_level_loss = 0                                                         #  loss for the clip             
@@ -223,7 +223,7 @@ def train(autoencoder, train_dataloader, val_dataloader, device, model_args):
 
                 x_hat, _, mean, log_var = autoencoder(rgb_clip)
                 mse_loss = reconstruction_loss(x_hat, emg_clip)                              #  compute the reconstruction loss
-                kld_loss = - 0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())  #  compute the KLD loss
+                kld_loss = - 0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())      #  compute the KLD loss
                 loss = mse_loss + beta[epoch] * kld_loss
                 # generate an error if loss is nan
                 if loss.isnan():

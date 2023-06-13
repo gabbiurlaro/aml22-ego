@@ -40,11 +40,11 @@ def init_operations():
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
-        run = wandb.init(project="Multimodal classifier", entity="egovision-aml22", 
-                name=f"(RGB+sEMG)lr-{args.models.EMG.lr}_nf-{args.train.num_frames_per_clip.EMG}_clip-{args.train.num_clips}_embedding_size-{args.train.embedding_size}_{'D' if args.train.dense_sampling.EMG else 'U'}")
+        run = wandb.init(project="Multimodal classifier", entity="egovision-aml22")
 
-
-
+        args.models.EMG.lr = wandb.config.lr
+        args.models.EMG.lr_steps = wandb.config.lr_steps
+        run.name = f"(RGB unimodal)lr-{args.models.EMG.lr}"
 
 def main():
     global training_iterations, modalities
@@ -69,7 +69,7 @@ def main():
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips, args.models, args=args, device=device)
+                                                args.train.num_clips,args.models, args=args, device=device,  wandb = wandb.config)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
