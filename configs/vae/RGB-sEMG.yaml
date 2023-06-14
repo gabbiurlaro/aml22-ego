@@ -26,10 +26,10 @@ train:
   bottleneck_size: 256
 
 save: 
-  num_clips: 5 # clips adopted in save
+  num_clips: 10 # clips adopted in save
 
 test:
-  num_clips: 5 # number of clips in testing
+  num_clips: 10 # number of clips in testing
 
 
 dataset:
@@ -41,9 +41,9 @@ dataset:
   RGB:
     data_path: "../ek_data/frames"
     tmpl: "img_{:010d}.jpg"
-    features_name: ACTIONNET/feature_actionnet
+    features_name: ACTIONNET/FT_D_16f_10c
   EMG:
-    features_name: 'ACTIONNET_EMG/2023-06-08/job_feature_extraction_lr0.234_2023-06-08 20:08:58.903778'
+    features_name: "ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U"
 models:
   vae:
     architecture:
@@ -51,10 +51,10 @@ models:
     model: VAE
     dropout: 0.2
     kwargs: {}
-    epochs: 300
-    lr_steps: 200
-    lr: 0.01
+    epochs: 200
+    lr_steps: 50
+    lr: 0.0001
     lr_gamma: 0.01
-    beta: 0.0001
+    beta: 1e-5
 
 

@@ -81,6 +81,7 @@ class VariationalAutoencoder(nn.Module):
             return res, z
         
     def load_last_model(self):
-        last_model = torch.load(self.resume_from)
-        self.encoder.load_state_dict(last_model['encoder'])
-        self.decoder.load_state_dict(last_model['decoder'])
+        encoder_state_dict = torch.load(self.resume_from['encoder'])['encoder']
+        decoder_state_dict = torch.load(self.resume_from['decoder'])['decoder']
+        self.encoder.load_state_dict(encoder_state_dict)
+        self.decoder.load_state_dict(decoder_state_dict)

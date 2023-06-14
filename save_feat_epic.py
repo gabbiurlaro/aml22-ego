@@ -66,7 +66,7 @@ def main():
                                                                  augmentations[args.split], additional_info=True,
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
-                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                                             num_workers=args.dataset.workers, pin_memory=False, drop_last=False)
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
     else:
         raise NotImplementedError
@@ -130,7 +130,7 @@ def save_feat(model, loader, device, it, num_classes):
                                                                           model.accuracy.avg[1], model.accuracy.avg[5]))
 
         os.makedirs("saved_features", exist_ok=True)
-        pickle.dump(results_dict, open(os.path.join("saved_features", args.name + "_" +
+        pickle.dump(results_dict, open(os.path.join("saved_features/EPIC", args.name + "_" +
                                                     args.dataset.shift.split("-")[1] + "_" +
                                                     args.split + ".pkl"), 'wb'))
 

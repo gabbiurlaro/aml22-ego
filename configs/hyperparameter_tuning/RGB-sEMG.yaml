@@ -16,5 +16,5 @@ command:
   - python
   - RGB-sEMG_sweep.py
   - action="train_and_save" 
-  - name="VAE_FT_D_16f"
+  - name="RGB-sEMG"
   - config=configs/vae/RGB-sEMG.yaml   

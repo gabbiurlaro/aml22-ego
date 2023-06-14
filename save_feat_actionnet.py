@@ -61,15 +61,15 @@ def main():
         augmentations = {"train": train_augmentations, "test": test_augmentations}
         # the only action possible with this script is "save"
         loader = torch.utils.data.DataLoader(ActionNetDataset(args.dataset.shift.split("-")[1], 
-                                                            modalities,
-                                                            args.split, 
-                                                            args.dataset,
-                                                            args.save.num_frames_per_clip,
-                                                            args.save.num_clips, 
-                                                            args.save.dense_sampling,
-                                                            augmentations[args.split],
-                                                            additional_info=True,
-                                                            **{"save": args.split}),
+                                                                modalities,
+                                                                args.split, 
+                                                                args.dataset,
+                                                                args.save.num_frames_per_clip,
+                                                                args.save.num_clips, 
+                                                                args.save.dense_sampling,
+                                                                augmentations[args.split],
+                                                                additional_info=True,
+                                                                **{"save": args.split}),
                                              batch_size=1, shuffle=False,
                                              num_workers=args.dataset.workers, pin_memory=False, drop_last=False)
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)

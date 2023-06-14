@@ -72,7 +72,7 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     legend = kwargs.get('legend', False)
     save = kwargs.get('save', False)
     filename = kwargs.get('filename', f"{dataset}_{split}_{model}_{modality}_{method}_{n_dim}.png")
-
+    data = kwargs.get('data', None)
     if n_dim != 2 and n_dim != 3:
         raise ValueError("n_dim must be 2 or 3")
     if method != 'tsne' and method != 'pca':
@@ -83,13 +83,15 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
     label_name = "label" if annotation == None else "verb_class"
     
     # Load the features
-    data = pd.DataFrame(pd.read_pickle(feature_name)['features'])
+    if data is None:
+        data = pd.DataFrame(pd.read_pickle(feature_name)['features'])
     # data_raw is always a dictionary with only one entry (features)
     if annotation is not None:
         # in this case we have to load the annotations and merge them with the features
         annotations = pd.read_pickle(annotation)
         data= pd.merge(data, annotations, how="inner", on="uid")
 
+    
     # extract from each video the corrisponding feature(in this case, the middle clip)
     if video_level:
         features = np.array([ video[num_clips // 2, :] for video in data[f'features_{modality}'] ])
