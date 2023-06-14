@@ -40,13 +40,21 @@ def init_operations():
             WANDB_KEY = os.environ['WANDB_KEY']
             logger.info("Using key retrieved from enviroment.")
         wandb.login(key=WANDB_KEY)
-        run = wandb.init(project="Multimodal classifier", entity="egovision-aml22", 
-                name=f"(RGB)lr-{args.models.RGB.lr}_nf-{args.train.num_frames_per_clip.RGB}_clip-{args.train.num_clips}_embedding_size-{args.in_features}")
+        run = wandb.init(project="Multimodal classifier", entity="egovision-aml22")
+        if args.sweep:
+            
+            args.models['RGB'].lr = wandb.config.RGB_lr
+            args.models['RGB'].lr_steps = wandb.config.RGB_lr_steps
+            args.models['RGB'].dropout = wandb.config.RGB_dropout
+            args.models['RGB'].model = wandb.config.RGB_model
 
+            args.models['EMG'].lr = wandb.config.EMG_lr
+            args.models['EMG'].lr_steps = wandb.config.EMG_lr_steps
+            args.models['EMG'].dropout = wandb.config.EMG_dropout
+            args.models['EMG'].model = wandb.config.EMG_model
 
-        args.models.EMG.lr = wandb.config.lr
-        args.models.EMG.lr_steps = wandb.config.lr_steps
-        run.name = f"(RGB unimodal)lr-{args.models.EMG.lr}"
+        run.name = f"{args.wandb_name}"
+        
 
 def main():
     global training_iterations, modalities
@@ -71,7 +79,7 @@ def main():
     # the models are wrapped into the ActionRecognition task which manages all the training steps
     action_classifier = tasks.ActionRecognition("action-classifier", models, args.batch_size,
                                                 args.total_batch, args.models_dir, num_classes,
-                                                args.train.num_clips,args.models, args=args, device=device,  wandb = wandb.config)
+                                                args.train.num_clips,args.models, args=args, device=device)
 
     if args.action == "train":
         # resume_from argument is adopted in case of restoring from a checkpoint
@@ -170,10 +178,10 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
         
         
         for m in modalities:
-            #data[m] = data[m].permute(1, 0, 2)
+            if args.models[m].model != 'action_TRN':
+                data[m] = data[m].permute(1, 0, 2) # only for clip level models(no TRN)
             data[m] = data[m].to(device)
         logits, _  = action_classifier.forward(data)
-
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
@@ -228,7 +236,8 @@ def validate(model, val_loader, device, it, num_classes):
             label = label.to(device)
             #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
-                #data[m] = data[m].permute(1, 0, 2)
+                if args.models[m].model != 'action_TRN':
+                    data[m] = data[m].permute(1, 0, 2) # only for clip level models(no TRN)                
                 data[m] = data[m].to(device)
             output, _ = model(data)
             #print(f'output: {output.size()}, {output.shape}')
