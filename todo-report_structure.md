@@ -27,7 +27,6 @@
 2. Related Works
    - [ ] Temporal aggregation 
    - [ ] Multimodal Classification
-   - [ ] ActionNet
    - [ ] VAE  
 3. Methods
    - [ ] Classifications RGB (TRN, LSTM, early, late)
