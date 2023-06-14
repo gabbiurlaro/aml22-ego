@@ -34,8 +34,8 @@
      - [ ] Sampling strategies
      - [ ] Clips and video levels
    - [ ] Pre-processing EMG 
-     - [ ] Spectrogram
-     - [ ] Feature Extraction (citare svarioni con Augmentations e vari tentativi fatti)
+     - [x] Spectrogram
+     - [x] Feature Extraction (citare svarioni con Augmentations e vari tentativi fatti)
    - [ ] VAE
      - [ ] VAE-RGB, reconstruction loss to pretrain encoder
      - [ ] VAE-EMG, reconstruction loss to pretrain decoder
