@@ -131,8 +131,6 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
     action_classifier.train(True)
     action_classifier.zero_grad()
     iteration = action_classifier.current_iter * (args.total_batch // args.batch_size)
-    wandb.watch(action_classifier.task_models['RGB'])
-    #wandb.watch(action_classifier.task_models['RGB'])
 
 
     # the batch size should be total_batch but batch accumulation is done with batch size = batch_size.
@@ -182,6 +180,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
                 data[m] = data[m].permute(1, 0, 2) # only for clip level models(no TRN)
             data[m] = data[m].to(device)
         logits, _  = action_classifier.forward(data)
+        
         action_classifier.compute_loss(logits, source_label, loss_weight=1)
         action_classifier.backward(retain_graph=False)
         action_classifier.compute_accuracy(logits, source_label)
@@ -247,7 +246,7 @@ def validate(model, val_loader, device, it, num_classes):
             model.compute_accuracy(logits, label)
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
                                                                       model.accuracy.avg[5]))
-        
+    logger.info(f"Confusion matric: {model.confusion_matrix()}")
     test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5]}
 
     with open(os.path.join(args.log_dir, f'val_precision_{args.dataset.shift.split("-")[0]}-'

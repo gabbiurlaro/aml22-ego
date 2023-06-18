@@ -38,17 +38,14 @@ def init_operations():
 
     # wanbd logging configuration
     if args.wandb_name is not None:
-        # wandb.init(group=args.wandb_name, dir=args.wandb_dir)
-        config = {
-            'learning_rate': args.models.RGB.lr,
-            'architecture': args.models.RGB.model,
-            'epochs': args.train.num_iter,
-        }
-        logger.info(f"configuration of this run: {config}")
-        wandb.init(project="Egovision", notes="LSTM implementation", tags=["LSTM"], config = config, group=args.wandb_group)
-        wandb.run.name = f"{args.name}"
-        # wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        wandb.login(key="ec198a4a4d14b77926dc5316ae6f02def3f71b17")
+        WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
+        if os.getenv('WANDB_KEY') is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY)
+        run = wandb.init(project="RGB-classifiers", entity="egovision-aml22", name = f"{args.models.RGB.model}")
+
+
 
 def main():
     global training_iterations, modalities
