@@ -7,6 +7,8 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 import os
 
+import seaborn as sns
+
 # Epic Kitchens and ActionNet labels and colors.
 
 LABELS = {'EK':{
@@ -34,30 +36,10 @@ LABELS = {'EK':{
 
 }}
 
-# TODO: Better palette
-COLORS = {'EK': {
-        0 : "#A52A2A",
-        1 : "#DAA520",
-        2 : "#FF7F50",
-        3 : "#7BC8F6",
-        4 : "#FFFF14",
-        5 : "#76FF7B",
-        6 : "#13EAC9",
-        7 : "olive"
-}, 'AN': {
-        0 : "#A52A2A",
-        1 : "#DAA520",
-        2 : "#FF7F50",
-        3 : "#7BC8F6",
-        4 : "#FFFF14",
-        5 : "#76FF7B",
-        6 : "#13EAC9",
-        7 : "olive",
-        8 : "palegreen",
-        9 : "lightpink",
-        10 : "darkmagenta",
-        11 : "cadetblue"
-}}
+COLORS = {
+    'EK':  {i : x for i, x in enumerate(sns.color_palette("hls", len(LABELS['EK'])).as_hex())}, 
+    'AN':  {i : x for i, x in enumerate(sns.color_palette("hls", len(LABELS['AN'])).as_hex())}
+}
 
 def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = "Features", **kwargs):
     """
@@ -119,11 +101,11 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
             y = [clip for video in filtered['y'] for clip in video]
             plt.scatter(x, y, c=COLORS[dataset][i], label=LABELS[dataset][i])
     if legend:
-        plt.legend(loc='upper left')
+        plt.legend()
     plt.title(title)
 
     if save:
-        plt.savefig(os.path.join("img","vae_emg", filename))
+        plt.savefig(os.path.join("img","features", filename), format="pdf")
     else:
         plt.show()
 

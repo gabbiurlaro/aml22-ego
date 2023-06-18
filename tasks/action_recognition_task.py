@@ -5,7 +5,7 @@ from functools import reduce
 import wandb
 import tasks
 from utils.logger import logger
-
+from sklearn.metrics import confusion_matrix
 
 class ActionRecognition(tasks.Task, ABC):
     loss = None
@@ -22,6 +22,9 @@ class ActionRecognition(tasks.Task, ABC):
         self.criterion = torch.nn.CrossEntropyLoss(weight=None, size_average=None, ignore_index=-100,
                                                    reduce=None, reduction='none')
         optim_params = {}
+
+        self.logits = []
+        self.labels = []
 
         for m in self.modalities:
             if device:
@@ -56,6 +59,8 @@ class ActionRecognition(tasks.Task, ABC):
         # fuse all modalities together by summing the logits
         fused_logits = reduce(lambda x, y: x + y, logits.values())
         self.accuracy.update(fused_logits, label)
+        self.logits.append(fused_logits)
+        self.labels.append(label)
 
     def wandb_log(self):
         logs = {'loss verb': self.loss.val, 'top1-accuracy-training': self.accuracy.avg[1],
@@ -76,6 +81,8 @@ class ActionRecognition(tasks.Task, ABC):
 
     def reset_acc(self):
         self.accuracy.reset()
+        self.logits = []
+        self.labels = []
 
     def step(self):
         super().step()
@@ -84,3 +91,12 @@ class ActionRecognition(tasks.Task, ABC):
 
     def backward(self, retain_graph):
         self.loss.val.backward(retain_graph=retain_graph)
+
+    def confusion_matrix(self):
+        # first make a whole array for the logits
+        logits = torch.cat(self.logits, dim = 0)
+        labels = torch.cat(self.labels, dim = 0).cpu().detach().numpy()
+        predicted = torch.argmax(logits, dim = 1).cpu().detach().numpy()
+
+        print(f"logits: {logits.shape}, labels: {labels.shape}, predicted: {predicted.shape}")
+        return confusion_matrix(labels, predicted)

@@ -13,7 +13,7 @@ models_dir: null # directory containing all the models
 split: null
 
 last_model: 
-  encoder: "saved_models/VAE_RGB/2023-06-10/VAE_RGB_lr0.001.pth"
+  encoder: "saved_models/VAE_RGB/2023-06-18/VAE_FT_D_16f_lr0.001"
   decoder: "saved_models/VAE_EMG/VAE_EMG_lr0.0001_b1e-05_2023-06-10 11:40:54.140793.pth"
 
 train:
@@ -53,7 +53,7 @@ models:
     kwargs: {}
     epochs: 200
     lr_steps: 50
-    lr: 0.0001
+    lr: 0.001
     lr_gamma: 0.01
     beta: 1e-5
 

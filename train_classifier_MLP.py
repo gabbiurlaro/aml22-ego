@@ -35,10 +35,12 @@ def init_operations():
     # wanbd logging configuration
     
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
-        wandb.init(project="test-project", entity="egovision-aml22")
-        #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+        WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
+        if os.getenv('WANDB_KEY') is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY)
+        run = wandb.init(project="RGB-classifiers", entity="egovision-aml22", name = f"{args.models.RGB.model}")
 
 
 
@@ -162,7 +164,7 @@ def train(action_classifier, train_loader, val_loader, device, num_classes):
             # in case of multi-clip training one clip per time is processed
         for m in modalities:
             data[m] = source_data[m].to(device)
-            data[m] = torch.reshape(data[m], (5,32,1024)) #to be uncommented for late fusion
+            data[m] = torch.reshape(data[m], (10, 32, 1024)) #to be uncommented for late fusion
            
         logits, _ = action_classifier.forward(data)
         

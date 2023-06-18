@@ -40,21 +40,33 @@ All the analysis are present in the paper.
 
 ##### 3.1.1 RGB features extraction
 
-In order to extract features, we have used the I3D model based on the inception module. In our analysis we have included different frame numbers, clip numbers and sampling, in order to find the best configuration, both qualitatively and quantitatively. To extract the features, we have used the following command:
+In order to extract features, we have used the I3D model based on the inception module. In our analysis we have included different frame numbers, clip numbers and sampling, in order to find the best configuration, both qualitatively and quantitatively. To extract the RGB features on Epic Kitchen Dataset, we have used the following command:
 
 
 ```bash
-python save_feat_epic.py \
-      config=configs/save_feat.yaml  \
-      dataset.shift=D1-D1 wandb_name='i3d' \
-      wandb_dir='Experiment_logs' \
-      dataset.RGB.data_path=../ek_data/frames \
-      dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' \
-      models.RGB.model='i3d'
+python save_feat_epic.py name="rgb_features" config=configs/save_feat/epic.yaml split="train"
+python save_feat_epic.py name="rgb_features" config=configs/save_feat/epic.yaml split="test"
 ```
 
+While, to extract RGB features on ActionSense Dataset, we have used the following command:
+
+```bash
+python save_feat_actionnet.py
+```
+
+It's also possible to extract all the features together by using the following script:
+
+```bash
+./scripts/save_epic.sh
+```
+
+```bash
+./scripts/save_actionnet.sh
+```
+
+
 ##### 3.1.2 EMG features extraction
-Also for this task we have used different configurations, in order to find the best parameters, in order to achieve good qualitative and quantitative results. To extract the features, we have used the following command:
+Also for this task we have used different configurations, in order to find the best parameters, in order to achieve good qualitative and quantitative results. We later used this configuration:
 
 ```bash
 python train_classifier_EMG.py action="job_feature_extraction" \
@@ -62,82 +74,31 @@ python train_classifier_EMG.py action="job_feature_extraction" \
       config=configs/emg/emg_classifier_1.yaml
 ```
 
+features are validated  both qualitatively and quantitatively(by a classifier). In `plot_utils.py` are present some useful functions to plot the features, we have used it do conduct our analysis.
+
+##### 3.1.3 Use the feature for an action recognition task
+
+In order to train a classifer on the extracted features, we have to prepare a config file in the `configs` folder.
+
 #### 3.2 Train a variational autoencoder
 
 Variational autoencoder is a powerful framework that allow to learn a latent representation of the data. In our case, we have used it to learn a latent representation of the RGB data, and then use it to translate from RGB to EMG. In order to train the VAE, we have used the following command:
 
 ```bash
-python train_VAE_features_clip.py action="train_and_save"  name="VAE_FT_D_16f" \
-  config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
-  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE'
+python train_VAE_features_clip.py action="train_and_save"  name="VAE_FT_D_16f"   config=configs/vae/rgb_vae.yaml```
 ```
 
 ```bash
 python train_VAE_EMG_features.py action="train_and_save"  name="VAE_FT_D_16f" \
   config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
-  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE'
+  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE' split=train
 ```
 
-##### 3.2.1 Train a classifier on reconstructed features
-
-In order to check if the reconstructed features are good enough, we have used them to train a classifier. In order to do so, we have used the following command:
+Finally, we can train the final VAE, that translate from RGB to EMG, using the following command:
 
 ```bash
+python RGB_sEMG.py action="train_and_save" name="RGB_sEMG" config=configs/vae/RGB-  sEMG.yaml
 ```
-
-```bash
-```
-
-```bash
-python RGB_sEMG.py action="train_and_save" name="RGB_sEMG" config=configs/vae/RGB_sEMG.yaml
-```
-
-### Stuff
-
-#### 3.2 Use reconstructed feature to train a classifier
-First, we need to train the vae and save the model
-
-```bash
-python /home/gabb/egovision_project/aml22-ego/train_VAE_features_clip.py action="train"  name="VAE_FT_D_16f" \
-  config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
-  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE'
-```
-
-```bash
-python train_VAE_features_clip.py action="save" name="VAE_FT_D_16f"   config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE' resume_from='saved_models/VAE_RGB/VAE_FT_D_16f_lr0.0001_1.pth'
-```
-
-Or, using the same command:
-
-```bash
-python train_VAE_features_clip.py action="train_and_save" split="train" name="VAE_RGB" config=configs/VAE_save_feat.yaml   dataset.shift=D1-D1   wandb_name='vae-rgb'  wandb_dir='Experiment_logs'  dataset.RGB.data_path=../ek_data/frames    dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c'  models.RGB.model='VAE'
-```
-
-The second option is preferable, because we don't need to provide the path of the model to resume from.
-
-
-```bash
-
-Once we have the reconstructed features, we can train the classifier using them as input.
-
-```bash
-
-python train_classifier_TRN.py action=train config=configs/train_classifier.yaml \
-            dataset.shift=D1-D1 models.RGB.model=action_TRN num_clips=5 \
-            name='test_reconstructed_feature' dataset.RGB.data_path="../ek_data/frames/" \
-            wandb_name=TRN_reconstructed dataset.RGB.features_name='reconstructed/VAE_0.001_2023-05-26 10:41:49.665145'
-```
-
-The performace of the model are comparable with the one that use the original features.
-
-ALERT: Per qualche strano motivo, funziona solo lr = 0.001, non so perché, nonostante i loss siano abbastanza simili.
-
-lr = 10^-4: brutti risultati
-lr = 10^-3: buoni risultati
-lr = 10^-2: bruttissimi risultati
-
-Bisogna capire il perchè solo con lr = 10^-3 funziona. Reduction = sum, non funziona con reduction = mean.
-
 
 #### 3.3 Reconstructed EMG features
 
@@ -175,14 +136,3 @@ python train_VAE_EMG_features.py action="save" \
   models.EMG.model='VAE' \
   models.EMG.epochs=100 
 ```
-
-#### SAVE FEATURE ACTIONNET
-```bash
-python save_feat_actionnet.py action="save" \
-  name="feature_actionnet" \
-  config=configs/I3D_save_feat.yaml \
-  resume_from='saved_models/I3D_SourceOnlyD1'
-```
-save actionnet
-```bash
-   python save_feat_actionnet.py action="save" name="FT_10c_16f_S05_U"   config=configs/save_feat/actionnet.yaml split="test"

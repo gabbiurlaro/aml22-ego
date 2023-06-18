@@ -36,10 +36,12 @@ def init_operations():
 
     # wanbd logging configuration
     if args.wandb_name is not None:
-        wandb.login(key='c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec')
-        wandb.init(project="test-project", entity="egovision-aml22")
-        #wandb.run.name = args.name + "_" + args.shift.split("-")[0] + "_" + args.shift.split("-")[-1]
-        wandb.run.name = f'{args.name}_{args.models.RGB.model}'
+        WANDB_KEY = "c87fa53083814af2a9d0ed46e5a562b9a5f8b3ec" # Salvatore's key
+        if os.getenv('WANDB_KEY') is not None:
+            WANDB_KEY = os.environ['WANDB_KEY']
+            logger.info("Using key retrieved from enviroment.")
+        wandb.login(key=WANDB_KEY)
+        run = wandb.init(project="RGB-classifiers", entity="egovision-aml22", name = f"{args.models.RGB.model}")
 
 
 def main():
@@ -227,13 +229,15 @@ def validate(model, val_loader, device, it, num_classes):
             output, _ = model(data)
             for m in modalities:
                 logits[m] = output[m]
-
+            
             model.compute_accuracy(logits, label)
 
             if (i_val + 1) % (len(val_loader) // 5) == 0:
                 logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(val_loader),
                                                                           model.accuracy.avg[1], model.accuracy.avg[5]))
 
+        cm = model.confusion_matrix()
+        logger.info(f"Confusion matrix: {cm}")
         class_accuracies = [(x / y) * 100 for x, y in zip(model.accuracy.correct, model.accuracy.total)]
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
                                                                       model.accuracy.avg[5]))

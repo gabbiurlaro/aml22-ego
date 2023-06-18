@@ -23,7 +23,7 @@
 - [ ] Abstract
 1. Introduzione
    - [ ] Metodo
-   - [ ] Dataset
+   - [ ] Dataset(generalities)
 2. Related Works
    - [ ] Temporal aggregation 
    - [ ] Multimodal Classification
@@ -40,7 +40,7 @@
      - [ ] VAE-EMG, reconstruction loss to pretrain decoder
      - [ ] RGB->VAE->EMG traslation
 4. Experimental results
-   - [ ] Datasets
+   - [ ] Datasets(classes, number of samples, etc)
      - [ ] Shapes
      - [ ] Contents
    - [ ] Classification RGB / FeatsEX analysis
