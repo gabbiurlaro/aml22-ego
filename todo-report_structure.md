@@ -22,30 +22,30 @@
 # Report structure
 - [ ] Abstract
 1. Introduzione
-   - [ ] Metodo
-   - [ ] Dataset(generalities)
+   - [] Metodo
+   - [] Dataset(generalities)
 2. Related Works
-   - [ ] Temporal aggregation 
-   - [ ] Multimodal Classification
-   - [ ] ActionNet
-   - [ ] VAE  
+   - [x] Temporal aggregation 
+   - [x] Multimodal Classification
+   - [ ] ActionNet e TRN
+   - [x] VAE  
 3. Methods
-   - [ ] Classifications RGB (TRN, LSTM, early, late)
-     - [ ] Sampling strategies
-     - [ ] Clips and video levels
-   - [ ] Pre-processing EMG 
-     - [ ] Spectrogram
-     - [ ] Feature Extraction (citare svarioni con Augmentations e vari tentativi fatti)
-   - [ ] VAE
-     - [ ] VAE-RGB, reconstruction loss to pretrain encoder
-     - [ ] VAE-EMG, reconstruction loss to pretrain decoder
-     - [ ] RGB->VAE->EMG traslation
+   - [x] Classifications RGB (TRN, LSTM, early, late)
+     - [x] Sampling strategies
+     - [x] Clips and video levels
+   - [x] Pre-processing EMG 
+     - [x] Spectrogram
+     - [x] Feature Extraction (citare svarioni con Augmentations e vari tentativi fatti)
+   - [x] VAE
+     - [x] VAE-RGB, reconstruction loss to pretrain encoder
+     - [x] VAE-EMG, reconstruction loss to pretrain decoder
+     - [x] RGB->VAE->EMG traslation
 4. Experimental results
-   - [ ] Datasets(classes, number of samples, etc)
-     - [ ] Shapes
-     - [ ] Contents
-   - [ ] Classification RGB / FeatsEX analysis
-   - [ ] Classification EMG / FeatsEX analysis
-   - [ ] VAE RGB | VAE EMG reconstructions (features plots, post-reconstruction classification results)
-   - [ ] Translation + Multimodal Classification
+   - [x] Datasets(classes, number of samples, etc)
+     - [x] Shapes
+     - [x] Contents
+   - [x] Classification RGB / FeatsEX analysis
+   - [x] Classification EMG / FeatsEX analysis
+   - [x] VAE RGB | VAE EMG reconstructions (features plots, post-reconstruction classification results)
+   - [x] Translation + Multimodal Classification
 5. Conclusions
