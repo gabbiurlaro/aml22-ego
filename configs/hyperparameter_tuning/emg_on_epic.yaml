@@ -1,0 +1,23 @@
+program: /home/gabb/egovision_project/aml22-ego/train_classifier_multimodal.py
+name: EMG-epic
+method: random
+metric:
+  name: accuracy on val
+  goal: maximize
+parameters:
+  lr:
+    distribution: uniform
+    min: 0.001
+    max: 0.5
+  lr_steps:
+    values: [50, 100, 150, 200, 250]
+  weight_decay:
+    distribution: uniform
+    min: 0.0001
+    max: 0.001
+command:
+  - python
+  - train_classifier_multimodal.py 
+  - action="train" 
+  - name="train_multimodal_epic" 
+  - config=configs/classifier_multimodal.yaml
