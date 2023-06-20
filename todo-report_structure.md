@@ -1,18 +1,18 @@
 # TODO
- - [ ] Classification RGB-EK (report results and considerations, save pictures and test)
-  - [ ] Final Classifier (use train_classifier_multimodal)
-  - [ ] TRN
-  - [ ] LSTM
-  - [ ] late fusion
-  - [ ] early fusion
-- [ ] Classification MM-EK ()
-  - [ ] Sweep 
-- [ ] Classification per clip
-  - [ ] Final classifier MM-EK
-  - [ ] Final classifier EMG-EK
-  - [ ] Final classifier RGB-EK
+ - [x] Classification RGB-EK (report results and considerations, save pictures and test)
+  - [x] Final Classifier (use train_classifier_multimodal)
+  - [x] TRN
+  - [x] LSTM
+  - [x] late fusion
+  - [x] early fusion
+- [x] Classification MM-EK ()
+  - [x] Sweep 
+- [x] Classification per clip
+  - [x] Final classifier MM-EK
+  - [x] Final classifier EMG-EK
+  - [x] Final classifier RGB-EK
 - [ ] Report
-  - [ ] Run everything for the last time
+  - [x] Run everything for the last time
 - [ ] Clean Code
   - [ ] Comments and svarioni
   - [ ] Remove uneseful and Merge
@@ -20,10 +20,10 @@
 
 
 # Report structure
-- [ ] Abstract
+- [x] Abstract
 1. Introduzione
-   - [] Metodo
-   - [] Dataset(generalities)
+   - [x] Metodo
+   - [x] Dataset(generalities)
 2. Related Works
    - [x] Temporal aggregation 
    - [x] Multimodal Classification
