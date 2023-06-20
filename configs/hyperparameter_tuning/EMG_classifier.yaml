@@ -1,0 +1,41 @@
+program: /home/gabb/egovision_project/aml22-ego/train_classifier_EMG_sweep.py
+name: FC-VAE(rgb)
+method: random
+metric:
+  name: accuracy on val
+  goal: maximize
+parameters:
+  lr:
+    distribution: uniform
+    min: 0.001
+    max: 0.9
+  weight_decay:
+    distribution: uniform
+    min: 0.0001
+    max: 0.001
+  dropout:
+    distribution: uniform
+    min: 0.5
+    max: 0.8
+  dense_sampling:
+    values: [True, False]
+  embedding_size:
+    values: [128, 256, 512, 1024]
+  num_clips:
+    values: [5, 10, 15, 20]
+  transform:
+    values: [True, False]
+
+command:
+  - python
+  - train_classifier_EMG_sweep.py 
+  - action="job_feature_extraction" 
+  - name="job_feature_extraction"
+  - config=configs/classifier_emg.yaml
+  - dataset.shift=ActionNet-ActionNet  
+  - train.num_iter=200  
+  - wandb_name='EMG'
+  -  wandb_dir='Experiment_logs'  
+  - dataset.RGB.data_path=../ek_data/frames    
+  - models.EMG.model='EMG_classifier_parametric'  
+  - dataset.annotations_path="train_val/"

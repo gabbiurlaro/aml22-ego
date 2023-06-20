@@ -1,0 +1,44 @@
+program: /home/gabb/egovision_project/aml22-ego/train_classifier_multimodal.py
+name: rgb-emg-fusion
+method: random
+metric:
+  name: accuracy on val
+  goal: maximize
+parameters:
+  
+    EMG_model:
+      values: [action_TRN, Unimodal_classifier]
+    EMG_lr:
+      distribution: uniform
+      min: 0.0001
+      max: 0.5
+    EMG_lr_steps:
+      distribution: int_uniform
+      min: 20
+      max: 300
+    EMG_dropout:
+      distribution: uniform
+      min: 0.5
+      max: 0.9
+    RGB_model:
+      values: [action_TRN, Unimodal_classifier]
+    RGB_lr:
+      distribution: uniform
+      min: 0.0001
+      max: 0.5
+    RGB_lr_steps:
+      distribution: int_uniform
+      min: 20
+      max: 300
+    RGB_dropout:
+      distribution: uniform
+      min: 0.5
+      max: 0.9
+
+command:
+  - python
+  - train_classifier_multimodal.py 
+  - action="train" 
+  - name="Multimodal classifier on EPIC" 
+  - config=configs/classifier_multimodal_EPIC.yaml
+  - sweep=True

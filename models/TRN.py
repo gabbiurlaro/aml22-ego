@@ -84,7 +84,6 @@ class RelationModuleMultiScale(torch.nn.Module):
         import itertools
         return list(itertools.combinations([i for i in range(num_frames)], num_frames_relation))
 
-
 class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
     # relation module in multi-scale with a classifier at the end
     def __init__(self, img_feature_dim, num_frames, num_class):
@@ -112,7 +111,6 @@ class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
                         nn.ReLU(),
                         nn.Linear(scale * self.img_feature_dim, num_bottleneck),
                         nn.ReLU(),
-                        nn.Dropout(p=0.6),# this is the newly added thing
                         nn.Linear(num_bottleneck, num_bottleneck),
                         nn.ReLU(),
                         nn.Dropout(p=0.6),
@@ -137,6 +135,7 @@ class RelationModuleMultiScaleWithClassifier(torch.nn.Module):
             for idx in idx_relations_randomsample:
                 act_relation = input[:, self.relations_scales[scaleID][idx], :]
                 act_relation = act_relation.view(act_relation.size(0), self.scales[scaleID] * self.img_feature_dim)
+                
                 act_relation = self.fc_fusion_scales[scaleID](act_relation)
                 act_relation = self.classifier_scales[scaleID](act_relation)
                 act_all += act_relation
