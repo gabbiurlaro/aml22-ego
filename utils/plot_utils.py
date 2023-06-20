@@ -41,7 +41,7 @@ COLORS = {
     'AN':  {i : x for i, x in enumerate(sns.color_palette("hls", len(LABELS['AN'])).as_hex())}
 }
 
-def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = "Features", **kwargs):
+def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim = 2, method = 'tsne', model = "I3D", annotation = None, video_level = False, num_clips = 5, title = None, **kwargs):
     """
     Plot the features of the dataset using the specified method.
     - feature_name: name of the feature to plot(.pkl file)
@@ -102,7 +102,8 @@ def show_features(feature_name, modality, dataset = "EK", split = "train", n_dim
             plt.scatter(x, y, c=COLORS[dataset][i], label=LABELS[dataset][i])
     if legend:
         plt.legend()
-    plt.title(title)
+    if title is not None:
+        plt.title(title)
 
     if save:
         plt.savefig(os.path.join("img","features", filename), format="pdf")
