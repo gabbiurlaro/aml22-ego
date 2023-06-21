@@ -486,10 +486,8 @@ def train(action_classifier, train_loader, val_loader, device, num_classes, num_
         
         
         for m in modalities:
-            #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].reshape(-1,16, num_clips, args.train.num_frames_per_clip.EMG, args.train.num_frames_per_clip.EMG)
             data[m] = data[m].permute(2, 0, 1, 3,4 )
-            #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
             data[m] = data[m].to(device)
         
         logits, _  = action_classifier.forward(data)
@@ -548,44 +546,23 @@ def validate(model, val_loader, device, it, num_classes, num_clips):
 
         for i_val, (data, label) in enumerate(val_loader):
             label = label.to(device)
-            #print(f'data: {data.size()}, {data.shape }, label: {label.size()}, {label.shape}')
             for m in modalities:
-                #print(f'yoyo1: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].reshape(-1,16, args.train.num_clips, args.train.num_frames_per_clip.EMG,args.train.num_frames_per_clip.EMG)
                 data[m] = data[m].permute(2, 0, 1, 3, 4)
-                #print(f'yoyo2: {data[m].size()}, {data[m].shape}')
                 data[m] = data[m].to(device)
                 batch = data[m].shape[0]
-                #print('num_classes: ', num_classes)
                 logits[m] = torch.zeros((batch, num_classes)).to(device)
 
 
             output, _ = model(data)
-            #print(f'output: {output.size()}, {output.shape}')
             for m in modalities:
                 logits[m] = output[m]
             
-            #print(f"label: {label.size()}, {label.shape}")
-            # for m in modalities:
-            #     logits[m] = torch.mean(logits[m], dim=0)
-            #print(f"output1: {output}, {output['EMG']} {output['EMG'].shape}")
             model.compute_accuracy(logits, label)
 
-            # if (i_val + 1) % (len(val_loader) // 5) == 0:
-            #     logger.info("[{}/{}] top1= {:.3f}% top5 = {:.3f}%".format(i_val + 1, len(val_loader),
-            #                                                               model.accuracy.avg[1], model.accuracy.avg[5]))
-
-        # class_accuracies = [(x / y) * 100 for x, y in zip(model.accuracy.correct, model.accuracy.total)]
         logger.info('Final accuracy: top1 = %.2f%%\ttop5 = %.2f%%' % (model.accuracy.avg[1],
                                                                       model.accuracy.avg[5]))
-        # for i_class, class_acc in enumerate(class_accuracies):
-        #     logger.info('Class %d = [%d/%d] = %.2f%%' % (i_class,
-        #                                                  int(model.accuracy.correct[i_class]),
-        #                                                  int(model.accuracy.total[i_class]),
-        #                                                  class_acc))
 
-    # logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
-    #             .format(np.array(class_accuracies).mean(axis=0)))
     test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5]}
 
     with open(os.path.join(args.log_dir, f'val_precision_{args.dataset.shift.split("-")[0]}-'
