@@ -30,3 +30,109 @@ You can also run the code on [Google Colab](https://colab.research.google.com/).
 As a reference, `colab_runner.ipynb` provides an example of how to set up a working environment in Google Colab.
 
 NOTE: you need to stay connected to the Google Colab interface at all times for your python scripts to keep training.
+
+### 3. How to recreate the results
+
+In the paper, we have discussed first feature extraction on RGB videos using I3D, later we have investigated the possibility to use another modality(i.e. EMG), and try to use it to make multimodal action recognition. Later, we have discussed the possibility to translate from one modality to another using the Variational Autoencoder framework.
+
+#### 3.1 Feature extraction
+All the analysis are present in the paper.
+
+##### 3.1.1 RGB features extraction
+
+In order to extract features, we have used the I3D model based on the inception module. In our analysis we have included different frame numbers, clip numbers and sampling, in order to find the best configuration, both qualitatively and quantitatively. To extract the RGB features on Epic Kitchen Dataset, we have used the following command:
+
+
+```bash
+python save_feat_epic.py name="rgb_features" config=configs/save_feat/epic.yaml split="train"
+python save_feat_epic.py name="rgb_features" config=configs/save_feat/epic.yaml split="test"
+```
+
+While, to extract RGB features on ActionSense Dataset, we have used the following command:
+
+```bash
+python save_feat_actionnet.py
+```
+
+It's also possible to extract all the features together by using the following script:
+
+```bash
+./scripts/save_epic.sh
+```
+
+```bash
+./scripts/save_actionnet.sh
+```
+
+
+##### 3.1.2 EMG features extraction
+Also for this task we have used different configurations, in order to find the best parameters, in order to achieve good qualitative and quantitative results. We later used this configuration:
+
+```bash
+python train_classifier_EMG.py action="job_feature_extraction" \
+      name="job_feature_extraction" \
+      config=configs/emg/emg_classifier_1.yaml
+```
+
+features are validated  both qualitatively and quantitatively(by a classifier). In `plot_utils.py` are present some useful functions to plot the features, we have used it do conduct our analysis.
+
+##### 3.1.3 Use the feature for an action recognition task
+
+In order to train a classifer on the extracted features, we have to prepare a config file in the `configs` folder.
+
+#### 3.2 Train a variational autoencoder
+
+Variational autoencoder is a powerful framework that allow to learn a latent representation of the data. In our case, we have used it to learn a latent representation of the RGB data, and then use it to translate from RGB to EMG. In order to train the VAE, we have used the following command:
+
+```bash
+python train_VAE_features_clip.py action="train_and_save"  name="VAE_FT_D_16f"   config=configs/vae/rgb_vae.yaml```
+```
+
+```bash
+python train_VAE_EMG_features.py action="train_and_save"  name="VAE_FT_D_16f" \
+  config=configs/VAE_save_feat.yaml dataset.shift=D1-D1 wandb_name='vae' wandb_dir='Experiment_logs'  \
+  dataset.RGB.data_path=../ek_data/frames dataset.RGB.features_name='EPIC/FT_D_D1_16f_5c' models.RGB.model='VAE' split=train
+```
+
+Finally, we can train the final VAE, that translate from RGB to EMG, using the following command:
+
+```bash
+python RGB_sEMG.py action="train_and_save" name="RGB_sEMG" config=configs/vae/RGB-  sEMG.yaml
+```
+
+#### 3.3 Reconstructed EMG features
+
+In order to learn to transfer the modality, we need to train an EMG classifier, that provides us the features. We have tried different values. We can now extract the feature using the following command:
+
+```bash
+python train_classifier_EMG.py action="job_feature_extraction" \
+  name="job_feature_extraction" \
+  config=configs/emg/emg_classifier_1.yaml 
+```
+
+```bash
+python train_VAE_EMG_features.py action="train_and_save" \
+  name="VAE_EMG"   \
+  config=configs/VAE_save_feat_EMG.yaml \
+  dataset.shift=ActionNet-ActionNet  \
+  wandb_name='vae'   \
+  wandb_dir='Experiment_logs'    \
+  dataset.RGB.data_path=../ek_data/frames   \
+  dataset.EMG.features_name='ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
+  models.EMG.model='VAE' \
+  models.EMG.epochs=100 \
+  resume_from="saved_models/VAE_EMG/2023-06-09/VAE_EMG_lr0.0001_b1e-05_2023-06-09 10:03:00.244178.pth"
+```
+
+```bash
+python train_VAE_EMG_features.py action="save" \
+  name="VAE_EMG"   \
+  config=configs/VAE_save_feat_EMG.yaml \
+  dataset.shift=ActionNet-ActionNet  \
+  wandb_name='vae'   \
+  wandb_dir='Experiment_logs'    \
+  dataset.RGB.data_path=../ek_data/frames   \
+  dataset.EMG.features_name='ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
+  models.EMG.model='VAE' \
+  models.EMG.epochs=100 
+```

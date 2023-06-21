@@ -66,7 +66,7 @@ def main():
                                                                  augmentations[args.split], additional_info=True,
                                                                  **{"save": args.split}),
                                              batch_size=1, shuffle=False,
-                                             num_workers=args.dataset.workers, pin_memory=True, drop_last=False)
+                                             num_workers=args.dataset.workers, pin_memory=False, drop_last=False)
         save_feat(action_classifier, loader, device, action_classifier.current_iter, num_classes)
     else:
         raise NotImplementedError
@@ -130,7 +130,8 @@ def save_feat(model, loader, device, it, num_classes):
                                                                           model.accuracy.avg[1], model.accuracy.avg[5]))
 
         os.makedirs("saved_features", exist_ok=True)
-        pickle.dump(results_dict, open(os.path.join("saved_features", args.name + "_" +
+        feature_name = f"{'FT' if args.resume_from else 'PT'}_{args.save.num_frames_per_clip.RGB}f_{args.save.num_clips}c_{'D' if args.save.dense_sampling.RGB else 'U'}"
+        pickle.dump(results_dict, open(os.path.join("saved_features/EPIC/new", feature_name + "_" +
                                                     args.dataset.shift.split("-")[1] + "_" +
                                                     args.split + ".pkl"), 'wb'))
 
@@ -143,16 +144,6 @@ def save_feat(model, loader, device, it, num_classes):
                                                          int(model.accuracy.correct[i_class]),
                                                          int(model.accuracy.total[i_class]),
                                                          class_acc))
-
-    #logger.info('Accuracy by averaging class accuracies (same weight for each class): {}%'
-    #            .format(np.array(class_accuracies.values()).mean()))
-    #test_results = {'top1': model.accuracy.avg[1], 'top5': model.accuracy.avg[5],
-    #                'class_accuracies': np.array(class_accuracies.values())}
-
-    # with open(os.path.join(args.log_dir, f'val_precision_{args.dataset.shift.split("-")[0]}-'
-    #                                      f'{args.dataset.shift.split("-")[-1]}.txt'), 'a+') as f:
-    #     f.write("[%d/%d]\tAcc@top1: %.2f%%\n" % (it, args.train.num_iter #test_results['top1']))
-
     return 0
 
 

@@ -1,4 +1,3 @@
-
 from torch import nn
 import torch
 from utils.logger import logger
@@ -31,4 +30,3 @@ class Unimodal_classifier_parametric(nn.Module):
             logit = self.classifier(x[clip])
             logits.append(logit)
         return torch.stack(logits, dim=0).mean(dim=0), {}
-

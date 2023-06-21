@@ -5,14 +5,14 @@ from functools import reduce
 import wandb
 import tasks
 from utils.logger import logger
-
+from sklearn.metrics import confusion_matrix
 
 class ActionRecognition(tasks.Task, ABC):
     loss = None
     optimizer = {}
 
     def __init__(self, name, task_models, batch_size, total_batch, models_dir, num_classes,
-                 num_clips, model_args, args, **kwargs) -> None:
+                 num_clips, model_args, args, wandb=None,  device=None, **kwargs) -> None:
         super().__init__(name, task_models, batch_size, total_batch, models_dir, args, **kwargs)
         # Accuracy measures
         self.model_args = model_args
@@ -22,10 +22,16 @@ class ActionRecognition(tasks.Task, ABC):
         self.criterion = torch.nn.CrossEntropyLoss(weight=None, size_average=None, ignore_index=-100,
                                                    reduce=None, reduction='none')
         optim_params = {}
+
+        self.logits = []
+        self.labels = []
+
         for m in self.modalities:
+            if device:
+                self.task_models[m].to(device)
             optim_params[m] = filter(lambda parameter: parameter.requires_grad, self.task_models[m].parameters())
-            self.optimizer[m] = torch.optim.SGD(optim_params[m], model_args[m].lr,
-                                                weight_decay=model_args[m].weight_decay,
+            self.optimizer[m] = torch.optim.SGD(optim_params[m], ( wandb.lr if wandb else model_args[m].lr ),
+                                                weight_decay= ( wandb.weight_decay if wandb else model_args[m].weight_decay),
                                                 momentum=model_args[m].sgd_momentum)
 
     def forward(self, data, **kwargs):
@@ -34,12 +40,13 @@ class ActionRecognition(tasks.Task, ABC):
         features = {}
         for i_m, m in enumerate(self.modalities):
             logits[m], feat = self.task_models[m](x=data[m], **kwargs)
+            #logger.info(f'feat shape: {len(feat.keys())}, {feat.keys()}')
             if i_m == 0:
                 for k in feat.keys():
                     features[k] = {}
             for k in feat.keys():
                 features[k][m] = feat[k]
-
+        #logger.info(f'action_rec: features : len_keys: {len(features.keys())}, keys: {features.keys()}, feaet[0]["EMG"].sahep: {features[0]["EMG"].shape}\n feaet[0]["EMG"]: {features[0]["EMG"]}')
         return logits, features
 
     def compute_loss(self, logits, label, loss_weight=1.0):
@@ -52,9 +59,11 @@ class ActionRecognition(tasks.Task, ABC):
         # fuse all modalities together by summing the logits
         fused_logits = reduce(lambda x, y: x + y, logits.values())
         self.accuracy.update(fused_logits, label)
+        self.logits.append(fused_logits)
+        self.labels.append(label)
 
     def wandb_log(self):
-        logs = {'loss verb': self.loss.val, 'top1-accuracy': self.accuracy.avg[1],
+        logs = {'loss verb': self.loss.val, 'top1-accuracy-training': self.accuracy.avg[1],
                 'top5-accuracy': self.accuracy.avg[5]}
         for m in self.modalities:
             logs[f'lr_{m}'] = self.optimizer[m].param_groups[-1]['lr']
@@ -72,6 +81,8 @@ class ActionRecognition(tasks.Task, ABC):
 
     def reset_acc(self):
         self.accuracy.reset()
+        self.logits = []
+        self.labels = []
 
     def step(self):
         super().step()
@@ -80,3 +91,12 @@ class ActionRecognition(tasks.Task, ABC):
 
     def backward(self, retain_graph):
         self.loss.val.backward(retain_graph=retain_graph)
+
+    def confusion_matrix(self):
+        # first make a whole array for the logits
+        logits = torch.cat(self.logits, dim = 0)
+        labels = torch.cat(self.labels, dim = 0).cpu().detach().numpy()
+        predicted = torch.argmax(logits, dim = 1).cpu().detach().numpy()
+
+        print(f"logits: {logits.shape}, labels: {labels.shape}, predicted: {predicted.shape}")
+        return confusion_matrix(labels, predicted)

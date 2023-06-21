@@ -1,0 +1,20 @@
+program: RGB-sEMG_sweep.py
+name: RGB-sEMG
+method: random
+parameters:
+  lr: 
+    max: 0.05
+    min: 0.00001
+  beta:
+    max: 0.1
+    min: 0.0001
+  lr_steps:
+    distribution: int_uniform
+    min: 10
+    max: 250
+command:
+  - python
+  - RGB-sEMG_sweep.py
+  - action="train_and_save" 
+  - name="RGB-sEMG"
+  - config=configs/vae/RGB-sEMG.yaml   
