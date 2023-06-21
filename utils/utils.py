@@ -1,12 +1,12 @@
-from collections import Mapping
+from collections.abc import Mapping
 import torch
-
+import numpy as np
 
 def get_domains_and_labels(args):
-    num_verbs = 8
-    domains = {'D1': 8, 'D2': 1, 'D3': 22}
+    domains = {'D1': 8, 'D2': 1, 'D3': 22, 'ActionNet': 0 ,'S04': 3}
     source_domain = domains[args.dataset.shift.split("-")[0]]
     target_domain = domains[args.dataset.shift.split("-")[1]]
+    num_verbs = 8 if source_domain == 8 else 12
     valid_labels = [i for i in range(num_verbs)]
     num_class = num_verbs
     return num_class, valid_labels, source_domain, target_domain
@@ -35,6 +35,7 @@ class Accuracy(object):
         # compute separately all the top-k accuracies and the per-class accuracy
         for i_tk, top_k in enumerate(self.topk):
             if i_tk == 0:
+                #print('output2: ', outputs )
                 res = self.accuracy(outputs, labels, perclass_acc=True, topk=[top_k])
                 class_correct = res[1]
                 class_total = res[2]
@@ -57,11 +58,13 @@ class Accuracy(object):
         target: torch.Tensor -> ground truth labels
         perclass_acc -> bool, True if you want to compute also the top-1 accuracy per class
         """
+        #print('output3: ', output)
         maxk = max(topk)
         batch_size = target.size(0)
-
+        #print(f' maxk: {maxk} , output: {output} , target: {target}')
         _, pred = output.topk(maxk, 1, True, True)
         pred = pred.t()
+        #print('pred: ', pred)
         correct = pred.eq(target.view(1, -1).expand_as(pred))
         res = []
         for k in topk:
@@ -120,3 +123,38 @@ def pformat_dict(d, indent=0):
         else:
             fstr += ' ' + str(value)
     return fstr
+
+# Schedulers
+
+def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # linear schedule
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop and (int(i+c*period) < n_epoch):
+            L[int(i+c*period)] = v
+            v += step
+            i += 1
+    return L  
+
+def costant_scheduler(value = 1, n_epoch = 200):
+    return np.ones(n_epoch) * value
+
+def frange_cycle_sigmoid(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+    L = np.ones(n_epoch)
+    period = n_epoch/n_cycle
+    step = (stop-start)/(period*ratio) # step is in [0,1]
+    
+    # transform into [-6, 6] for plots: v*12.-6.
+
+    for c in range(n_cycle):
+
+        v , i = start , 0
+        while v <= stop:
+            L[int(i+c*period)] = 1.0/(1.0+ np.exp(- (v*12.-6.)))
+            v += step
+            i += 1
+    return L    

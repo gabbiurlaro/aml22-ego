@@ -60,5 +60,5 @@ else:
 os.makedirs(args.log_dir, exist_ok=True)
 if args.models_dir is None:
     args.models_dir = os.path.join("saved_models", args.experiment_dir)
-if args.action != "train" and args.action != 'save' and args.resume_from is None:
+if args.action != "train" and args.action == 'save' and args.resume_from is None:
     args.resume_from = os.path.join(args.models_dir, args.name)
