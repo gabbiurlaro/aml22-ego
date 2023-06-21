@@ -97,42 +97,18 @@ python train_VAE_EMG_features.py action="train_and_save"  name="VAE_FT_D_16f" \
 Finally, we can train the final VAE, that translate from RGB to EMG, using the following command:
 
 ```bash
-python RGB_sEMG.py action="train_and_save" name="RGB_sEMG" config=configs/vae/RGB-  sEMG.yaml
+python RGB_sEMG.py action="train_and_save" name="RGB_sEMG" config=configs/vae/RGB-sEMG.yaml
 ```
 
-#### 3.3 Reconstructed EMG features
-
-In order to learn to transfer the modality, we need to train an EMG classifier, that provides us the features. We have tried different values. We can now extract the feature using the following command:
+#### 3.2.1 Translate and perform multimodal action recognition
 
 ```bash
-python train_classifier_EMG.py action="job_feature_extraction" \
-  name="job_feature_extraction" \
-  config=configs/emg/emg_classifier_1.yaml 
+python RGB_sEMG.py action="simulate" name="RGB_sEMG" config=configs/vae/EMG-epic.yaml
 ```
 
-```bash
-python train_VAE_EMG_features.py action="train_and_save" \
-  name="VAE_EMG"   \
-  config=configs/VAE_save_feat_EMG.yaml \
-  dataset.shift=ActionNet-ActionNet  \
-  wandb_name='vae'   \
-  wandb_dir='Experiment_logs'    \
-  dataset.RGB.data_path=../ek_data/frames   \
-  dataset.EMG.features_name='ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
-  models.EMG.model='VAE' \
-  models.EMG.epochs=100 \
-  resume_from="saved_models/VAE_EMG/2023-06-09/VAE_EMG_lr0.0001_b1e-05_2023-06-09 10:03:00.244178.pth"
-```
+Now, we finally perfom multimodal action recognition, using:
 
 ```bash
-python train_VAE_EMG_features.py action="save" \
-  name="VAE_EMG"   \
-  config=configs/VAE_save_feat_EMG.yaml \
-  dataset.shift=ActionNet-ActionNet  \
-  wandb_name='vae'   \
-  wandb_dir='Experiment_logs'    \
-  dataset.RGB.data_path=../ek_data/frames   \
-  dataset.EMG.features_name='ACTIONNET_EMG/EMG_nf-32_clip-10_embedding_size-1024_U' \  
-  models.EMG.model='VAE' \
-  models.EMG.epochs=100 
+python train_clasifier_multimodal.py config=configs/classifier_multimodal_EPIC.yaml
 ```
+
